@@ -1,0 +1,215 @@
+{
+    "identity": {
+        "subject_id": "bug-fixer-agent",
+        "subject_name": "bug-fixer-expert-agent",
+        "subject_type": "agent",
+        "subject_version": {
+            "version": "1.0.0",
+            "release_tag": "stable"
+        }
+    },
+    "info": {
+        "container_image_name": "${DOCKER_REGISTRY}/bug-fixer-agent:latest"
+    },
+    "metadata": {
+        "subject_description": "An expert who understand given input and code, finds the bug user repoting about and gives a fixe to the code",
+        "subject_search_tags": [
+            "text",
+            "normalize",
+            "fill"
+        ],
+        "subject_traits": [
+            "fast",
+            "accurate",
+            "multi-lingual"
+        ],
+        "subject_metadata": {
+            "category": "assistant",
+            "domain": "NLP"
+        }
+    },
+    "persona": {
+        "role": "code_bug_fixer",
+        "goal": "Helps in identifying user reported bugs in code and fixes it",
+        "persona": "Polite, concise, and focused on factual accuracy.",
+        "default_system_message": "You are Agent3 ‘BugRefiner’. Given normalized_text that may include a short code snippet and notes, produce a complete, actionable bug report without inventing facts. Tasks: 1) Extract and structure facts into sections: Title, Summary, Steps to Reproduce, Expected, Actual, Environment, Impact, Attachments/Logs, Workarounds; write ‘Unknown’ if a field is missing. 2) Keep between 120 and 180 words excluding code. 3) Preserve versions, paths, error strings, and flags exactly; do not change semantics. 4) If the code suggests likely root causes, add a ‘Suspected Causes’ section with clearly marked hypotheses. The improved_markdown must use H2 headings. Output fields: 1) improved_markdown: Report in Markdown with H2 headings, 2) corrected_code: The full corrected code snippet. You MUST provide the complete fixed code here., 3) key_sections_present: List of present sections (comma-separated), 4) actionable_checks: List of status flags (comma-separated), e.g., ‘has_steps’, ‘has_environment’, ‘has_expected_vs_actual’, ‘has_logs_or_code’."
+    },
+    "prompting": {
+        "default_system_template": "System: {{system_message}}",
+        "input_template": "User: {{user_input}}",
+        "output_template": "Assistant: {{assistant_output}}",
+        "prompts_config": {
+            "summarize": "Please summarize the following text in under 200 words.",
+            "qa": "Answer the question based only on the provided documents."
+        }
+    },
+    "execution": {
+        "logging_level": "DEBUG",
+        "support_delegations": true,
+        "execute_code": false,
+        "enabled_memory_classes": [
+            "short_term",
+            "long_term",
+            "context"
+        ]
+    },
+    "integrations": {
+        "policies": [
+            {
+                "policy_type": "quota",
+                "policy_rule_uri": "policies/quota-checker",
+                "parameters": {
+                    "max_requests_per_minute": 60
+                },
+                "settings": {
+                    "enforce": true
+                }
+            }
+        ],
+        "dsls": [
+            {
+                "dsl_type": "workflow",
+                "dsl_workflow_id": "wf-123",
+                "dsl_parameters": {
+                    "steps": [
+                        "fetch_docs",
+                        "summarize"
+                    ]
+                }
+            }
+        ],
+        "models": [
+            {
+                "llm_type": "vllm",
+                "llm_block_id": "aios:qwen3-1-7b-vllm-block",
+                "llm_selection_query": {
+                    "task": "summarization"
+                },
+                "llm_parameters": {
+                    "max_tokens": 2048,
+                    "top_k": 50,
+                    "top_p": 0.95,
+                    "temperature": 1.0
+                }
+            }
+        ],
+        "addons": [
+            {
+                "addon_id": "translation-addon",
+                "addon_type": "translation",
+                "addon_config": {
+                    "languages": [
+                        "fr",
+                        "de",
+                        "es"
+                    ]
+                }
+            }
+        ],
+        "contracts": [
+            {
+                "contract_type": "license",
+                "contract_id": "contract-001",
+                "contract_parameters": {
+                    "expiry": "2026-01-01"
+                }
+            }
+        ],
+        "subject_tools": [
+            {
+                "tool_id": "meeting-planner-discussion-point-getter",
+                "tool_description": "Help meeting organisers to get all points needed for discussion in meeting",
+                "tool_execution_mode": "remote",
+                "tool_custom_config": {
+                    "embedding_dim": 768
+                },
+                "tool_calling_config": {
+                    "endpoint": "http://tools.svc.local/search"
+                }
+            }
+        ],
+        "subject_functions": [
+            {
+                "function_id": "summarize_text",
+                "function_custom_parameters": {
+                    "max_length": 300
+                },
+                "function_calling_config": {
+                    "timeout": 5
+                }
+            }
+        ],
+        "memory_systems": [
+            {
+                "memory_id": "redis-memory",
+                "memory_type": "short_term",
+                "memory_backend": "redis",
+                "memory_custom_config": {
+                    "ttl": 3600
+                }
+            }
+        ],
+        "sub_systems": [
+            {
+                "sub_system_id": "kg-subsystem",
+                "sub_system_type": "knowledge_graph",
+                "sub_system_config": {
+                    "db_uri": "bolt://neo4j:7687"
+                }
+            }
+        ],
+        "builtin_modules": [
+            {
+                "module_id": "summarizer",
+                "module_description": "Summarizes long documents into concise notes",
+                "module_input_template": "Input: {{text}}",
+                "module_output_template": "Summary: {{summary}}",
+                "module_management_commands": [
+                    {
+                        "command": "reset_cache",
+                        "command_description": "Clears internal caches"
+                    }
+                ]
+            }
+        ]
+    },
+    "runtime": {
+        "resources": {
+            "device": "cpu",
+            "cpu_cores": 4,
+            "memory_mb": 1024,
+            "storage_mb": 512,
+            "gpu_count": 0,
+            "gpu_memory_mb": 0,
+            "node_selector": {
+                "gpu": "false"
+            },
+            "env": {
+                "HF_HOME": "/models",
+                "LOG_LEVEL": "DEBUG"
+            }
+        },
+        "management_commands": [
+            {
+                "command": "scale_up",
+                "command_description": "Increase replicas for high load"
+            }
+        ],
+        "exchanges": [
+            "central-exchange-001"
+        ]
+    },
+    "owner": {
+        "org_id": "org-789",
+        "org_name": "AI Research Lab",
+        "team": "Knowledge Systems",
+        "owners": [
+            "alice@example.com",
+            "bob@example.com"
+        ],
+        "contacts": {
+            "slack": "#ai-research",
+            "pagerduty": "pd-ai-team"
+        }
+    }
+}

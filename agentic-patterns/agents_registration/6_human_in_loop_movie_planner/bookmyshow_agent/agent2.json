@@ -1,0 +1,238 @@
+{
+    "identity": {
+        "subject_id": "movieplanner-bookmyshow-agent",
+        "subject_name": "movieplanner-bookmyshow-agent",
+        "subject_type": "agent",
+        "subject_version": {
+            "version": "1.0.0",
+            "release_tag": "stable"
+        }
+    },
+    "info": {
+        "container_image_name": "${DOCKER_REGISTRY}/movieplanner-bookmyshow-agent:latest"
+    },
+    "metadata": {
+        "subject_description": "Aggregate schedule and preference data to find matching movie theater showtimes.",
+        "subject_search_tags": [
+            "movie-planner",
+            "aggregator",
+            "booking"
+        ],
+        "subject_traits": [
+            "fast",
+            "accurate"
+        ],
+        "subject_metadata": {
+            "category": "assistant",
+            "domain": "NLP",
+            "capabilities_metadata": {
+                "description": "Finds theaters and showtimes that fit both availability and tastes. Requires Muxing.",
+                "inputs": [
+                    "calendar_slots",
+                    "movie_preferences"
+                ],
+                "outputs": [
+                    "all_valid_options"
+                ]
+            }
+        }
+    },
+    "persona": {
+        "role": "movieplanner-bookmyshow-agent",
+        "goal": "Aggregate schedule and preference data to find matching movie theater showtimes.",
+        "persona": "Expert booking assistant.",
+        "default_system_message": "    You are the BookMyShow Movie Option Aggregator.\n    Your objective is to produce a CLEAN list of ELIGIBLE movie recommendations.\n    \n    PRIMARY RULE: EXCLUSION OVERRIDES EVERYTHING\n    The 'Excluded Genres' and 'special_instructions' (negative constraints) are the highest priority. \n    If a movie belongs to an excluded genre, it MUST be removed from consideraton, even if it is a 'Must-See Movie'.\n    \n    CRITICAL INSTRUCTIONS:\n    1. EXCLUSION FILTER (STEP 1): \n       - Review 'Excluded Genres' and 'special_instructions'.\n       - For EVERY item in 'theater_matches', check if its genre is excluded.\n       - If excluded, mark it as 'Excluded' in your reasoning and DO NOT add it to 'all_valid_options'.\n    \n    2. AVAILABILITY CHECK (STEP 2):\n       - For matches not excluded in Step 1, check if they fit entirely within the 'User Availability' windows.\n       - If it doesn't fit, mark it as 'Excluded' in reasoning.\n    \n    3. CLEAN LIST GENERATION (STEP 3):\n       - 'all_valid_options' must contain ONLY the items that passed BOTH Step 1 and Step 2.\n       - DO NOT list any movie that you marked as 'Excluded' in your reasoning.\n    \n    4. NO MERCY ON EXCLUSIONS: Including an excluded genre in 'all_valid_options' is a critical system failure.\n    \n    5. FORMATTING:\n       - Each option in 'all_valid_options' MUST correspond EXACTLY to a numbered match from 'theater_matches'.\n       - Use numbering (1., 2., etc.) for the final list.\n       - Include: Movie Title, GENRE, Theater, Day, Show Time, and Duration.\n    \n    6. reasoning: For EVERY numbered match in 'theater_matches', explicitly state: 'Included' or 'Excluded' and the specific reason.",
+        "config": {
+            "parameters": {
+                "mux_size": 2,
+                "INFERENCE_SERVER_REGISTRY_URL": "http://<AIOS-INFERENCE-REGISTRY>/api",
+                "BLOCKS_DB_URL": "${BLOCKS_DB_URL}",
+                "INFERENCE_SERVER_ID": "${INFERENCE_SERVER_URL}",
+                "AGENT_SELECTOR_LLM": "qwen3-1-7b-vllm-block",
+                "HIS_CONFIG": {
+                    "HIS_BASE_URL": "${HIS_BASE_URL}",
+                    "HIS_POLL_INTERVAL": 1.0,
+                    "HIS_MAX_WAIT": 120
+                }
+            }
+        }
+    },
+    "prompting": {
+        "default_system_template": "System: {{system_message}}",
+        "input_template": "User: {{user_input}}",
+        "output_template": "Assistant: {{assistant_output}}",
+        "prompts_config": {
+            "summarize": "Please summarize the following text in under 200 words.",
+            "qa": "Answer the question based only on the provided documents."
+        }
+    },
+    "execution": {
+        "logging_level": "DEBUG",
+        "support_delegations": true,
+        "execute_code": false,
+        "enabled_memory_classes": [
+            "short_term",
+            "long_term",
+            "context"
+        ]
+    },
+    "integrations": {
+        "policies": [
+            {
+                "policy_type": "quota",
+                "policy_rule_uri": "policies/quota-checker",
+                "parameters": {
+                    "max_requests_per_minute": 60
+                },
+                "settings": {
+                    "enforce": true
+                }
+            }
+        ],
+        "dsls": [
+            {
+                "dsl_type": "workflow",
+                "dsl_workflow_id": "wf-123",
+                "dsl_parameters": {
+                    "steps": [
+                        "fetch_docs",
+                        "summarize"
+                    ]
+                }
+            }
+        ],
+        "models": [
+            {
+                "llm_type": "vllm",
+                "llm_block_id": "aios:qwen3-1-7b-vllm-block",
+                "llm_selection_query": {
+                    "task": "summarization"
+                },
+                "llm_parameters": {
+                    "max_tokens": 3072,
+                    "top_k": 50,
+                    "top_p": 0.95,
+                    "temperature": 1.0
+                }
+            }
+        ],
+        "addons": [
+            {
+                "addon_id": "translation-addon",
+                "addon_type": "translation",
+                "addon_config": {
+                    "languages": [
+                        "fr",
+                        "de",
+                        "es"
+                    ]
+                }
+            }
+        ],
+        "contracts": [
+            {
+                "contract_type": "license",
+                "contract_id": "contract-001",
+                "contract_parameters": {
+                    "expiry": "2026-01-01"
+                }
+            }
+        ],
+        "subject_tools": [
+            {
+                "tool_id": "meeting-planner-discussion-point-getter",
+                "tool_description": "Help meeting organisers to get all points needed for discussion in meeting",
+                "tool_execution_mode": "remote",
+                "tool_custom_config": {
+                    "embedding_dim": 768
+                },
+                "tool_calling_config": {
+                    "endpoint": "http://tools.svc.local/search"
+                }
+            }
+        ],
+        "subject_functions": [
+            {
+                "function_id": "summarize_text",
+                "function_custom_parameters": {
+                    "max_length": 300
+                },
+                "function_calling_config": {
+                    "timeout": 5
+                }
+            }
+        ],
+        "memory_systems": [
+            {
+                "memory_id": "redis-memory",
+                "memory_type": "short_term",
+                "memory_backend": "redis",
+                "memory_custom_config": {
+                    "ttl": 3600
+                }
+            }
+        ],
+        "sub_systems": [
+            {
+                "sub_system_id": "kg-subsystem",
+                "sub_system_type": "knowledge_graph",
+                "sub_system_config": {
+                    "db_uri": "bolt://neo4j:7687"
+                }
+            }
+        ],
+        "builtin_modules": [
+            {
+                "module_id": "summarizer",
+                "module_description": "Summarizes long documents into concise notes",
+                "module_input_template": "Input: {{text}}",
+                "module_output_template": "Summary: {{summary}}",
+                "module_management_commands": [
+                    {
+                        "command": "reset_cache",
+                        "command_description": "Clears internal caches"
+                    }
+                ]
+            }
+        ]
+    },
+    "runtime": {
+        "resources": {
+            "device": "cpu",
+            "cpu_cores": 4,
+            "memory_mb": 1024,
+            "storage_mb": 512,
+            "gpu_count": 0,
+            "gpu_memory_mb": 0,
+            "node_selector": {
+                "gpu": "false"
+            },
+            "env": {
+                "HF_HOME": "/models",
+                "LOG_LEVEL": "DEBUG"
+            }
+        },
+        "management_commands": [
+            {
+                "command": "scale_up",
+                "command_description": "Increase replicas for high load"
+            }
+        ],
+        "exchanges": [
+            "central-exchange-001"
+        ]
+    },
+    "owner": {
+        "org_id": "org-789",
+        "org_name": "AI Research Lab",
+        "team": "Knowledge Systems",
+        "owners": [
+            "alice@example.com",
+            "bob@example.com"
+        ],
+        "contacts": {
+            "slack": "#ai-research",
+            "pagerduty": "pd-ai-team"
+        }
+    }
+}

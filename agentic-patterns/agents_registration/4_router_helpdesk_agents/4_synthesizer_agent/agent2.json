@@ -1,0 +1,224 @@
+{
+    "identity": {
+        "subject_id": "synthesizer-agent",
+        "subject_name": "synthesizer-agent-expert-agent",
+        "subject_type": "agent",
+        "subject_version": {
+            "version": "1.0.0",
+            "release_tag": "stable"
+        }
+    },
+    "info": {
+        "container_image_name": "${DOCKER_REGISTRY}/synthesizer-agent:latest"
+    },
+    "metadata": {
+        "subject_description": "Merge multiple specialist agent outputs into a single coherent reply.",
+        "subject_search_tags": [
+            "help-desk",
+            "synthesizer",
+            "aggregate"
+        ],
+        "subject_traits": [
+            "fast",
+            "accurate",
+            "multi-lingual"
+        ],
+        "subject_metadata": {
+            "category": "assistant",
+            "domain": "NLP"
+        }
+    },
+    "persona": {
+        "role": "synthesizer-agent",
+        "goal": "Merge multiple specialist agent outputs into a singlebased on defined criteria.",
+        "persona": "Polite, concise, and focused on factual accuracy.",
+        "default_system_message": "You are HELP-DESK synthesizer-agent. Input: a JSON object containing the outputs from all specialized helpdesk agents (Account, Billing, CX, Compliance, Security, Tech) along with the \"original_user_request\" and \"router_output\". Your job is to: 1. Aggregate findings from each expert agent. 2. Resolve any contradictions between agent recommendations. 3. Formulate a single, cohesive, and empathetic final response for the user. 4. Return ONLY valid JSON that conforms to the Pydantic model SynthesizerOutput with this schema: {\"domain\":\"synthesizer\",\"final_response\":string,\"internal_summary\":string,\"action_items\":[{\"who\":string,\"action\":string,\"priority\":string}],\"overall_sentiment\":number,\"further_action_required\":boolean}. Ensure the final_response is helpful, clear, and directly addresses the user's original request based on the collective intelligence of the agent group. Return ONLY JSON matching SynthesizerOutput exactly.",
+        "config": {
+            "parameters": {
+                "mux_size": 3,
+                "INFERENCE_SERVER_REGISTRY_URL": "http://<AIOS-INFERENCE-REGISTRY>/api",
+                "BLOCKS_DB_URL": "${BLOCKS_DB_URL}",
+                "INFERENCE_SERVER_ID": "${INFERENCE_SERVER_URL}",
+                "AGENT_SELECTOR_LLM": "qwen3-1-7b-vllm-block"
+            }
+        }
+    },
+    "prompting": {
+        "default_system_template": "System: {{system_message}}",
+        "input_template": "User: {{user_input}}",
+        "output_template": "Assistant: {{assistant_output}}",
+        "prompts_config": {
+            "summarize": "Please summarize the following text in under 200 words.",
+            "qa": "Answer the question based only on the provided documents."
+        }
+    },
+    "execution": {
+        "logging_level": "DEBUG",
+        "support_delegations": true,
+        "execute_code": false,
+        "enabled_memory_classes": [
+            "short_term",
+            "long_term",
+            "context"
+        ]
+    },
+    "integrations": {
+        "policies": [
+            {
+                "policy_type": "quota",
+                "policy_rule_uri": "policies/quota-checker",
+                "parameters": {
+                    "max_requests_per_minute": 60
+                },
+                "settings": {
+                    "enforce": true
+                }
+            }
+        ],
+        "dsls": [
+            {
+                "dsl_type": "workflow",
+                "dsl_workflow_id": "wf-123",
+                "dsl_parameters": {
+                    "steps": [
+                        "fetch_docs",
+                        "summarize"
+                    ]
+                }
+            }
+        ],
+        "models": [
+            {
+                "llm_type": "vllm",
+                "llm_block_id": "aios:qwen3-1-7b-vllm-block",
+                "llm_selection_query": {
+                    "task": "summarization"
+                },
+                "llm_parameters": {
+                    "max_tokens": 2048,
+                    "top_k": 50,
+                    "top_p": 0.95,
+                    "temperature": 1.0
+                }
+            }
+        ],
+        "addons": [
+            {
+                "addon_id": "translation-addon",
+                "addon_type": "translation",
+                "addon_config": {
+                    "languages": [
+                        "fr",
+                        "de",
+                        "es"
+                    ]
+                }
+            }
+        ],
+        "contracts": [
+            {
+                "contract_type": "license",
+                "contract_id": "contract-001",
+                "contract_parameters": {
+                    "expiry": "2026-01-01"
+                }
+            }
+        ],
+        "subject_tools": [
+            {
+                "tool_id": "meeting-planner-discussion-point-getter",
+                "tool_description": "Help meeting organisers to get all points needed for discussion in meeting",
+                "tool_execution_mode": "remote",
+                "tool_custom_config": {
+                    "embedding_dim": 768
+                },
+                "tool_calling_config": {
+                    "endpoint": "http://tools.svc.local/search"
+                }
+            }
+        ],
+        "subject_functions": [
+            {
+                "function_id": "summarize_text",
+                "function_custom_parameters": {
+                    "max_length": 300
+                },
+                "function_calling_config": {
+                    "timeout": 5
+                }
+            }
+        ],
+        "memory_systems": [
+            {
+                "memory_id": "redis-memory",
+                "memory_type": "short_term",
+                "memory_backend": "redis",
+                "memory_custom_config": {
+                    "ttl": 3600
+                }
+            }
+        ],
+        "sub_systems": [
+            {
+                "sub_system_id": "kg-subsystem",
+                "sub_system_type": "knowledge_graph",
+                "sub_system_config": {
+                    "db_uri": "bolt://neo4j:7687"
+                }
+            }
+        ],
+        "builtin_modules": [
+            {
+                "module_id": "summarizer",
+                "module_description": "Summarizes long documents into concise notes",
+                "module_input_template": "Input: {{text}}",
+                "module_output_template": "Summary: {{summary}}",
+                "module_management_commands": [
+                    {
+                        "command": "reset_cache",
+                        "command_description": "Clears internal caches"
+                    }
+                ]
+            }
+        ]
+    },
+    "runtime": {
+        "resources": {
+            "device": "cpu",
+            "cpu_cores": 4,
+            "memory_mb": 1024,
+            "storage_mb": 512,
+            "gpu_count": 0,
+            "gpu_memory_mb": 0,
+            "node_selector": {
+                "gpu": "false"
+            },
+            "env": {
+                "HF_HOME": "/models",
+                "LOG_LEVEL": "DEBUG"
+            }
+        },
+        "management_commands": [
+            {
+                "command": "scale_up",
+                "command_description": "Increase replicas for high load"
+            }
+        ],
+        "exchanges": [
+            "central-exchange-001"
+        ]
+    },
+    "owner": {
+        "org_id": "org-789",
+        "org_name": "AI Research Lab",
+        "team": "Knowledge Systems",
+        "owners": [
+            "alice@example.com",
+            "bob@example.com"
+        ],
+        "contacts": {
+            "slack": "#ai-research",
+            "pagerduty": "pd-ai-team"
+        }
+    }
+}

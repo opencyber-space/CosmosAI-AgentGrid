@@ -1,0 +1,215 @@
+{
+    "identity": {
+        "subject_id": "final-aggregator-agent",
+        "subject_name": "final-aggregator-expert-agent",
+        "subject_type": "agent",
+        "subject_version": {
+            "version": "1.0.0",
+            "release_tag": "stable"
+        }
+    },
+    "info": {
+        "container_image_name": "${DOCKER_REGISTRY}/final-aggregator-agent:latest"
+    },
+    "metadata": {
+        "subject_description": "An expert who collects input from different branch and finalizes summary",
+        "subject_search_tags": [
+            "text",
+            "normalize",
+            "fill"
+        ],
+        "subject_traits": [
+            "fast",
+            "accurate",
+            "multi-lingual"
+        ],
+        "subject_metadata": {
+            "category": "assistant",
+            "domain": "NLP"
+        }
+    },
+    "persona": {
+        "role": "final_aggregator_agent",
+        "goal": "Helps in aggragating and summarizing the tasks done by previous branch so far",
+        "persona": "Polite, concise, and focused on factual accuracy.",
+        "default_system_message": "You are Agent9 ‘TriageSummarizer’. Synthesize a standardized triage summary from a single upstream branch (bug or feature). Do not invent facts. Tasks: 1) Parse the upstream input which contains improved_markdown, key_sections_present, and actionable_checks. 2) Extract the corresponding code snippet from the input (either 'corrected_code' if it's a bug or 'improved_code' if it's a feature). 3) title: take from the first heading or a clear first sentence. 4) one_line_summary: neutral, specific, ≤120 characters. 5) body_markdown: pass through improved_markdown unchanged except trivial whitespace fixes. 6) quality_flags: infer gaps using key_sections_present and actionable_checks (e.g., ‘missing_repro_steps’, ‘missing_environment’, ‘missing_acceptance_criteria’, ‘no_risks’). Output fields: 1) type: 'bug' or 'feature', 2) title: Short descriptive title, 3) one_line_summary: Concise neutral summary, 4) body_markdown: Full report in Markdown, 5) quality_flags: Comma-separated status flags, 6) final_code: The full corrected/improved code snippet (if applicable, else 'None')."
+    },
+    "prompting": {
+        "default_system_template": "System: {{system_message}}",
+        "input_template": "User: {{user_input}}",
+        "output_template": "Assistant: {{assistant_output}}",
+        "prompts_config": {
+            "summarize": "Please summarize the following text in under 200 words.",
+            "qa": "Answer the question based only on the provided documents."
+        }
+    },
+    "execution": {
+        "logging_level": "DEBUG",
+        "support_delegations": true,
+        "execute_code": false,
+        "enabled_memory_classes": [
+            "short_term",
+            "long_term",
+            "context"
+        ]
+    },
+    "integrations": {
+        "policies": [
+            {
+                "policy_type": "quota",
+                "policy_rule_uri": "policies/quota-checker",
+                "parameters": {
+                    "max_requests_per_minute": 60
+                },
+                "settings": {
+                    "enforce": true
+                }
+            }
+        ],
+        "dsls": [
+            {
+                "dsl_type": "workflow",
+                "dsl_workflow_id": "wf-123",
+                "dsl_parameters": {
+                    "steps": [
+                        "fetch_docs",
+                        "summarize"
+                    ]
+                }
+            }
+        ],
+        "models": [
+            {
+                "llm_type": "vllm",
+                "llm_block_id": "aios:qwen3-1-7b-vllm-block",
+                "llm_selection_query": {
+                    "task": "summarization"
+                },
+                "llm_parameters": {
+                    "max_tokens": 4096,
+                    "top_k": 50,
+                    "top_p": 0.95,
+                    "temperature": 1.0
+                }
+            }
+        ],
+        "addons": [
+            {
+                "addon_id": "translation-addon",
+                "addon_type": "translation",
+                "addon_config": {
+                    "languages": [
+                        "fr",
+                        "de",
+                        "es"
+                    ]
+                }
+            }
+        ],
+        "contracts": [
+            {
+                "contract_type": "license",
+                "contract_id": "contract-001",
+                "contract_parameters": {
+                    "expiry": "2026-01-01"
+                }
+            }
+        ],
+        "subject_tools": [
+            {
+                "tool_id": "meeting-planner-discussion-point-getter",
+                "tool_description": "Help meeting organisers to get all points needed for discussion in meeting",
+                "tool_execution_mode": "remote",
+                "tool_custom_config": {
+                    "embedding_dim": 768
+                },
+                "tool_calling_config": {
+                    "endpoint": "http://tools.svc.local/search"
+                }
+            }
+        ],
+        "subject_functions": [
+            {
+                "function_id": "summarize_text",
+                "function_custom_parameters": {
+                    "max_length": 300
+                },
+                "function_calling_config": {
+                    "timeout": 5
+                }
+            }
+        ],
+        "memory_systems": [
+            {
+                "memory_id": "redis-memory",
+                "memory_type": "short_term",
+                "memory_backend": "redis",
+                "memory_custom_config": {
+                    "ttl": 3600
+                }
+            }
+        ],
+        "sub_systems": [
+            {
+                "sub_system_id": "kg-subsystem",
+                "sub_system_type": "knowledge_graph",
+                "sub_system_config": {
+                    "db_uri": "bolt://neo4j:7687"
+                }
+            }
+        ],
+        "builtin_modules": [
+            {
+                "module_id": "summarizer",
+                "module_description": "Summarizes long documents into concise notes",
+                "module_input_template": "Input: {{text}}",
+                "module_output_template": "Summary: {{summary}}",
+                "module_management_commands": [
+                    {
+                        "command": "reset_cache",
+                        "command_description": "Clears internal caches"
+                    }
+                ]
+            }
+        ]
+    },
+    "runtime": {
+        "resources": {
+            "device": "cpu",
+            "cpu_cores": 4,
+            "memory_mb": 1024,
+            "storage_mb": 512,
+            "gpu_count": 0,
+            "gpu_memory_mb": 0,
+            "node_selector": {
+                "gpu": "false"
+            },
+            "env": {
+                "HF_HOME": "/models",
+                "LOG_LEVEL": "DEBUG"
+            }
+        },
+        "management_commands": [
+            {
+                "command": "scale_up",
+                "command_description": "Increase replicas for high load"
+            }
+        ],
+        "exchanges": [
+            "central-exchange-001"
+        ]
+    },
+    "owner": {
+        "org_id": "org-789",
+        "org_name": "AI Research Lab",
+        "team": "Knowledge Systems",
+        "owners": [
+            "alice@example.com",
+            "bob@example.com"
+        ],
+        "contacts": {
+            "slack": "#ai-research",
+            "pagerduty": "pd-ai-team"
+        }
+    }
+}

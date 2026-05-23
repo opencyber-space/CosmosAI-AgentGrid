@@ -1,0 +1,8 @@
+router → financial-profile-agent
+router → market-risk-agent + collateral-evaluator-agent  (parallel fork)
+router → fraud-investigation-workflow  (signals detected)
+           └── transaction-history-agent
+                    └── identity-verification-agent
+                              └── fraud-score-agent
+router → loan-decision-agent 
+router → []  DONE

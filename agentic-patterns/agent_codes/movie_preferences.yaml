@@ -1,0 +1,16 @@
+preferences:
+  genres:
+    - "Sci-Fi"
+    - "Action"
+    - "Drama"
+  must_see:
+    - "Dune: Part Two"
+    - "The Batman"
+  disliked_genres:
+    - "Horror"
+    - "Musical"
+  seat_preference:
+    - Category: "Premium"
+    - rows: "TOP" #TOP/MIDDLE/BOTTOM
+    - seats: "CENTER" #CENTER/LEFT/RIGHT
+    - ailes_ok: true

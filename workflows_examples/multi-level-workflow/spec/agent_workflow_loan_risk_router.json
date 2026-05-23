@@ -1,0 +1,228 @@
+{
+    "identity": {
+        "subject_id": "agent-workflow-loan-risk-router",
+        "subject_name": "agent-workflow-loan-risk-router",
+        "subject_type": "agent",
+        "subject_version": {
+            "version": "1.0.0",
+            "release_tag": "stable"
+        }
+    },
+    "info": {
+        "container_image_name": "${DOCKER_REGISTRY}/agent-workflow-loan-risk-router:latest"
+    },
+    "metadata": {
+        "subject_description": "An AI research assistant specializing in summarization and document retrieval.",
+        "subject_search_tags": [
+            "AI",
+            "summarization",
+            "research",
+            "retrieval"
+        ],
+        "subject_traits": [
+            "fast",
+            "accurate",
+            "multi-lingual"
+        ],
+        "subject_metadata": {
+            "category": "assistant",
+            "domain": "NLP"
+        }
+    },
+    "persona": {
+        "role": "research_assistant",
+        "goal": "Help researchers summarize and analyze large corpora of documents.",
+        "persona": "Polite, concise, and focused on factual accuracy.",
+        "default_system_message": "You are a helpful research assistant. Keep answers short and factual.",
+        "config": {
+            "parameters": {
+                "INFERENCE_SERVER_REGISTRY_URL": "http://<AIOS-INFERENCE-REGISTRY>/api",
+                "BLOCKS_DB_URL": "${BLOCKS_DB_URL}",
+                "INFERENCE_SERVER_ID": "${INFERENCE_SERVER_URL}",
+                "AGENT_SELECTOR_LLM": "qwen3-1-7b-vllm-block",
+                "HIS_CONFIG": {
+                    "HIS_BASE_URL": "${HIS_BASE_URL}",
+                    "HIS_POLL_INTERVAL": 1.0,
+                    "HIS_MAX_WAIT": 120
+                }
+            }
+        }
+    },
+    "prompting": {
+        "default_system_template": "System: {{system_message}}",
+        "input_template": "User: {{user_input}}",
+        "output_template": "Assistant: {{assistant_output}}",
+        "prompts_config": {
+            "summarize": "Please summarize the following text in under 200 words.",
+            "qa": "Answer the question based only on the provided documents."
+        }
+    },
+    "execution": {
+        "logging_level": "INFO",
+        "support_delegations": true,
+        "execute_code": false,
+        "enabled_memory_classes": [
+            "short_term",
+            "long_term"
+        ]
+    },
+    "integrations": {
+        "policies": [
+            {
+                "policy_type": "quota",
+                "policy_rule_uri": "policies/quota-checker",
+                "parameters": {
+                    "max_requests_per_minute": 60
+                },
+                "settings": {
+                    "enforce": true
+                }
+            }
+        ],
+        "dsls": [
+            {
+                "dsl_type": "workflow",
+                "dsl_workflow_id": "wf-123",
+                "dsl_parameters": {
+                    "steps": [
+                        "fetch_docs",
+                        "summarize"
+                    ]
+                }
+            }
+        ],
+        "models": [
+            {
+                "llm_type": "vllm",
+                "llm_block_id": "aios:qwen3-1-7b-vllm-block",
+                "llm_selection_query": {
+                    "task": "summarization"
+                },
+                "llm_parameters": {
+                    "max_tokens": 4096,
+                    "top_k": 50,
+                    "top_p": 0.95,
+                    "temperature": 1.0
+                }
+            }
+        ],
+        "addons": [
+            {
+                "addon_id": "translation-addon",
+                "addon_type": "translation",
+                "addon_config": {
+                    "languages": [
+                        "fr",
+                        "de",
+                        "es"
+                    ]
+                }
+            }
+        ],
+        "contracts": [
+            {
+                "contract_type": "license",
+                "contract_id": "contract-001",
+                "contract_parameters": {
+                    "expiry": "2026-01-01"
+                }
+            }
+        ],
+        "subject_tools": [
+            {
+                "tool_id": "doc-search",
+                "tool_description": "Searches documents via semantic embeddings",
+                "tool_execution_mode": "remote",
+                "tool_custom_config": {
+                    "embedding_dim": 768
+                },
+                "tool_calling_config": {
+                    "endpoint": "http://tools.svc.local/search"
+                }
+            }
+        ],
+        "subject_functions": [
+            {
+                "function_id": "summarize_text",
+                "function_custom_parameters": {
+                    "max_length": 300
+                },
+                "function_calling_config": {
+                    "timeout": 5
+                }
+            }
+        ],
+        "memory_systems": [
+            {
+                "memory_id": "redis-memory",
+                "memory_type": "short_term",
+                "memory_backend": "redis",
+                "memory_custom_config": {
+                    "ttl": 3600
+                }
+            }
+        ],
+        "sub_systems": [
+            {
+                "sub_system_id": "kg-subsystem",
+                "sub_system_type": "knowledge_graph",
+                "sub_system_config": {
+                    "db_uri": "bolt://neo4j:7687"
+                }
+            }
+        ],
+        "builtin_modules": [
+            {
+                "module_id": "summarizer",
+                "module_description": "Summarizes long documents into concise notes",
+                "module_input_template": "Input: {{text}}",
+                "module_output_template": "Summary: {{summary}}",
+                "module_management_commands": [
+                    {
+                        "command": "reset_cache",
+                        "command_description": "Clears internal caches"
+                    }
+                ]
+            }
+        ]
+    },
+    "runtime": {
+        "resources": {
+            "device": "gpu",
+            "cpu_cores": 4,
+            "memory_mb": 16384,
+            "storage_mb": 10240,
+            "gpu_count": 1,
+            "gpu_memory_mb": 24576,
+            "node_selector": {
+                "gpu": "true"
+            },
+            "env": {
+                "HF_HOME": "/models",
+                "LOG_LEVEL": "DEBUG"
+            }
+        },
+        "management_commands": [
+            {
+                "command": "scale_up",
+                "command_description": "Increase replicas for high load"
+            }
+        ],
+        "exchanges": [
+            "central-exchange-001"
+        ]
+    },
+    "owner": {
+        "org_id": "org-789",
+        "org_name": "AI Research Lab",
+        "team": "Knowledge Systems",
+        "owners": [
+            "alice@example.com",
+            "bob@example.com"
+        ],
+        "contacts": {
+            "slack": "#ai-research",
+            "pagerduty": "pd-ai-team"
+        }
+    }
+}

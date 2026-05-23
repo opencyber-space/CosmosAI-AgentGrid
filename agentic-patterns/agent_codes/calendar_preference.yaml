@@ -1,0 +1,28 @@
+preferences:
+  patterns:
+    - "Prefer Friday night movie slots (after 19:00)"
+    - "Saturday afternoon or evening is also good"
+    - "Do not recommend movies on weekdays (Monday to Thursday)"
+    - "No movie watching on Sundays"
+  
+  history:
+    - date: "2026-01-23"
+      day: "Friday"
+      time_slot: "19:30 - 21:30"
+      theater: "PVR Cinemas"
+    - date: "2026-01-17"
+      day: "Saturday"
+      time_slot: "16:00 - 18:00"
+      theater: "Cinepolis"
+    - date: "2026-01-09"
+      day: "Friday"
+      time_slot: "20:00 - 22:00"
+      theater: "INOX"
+    - date: "2026-01-09"
+      day: "Friday"
+      time_slot: "14:00 - 15:30"
+      theater: "INOX"
+    - date: "2026-01-03"
+      day: "Saturday"
+      time_slot: "14:00 - 16:00"
+      theater: "PVR Cinemas"

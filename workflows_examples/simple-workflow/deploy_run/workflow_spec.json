@@ -1,0 +1,72 @@
+{
+  "header": {
+    "workflow_id": {
+      "name": "legal-contract-review-workflow",
+      "version": "1.0.0",
+      "release": "stable"
+    },
+    "metadata": {
+      "description": "Multi-agent pipeline to review contracts, flag risks and produce a legal memo",
+      "owner": "legal-ops-team",
+      "created_at": "2026-03-09"
+    }
+  },
+  "body": {
+    "nodes": [
+      {
+        "nodeID": "my-clause-extractor-agent",
+        "type": "agent",
+        "id": "clause-extractor-agent",
+        "settings": {
+          "model_name": "aios:qwen3-1-7b-vllm-block"
+        }
+      },
+      {
+        "nodeID": "my-risk-identifier-agent",
+        "type": "agent",
+        "id": "risk-identifier-agent",
+        "settings": {
+          "model_name": "aios:qwen3-1-7b-vllm-block"
+        }
+      },
+      {
+        "nodeID": "my-compliance-checker-agent",
+        "type": "agent",
+        "id": "compliance-checker-agent",
+        "settings": {
+          "model_name": "aios:qwen3-1-7b-vllm-block"
+        }
+      },
+      {
+        "nodeID": "my-negotiation-advisor-agent",
+        "type": "agent",
+        "id": "negotiation-adviser-agent",
+        "settings": {
+          "model_name": "aios:qwen3-1-7b-vllm-block"
+        }
+      },
+      {
+        "nodeID": "my-legal-memo-agent",
+        "type": "agent",
+        "id": "legal-memo-agent",
+        "settings": {
+          "model_name": "aios:qwen3-1-7b-vllm-block"
+        }
+      }
+    ],
+    "graph": {
+      "my-clause-extractor-agent": [
+        "my-risk-identifier-agent"
+      ],
+      "my-risk-identifier-agent": [
+        "my-compliance-checker-agent"
+      ],
+      "my-compliance-checker-agent": [
+        "my-negotiation-advisor-agent"
+      ],
+      "my-negotiation-advisor-agent": [
+        "my-legal-memo-agent"
+      ]
+    }
+  }
+}

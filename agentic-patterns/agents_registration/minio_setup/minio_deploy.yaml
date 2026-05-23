@@ -1,0 +1,90 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: minio-agents-worker-node2
+  namespace: alerts
+spec:
+  selector:
+    matchLabels:
+      app: minio-agents-worker-node2
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        # Label is used as selector in the service.
+        app: minio-agents-worker-node2
+    spec:
+      # Refer to the PVC created earlier
+      volumes:
+      - name: storage
+        hostPath:
+          path: /home/ubuntu/minio
+      nodeName: agents-worker-node2
+      containers:
+      - name: minio
+        image: minio/minio:latest
+        args:
+        - server
+        - /storage
+        - --console-address # FIX: Explicitly bind the WebUI port
+        - ":36963"
+        env:
+        - name: MINIO_ROOT_USER # FIX: Updated from MINIO_ACCESS_KEY
+          valueFrom:
+           secretKeyRef:
+            name: minio-creds
+            key: access
+        - name: MINIO_ROOT_PASSWORD # FIX: Updated from MINIO_SECRET_KEY
+          valueFrom:
+           secretKeyRef:
+            name: minio-creds
+            key: secret
+        ports:
+        - name: minio-api
+          containerPort: 9000
+          hostPort: 9000
+        - name: minio-ui
+          containerPort: 36963
+          hostPort: 36963
+        volumeMounts:
+        - name: storage
+          mountPath: "/storage"
+        
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: minio-agents-worker-node2
+  namespace: alerts
+  annotations:
+    getambassador.io/config: |
+      ---
+      apiVersion: ambassador/v1
+      kind: Mapping
+      name: minio-agents-worker-node2
+      prefix: /minio-agents-worker-node2/
+      rewrite : /
+      service: minio-agents-worker-node2.alerts.svc.cluster.local:9000
+      ---
+      apiVersion: ambassador/v1
+      kind: Mapping
+      name: minio-agents-worker-node2-console
+      prefix: /minio-console-worker-node2/
+      rewrite: /
+      service: minio-agents-worker-node2.alerts.svc.cluster.local:36963
+spec:
+  selector:
+    app: minio-agents-worker-node2
+  ports:
+    - name: minio-api
+      protocol: TCP
+      port: 9000
+      targetPort: 9000
+      nodePort: 32752
+    - name: minio-console
+      protocol: TCP
+      port: 36963
+      targetPort: 36963
+      nodePort: 32753
+  type: NodePort

@@ -1,0 +1,64 @@
+rfc:
+  rfc-summarizer:
+    next_agent: [pro-argument-generator, con-argument-generator,safeguards-proposer]
+  pro-argument-generator:
+    next_agent: consensus-synthesizer
+  safeguards-proposer:
+    next_agent: consensus-synthesizer
+  con-argument-generator: 
+    next_agent: consensus-synthesizer
+  consensus-synthesizer:
+    next_agent: false
+
+help-desk:
+  account-agent:
+    next_agent: synthesizer-agent
+  billing-agent:
+    next_agent: synthesizer-agent
+  tech-agent:
+    next_agent: synthesizer-agent
+  router-agent: 
+    next_agent: DECISION
+  security-agent:
+    next_agent: synthesizer-agent
+  compliance-agent:
+    next_agent: synthesizer-agent
+  cx-agent:
+    next_agent: synthesizer-agent
+  synthesizer-agent:
+    next_agent: false
+
+movie-booking:
+  movieplanner-bookmyshow-agent:
+    next_agent: false
+  movieplanner-calendar-agent:
+    next_agent: movieplanner-bookmyshow-agent
+  movieplanner-planner-agent:
+    next_agent: [movieplanner-calendar-agent, movieplanner-preferences-agent]
+  movieplanner-preferences-agent:
+    next_agent: movieplanner-bookmyshow-agent
+
+architecture-debate:
+  software-agent:
+    next_agent: senior-architect-agent
+  senior-architect-agent:
+    next_agent: software-agent
+
+meeting:
+  meeting-topic-brainstormer:
+    next_agent: meeting-agenda-architect
+  meeting-agenda-architect:
+    next_agent: meeting-invitation-crafter
+  meeting-invitation-crafter:
+    next_agent: false
+
+
+coding-task:
+  code-text-normalizer:
+    next_agent: CONDITION
+  bug-fixer-agent:
+    next_agent: final-aggregator-agent
+  feature-improver-agent:
+    next_agent: final-aggregator-agent
+  final-aggregator-agent:
+    next_agent: false
