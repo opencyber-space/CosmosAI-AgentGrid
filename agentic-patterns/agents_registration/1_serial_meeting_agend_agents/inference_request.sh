@@ -27,7 +27,7 @@ RESPONSE=$(curl -s -S -X POST ${DELEGATE_API_URL}/api/submit-and-wait \
     \"task_data\": {
       \"text\": \"Meeting Goal of 2 hour: Finalize logistics for 50-person group trip. Attendees: Chris (Finance Dept), Sam (Transport Dept), Lee (Location Guide Agency).\",
       \"session_id\": \"${session_id}\",
-      \"model_name\": \"aios:qwen3-1-7b-vllm-block\",
+      \"model_name\": \"openai:gpt-5.4-mini\",
       \"communication_type\": \"p2p\"
     }
   }")

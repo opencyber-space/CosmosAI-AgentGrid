@@ -365,7 +365,9 @@ class CoSAgent:
             "communication_type": comm_type,
             "task_id": task_id,
             "final_project_outcome": final_report,
-            "text": json.dumps(final_report)
+            "text": json.dumps(final_report),
+            "model_name": model_name,
+            "session_id": session_id
         }
         self._send(task, "company-ceo-agent", job_data, session_id, comm_type)
         return AgentResult(task_id=task.task_id, skip=True)

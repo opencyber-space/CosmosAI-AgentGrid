@@ -9,7 +9,7 @@
         }
     },
     "info": {
-        "container_image_name": "${DOCKER_REGISTRY}/senior-architect-agent:latest"
+        "container_image_name": "${DOCKER_REGISTRY}/debateragents-seniorarchitectagent:latest"
     },
     "metadata": {
         "subject_description": "Evaluates software architecture plans for scalability, security, and workability. Provides approval or refinement feedback.",
@@ -104,16 +104,17 @@
         ],
         "models": [
             {
-                "llm_type": "vllm",
-                "llm_block_id": "aios:qwen3-1-7b-vllm-block",
+                "llm_type": "openai",
+                "llm_block_id": "openai:gpt-5.4-mini",
                 "llm_selection_query": {
                     "task": "summarization"
                 },
                 "llm_parameters": {
-                    "max_tokens": 10240,
+                    "api_key": "${OPENAI_API_KEY}",
+                    "max_completion_tokens": 10240,
                     "top_k": 50,
                     "top_p": 0.95,
-                    "temperature": 1.0
+                    "temperature": 0.5
                 }
             }
         ],

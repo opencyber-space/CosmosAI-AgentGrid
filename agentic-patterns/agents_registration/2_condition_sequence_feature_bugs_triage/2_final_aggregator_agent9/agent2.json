@@ -9,7 +9,7 @@
         }
     },
     "info": {
-        "container_image_name": "${DOCKER_REGISTRY}/final-aggregator-agent:latest"
+        "container_image_name": "${DOCKER_REGISTRY}/codingtask-final-aggregator-agent:latest"
     },
     "metadata": {
         "subject_description": "An expert who collects input from different branch and finalizes summary",
@@ -32,7 +32,8 @@
         "role": "final_aggregator_agent",
         "goal": "Helps in aggragating and summarizing the tasks done by previous branch so far",
         "persona": "Polite, concise, and focused on factual accuracy.",
-        "default_system_message": "You are Agent9 ‘TriageSummarizer’. Synthesize a standardized triage summary from a single upstream branch (bug or feature). Do not invent facts. Tasks: 1) Parse the upstream input which contains improved_markdown, key_sections_present, and actionable_checks. 2) Extract the corresponding code snippet from the input (either 'corrected_code' if it's a bug or 'improved_code' if it's a feature). 3) title: take from the first heading or a clear first sentence. 4) one_line_summary: neutral, specific, ≤120 characters. 5) body_markdown: pass through improved_markdown unchanged except trivial whitespace fixes. 6) quality_flags: infer gaps using key_sections_present and actionable_checks (e.g., ‘missing_repro_steps’, ‘missing_environment’, ‘missing_acceptance_criteria’, ‘no_risks’). Output fields: 1) type: 'bug' or 'feature', 2) title: Short descriptive title, 3) one_line_summary: Concise neutral summary, 4) body_markdown: Full report in Markdown, 5) quality_flags: Comma-separated status flags, 6) final_code: The full corrected/improved code snippet (if applicable, else 'None')."
+        "default_system_message": "You are Agent9 ‘TriageSummarizer’. Synthesize a standardized triage summary from a single upstream branch (bug or feature). Do not invent facts. Tasks: 1) Parse the upstream input which contains improved_markdown, key_sections_present, and actionable_checks. 2) Extract the corresponding code snippet from the input (either 'corrected_code' if it's a bug or 'improved_code' if it's a feature). 3) title: take from the first heading or a clear first sentence. 4) one_line_summary: neutral, specific, ≤120 characters. 5) body_markdown: pass through improved_markdown unchanged except trivial whitespace fixes. 6) quality_flags: infer gaps using key_sections_present and actionable_checks (e.g., ‘missing_repro_steps’, ‘missing_environment’, ‘missing_acceptance_criteria’, ‘no_risks’). Output fields: 1) type: 'bug' or 'feature', 2) title: Short descriptive title, 3) one_line_summary: Concise neutral summary, 4) body_markdown: Full report in Markdown, 5) quality_flags: Comma-separated status flags, 6) final_code: The full corrected/improved code snippet (if applicable, else 'None').",
+        "config": {}
     },
     "prompting": {
         "default_system_template": "System: {{system_message}}",
@@ -80,16 +81,17 @@
         ],
         "models": [
             {
-                "llm_type": "vllm",
-                "llm_block_id": "aios:qwen3-1-7b-vllm-block",
+                "llm_type": "openai",
+                "llm_block_id": "openai:gpt-5.4-mini",
                 "llm_selection_query": {
                     "task": "summarization"
                 },
                 "llm_parameters": {
-                    "max_tokens": 4096,
+                    "api_key": "${OPENAI_API_KEY}",
+                    "max_completion_tokens": 4096,
                     "top_k": 50,
                     "top_p": 0.95,
-                    "temperature": 1.0
+                    "temperature": 0.5
                 }
             }
         ],

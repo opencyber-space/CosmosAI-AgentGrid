@@ -25,15 +25,19 @@ case "${AGENT}" in
     ;;
 
   #for 2_condition_sequence_feature_bugs_triage agents
+  codingtask-code-text-normalizer)
+    echo "Starting codingtask-code-text-normalizer agent (agent_codingtask_code_text_normalizer.py)"
+    exec python3 agent_codingtask_code_text_normalizer.py
+    ;;
   codingtask-bug-fixer)
     echo "Starting codingtask-bug-fixer agent (agent_codingtask_bug_fixer.py)"
     exec python3 agent_codingtask_bug_fixer.py
     ;;
-  codingtask-feature-improver)
+  codingtask-feature-improver-agent)
     echo "Starting codingtask-feature-improver agent (agent_codingtask_feature_improver.py)"
     exec python3 agent_codingtask_feature_improver.py
     ;;
-  codingtask-final-aggregator)
+  codingtask-final-aggregator-agent)
     echo "Starting codingtask-final-aggregator agent (agent_codingtask_final_aggregator.py)"
     exec python3 agent_codingtask_final_aggregator.py
     ;;

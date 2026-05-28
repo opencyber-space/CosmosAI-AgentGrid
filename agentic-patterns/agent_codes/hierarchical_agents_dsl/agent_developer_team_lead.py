@@ -23,6 +23,7 @@ class DevEstimationSignature(dspy.Signature):
 
     ### TASK
     Estimate the budget and effort for frontend and backend development.
+    IMPORTANT: The estimated amount must be purely a number (e.g., 38000), do not use text or currency symbols like '$38,000'.
     
     ### OUTPUT
     Output EXACTLY a JSON block: {team_name, amount, deliverables}
@@ -206,7 +207,7 @@ class DeveloperTeamLeadAgent:
             be_raw = result.budget_estimate
             be_data = extract_json(be_raw)
             
-        self._send_to_cos(task, task_id, {"budget_estimate": be_data}, session_id, comm_type)
+        self._send_to_cos(task, task_id, {"budget_estimate": be_data}, session_id, comm_type, model_name)
         return AgentResult(task_id=task_id, skip=True)
 
     def _check_and_trigger_dev(self, task, task_id, problem_statement, session_id, model_name, comm_type):
@@ -269,15 +270,17 @@ class DeveloperTeamLeadAgent:
         # Safely enforce team name to prevent LLM confusion from breaking the routing loop
         outcome_data["team_name"] = "Developer Team Lead"
 
-        self._send_to_cos(task, task_id, {"team_outcome": outcome_data}, session_id, comm_type)
+        self._send_to_cos(task, task_id, {"team_outcome": outcome_data}, session_id, comm_type, model_name)
         return AgentResult(task_id=task_id, skip=True)
 
-    def _send_to_cos(self, task, task_id, job_data, session_id, comm_type):
+    def _send_to_cos(self, task, task_id, job_data, session_id, comm_type,model_name):
         target_id = "company-chief-of-staff-agent"
         job_data.update({
             "task_id": task_id,
             "user_request": self.task_registry[task_id].get("user_request"),
-            "communication_type": comm_type
+            "communication_type": comm_type,
+            "session_id": session_id,
+            "model_name": model_name
         })
         if comm_type == "delegate":
             self._log_to_his(target_id, job_data)

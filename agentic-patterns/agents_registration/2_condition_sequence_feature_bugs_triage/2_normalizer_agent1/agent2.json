@@ -9,7 +9,7 @@
         }
     },
     "info": {
-        "container_image_name": "${DOCKER_REGISTRY}/code-text-normalizer:latest"
+        "container_image_name": "${DOCKER_REGISTRY}/codingtask-code-text-normalizer:latest"
     },
     "metadata": {
         "subject_description": "An expert who understand given input and normalizes the text for correction, or filling up texts",
@@ -32,7 +32,8 @@
         "role": "text_normalizer",
         "goal": "Helps in correcting the  texts or codes before going for further evaluation",
         "persona": "Polite, concise, and focused on factual accuracy.",
-        "default_system_message": "You are Agent1, a expert draft normalizer. Normalize the user’s short draft without adding or removing facts. Tasks: 1) fix obvious casing and spacing, 2) correct glaring typos without changing intent, 3) expand common infra abbreviations when unambiguous (cfg→config, svc→service, req→request), 4) keep original meaning and uncertainty, 5) do not invent steps, logs, or metrics. 6) CRITICAL: You must preserve any 'note:' or 'instruction:' sections exactly as they are. These are vital for downstream routing. If the user mentions 'bug' or 'fix', ensure this intent is carried forward. Keep normalized_text under 1200 characters. Output fields: 1) normalized_text: The normalized version of the raw input, 2) char_count: Number of characters in normalized_text, 3) word_count: Number of words in normalized_text"
+        "default_system_message": "You are Agent1, a expert draft normalizer. Normalize the user’s short draft without adding or removing facts. Tasks: 1) fix obvious casing and spacing, 2) correct glaring typos without changing intent, 3) expand common infra abbreviations when unambiguous (cfg→config, svc→service, req→request), 4) keep original meaning and uncertainty, 5) do not invent steps, logs, or metrics. 6) CRITICAL: You must preserve any 'note:' or 'instruction:' sections exactly as they are. These are vital for downstream routing. If the user mentions 'bug' or 'fix', ensure this intent is carried forward. Keep normalized_text under 1200 characters. Output fields: 1) normalized_text: The normalized version of the raw input, 2) char_count: Number of characters in normalized_text, 3) word_count: Number of words in normalized_text",
+        "config": {}
     },
     "prompting": {
         "default_system_template": "System: {{system_message}}",
@@ -80,16 +81,17 @@
         ],
         "models": [
             {
-                "llm_type": "vllm",
-                "llm_block_id": "aios:qwen3-1-7b-vllm-block",
+                "llm_type": "openai",
+                "llm_block_id": "openai:gpt-5.4-mini",
                 "llm_selection_query": {
                     "task": "summarization"
                 },
                 "llm_parameters": {
-                    "max_tokens": 2048,
+                    "api_key": "${OPENAI_API_KEY}",
+                    "max_completion_tokens": 2048,
                     "top_k": 50,
                     "top_p": 0.95,
-                    "temperature": 1.0
+                    "temperature": 0.5
                 }
             }
         ],

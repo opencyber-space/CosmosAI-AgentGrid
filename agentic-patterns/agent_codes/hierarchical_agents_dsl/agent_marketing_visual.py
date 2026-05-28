@@ -40,20 +40,24 @@ class GoogleImageGenerator:
 
         if "google:" in self.model_name:
             model_id = self.model_name.replace("google:", "")
-            response = self.client.models.generate_content(
-                model=model_id,
-                contents=prompt,
-                config=types.GenerateContentConfig(
-                    response_modalities=["IMAGE"], 
-                    image_config=types.ImageConfig(aspect_ratio="16:9")
+            try:
+                response = self.client.models.generate_content(
+                    model=model_id,
+                    contents=prompt,
+                    config=types.GenerateContentConfig(
+                        response_modalities=["IMAGE"], 
+                        image_config=types.ImageConfig(aspect_ratio="16:9")
+                    )
                 )
-            )
-            for part in response.candidates[0].content.parts:
-                if part.inline_data:
-                    img = Image.open(BytesIO(part.inline_data.data))
-                    buffered = BytesIO()
-                    img.save(buffered, format="PNG")
-                    return buffered.getvalue()
+                for part in response.candidates[0].content.parts:
+                    if part.inline_data:
+                        img = Image.open(BytesIO(part.inline_data.data))
+                        buffered = BytesIO()
+                        img.save(buffered, format="PNG")
+                        return buffered.getvalue()
+            except Exception as e:
+                log.error(f"Image generation API failed: {e}")
+                return None
         return None
 
 class MinioUploader:
@@ -192,11 +196,16 @@ class MarketingVisualAgent:
                 image_prompts = []
                 for desc in asset_descriptions:
                     # Generate optimized prompt via DSPy Sub-Signature
-                    with dspy.settings.context(lm=self.aios_dspy_lm.get_choosen_model(model_name=model_name, session_id=llm_session_id)):
-                        prompt_res = self.prompt_module.forward(problem_statement=problem_statement, asset_description=desc)
-                        prompt_data = extract_json(prompt_res.output_data)
-                        optimized_prompt = prompt_data.get("image_prompt", f"Product Concept: {problem_statement}\nAsset Description: {desc}")
-                        image_prompts.append(optimized_prompt)
+                    try:
+                        with dspy.settings.context(lm=self.aios_dspy_lm.get_choosen_model(model_name=model_name, session_id=llm_session_id)):
+                            prompt_res = self.prompt_module.forward(problem_statement=problem_statement, asset_description=desc)
+                            prompt_data = extract_json(prompt_res.output_data)
+                            optimized_prompt = prompt_data.get("image_prompt", f"Product Concept: {problem_statement}\nAsset Description: {desc}")
+                    except Exception as prompt_err:
+                        log.error(f"Failed to generate optimized prompt for desc '{desc}': {prompt_err}")
+                        optimized_prompt = f"Product Concept: {problem_statement}\nAsset Description: {desc}"
+                    
+                    image_prompts.append(optimized_prompt)
                     
                     try:
                         log.info(f"Generating image using optimized prompt: {optimized_prompt}")

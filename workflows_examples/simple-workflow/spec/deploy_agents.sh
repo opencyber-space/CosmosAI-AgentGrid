@@ -12,9 +12,10 @@ fi
 
 #/bin/bash
 
-curl -X POST ${API_BASE_URL}/api/deploy-agent/deployer-111 \
+curl -X POST "${API_BASE_URL}/api/deploy-agent/deployer-111" \
 -H "Content-Type: application/json" \
--d '{
+-d @- <<EOF
+{
   "subject_id": "clause-extractor-agent",
   "allocation": {
     "delegate_api_url": "${DELEGATE_API_URL}",
@@ -31,11 +32,13 @@ curl -X POST ${API_BASE_URL}/api/deploy-agent/deployer-111 \
       }
     ]
   }
-}'
+}
+EOF
 
-curl -X POST ${API_BASE_URL}/api/deploy-agent/deployer-111 \
+curl -X POST "${API_BASE_URL}/api/deploy-agent/deployer-111" \
 -H "Content-Type: application/json" \
--d '{
+-d @- <<EOF
+{
   "subject_id": "compliance-checker-agent",
   "allocation": {
     "delegate_api_url": "${DELEGATE_API_URL}",
@@ -52,11 +55,13 @@ curl -X POST ${API_BASE_URL}/api/deploy-agent/deployer-111 \
       }
     ]
   }
-}'
+}
+EOF
 
-curl -X POST ${API_BASE_URL}/api/deploy-agent/deployer-111 \
+curl -X POST "${API_BASE_URL}/api/deploy-agent/deployer-111" \
 -H "Content-Type: application/json" \
--d '{
+-d @- <<EOF
+{
   "subject_id": "legal-memo-agent",
   "allocation": {
     "delegate_api_url": "${DELEGATE_API_URL}",
@@ -73,11 +78,13 @@ curl -X POST ${API_BASE_URL}/api/deploy-agent/deployer-111 \
       }
     ]
   }
-}'
+}
+EOF
 
-curl -X POST ${API_BASE_URL}/api/deploy-agent/deployer-111 \
+curl -X POST "${API_BASE_URL}/api/deploy-agent/deployer-111" \
 -H "Content-Type: application/json" \
--d '{
+-d @- <<EOF
+{
   "subject_id": "negotiation-adviser-agent",
   "allocation": {
     "delegate_api_url": "${DELEGATE_API_URL}",
@@ -94,11 +101,13 @@ curl -X POST ${API_BASE_URL}/api/deploy-agent/deployer-111 \
       }
     ]
   }
-}'
+}
+EOF
 
-curl -X POST ${API_BASE_URL}/api/deploy-agent/deployer-111 \
+curl -X POST "${API_BASE_URL}/api/deploy-agent/deployer-111" \
 -H "Content-Type: application/json" \
--d '{
+-d @- <<EOF
+{
   "subject_id": "risk-identifier-agent",
   "allocation": {
     "delegate_api_url": "${DELEGATE_API_URL}",
@@ -115,4 +124,5 @@ curl -X POST ${API_BASE_URL}/api/deploy-agent/deployer-111 \
       }
     ]
   }
-}'
+}
+EOF

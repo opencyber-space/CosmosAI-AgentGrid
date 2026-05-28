@@ -3,6 +3,11 @@ import copy
 import random
 import string
 import os
+from dotenv import load_dotenv
+
+load_dotenv("/app/.env")
+load_dotenv()
+
 from google import genai
 from google.genai import types
 import dspy
@@ -46,6 +51,8 @@ class CustomAIOS(dspy.LM):
         # }
         
         if "aios:" in self.model_name:
+            print("AIGRID_MASTER: ", os.environ.get("AIGRID_MASTER"))
+            print("AIGRID_INFERENCE_SERVER_URL: ", os.environ.get("AIGRID_INFERENCE_SERVER_URL"))
             self.llm_ai.add_block(
                 name=self.model_name,
                 network_host=os.environ.get("AIGRID_MASTER"),
@@ -57,9 +64,12 @@ class CustomAIOS(dspy.LM):
                 urls={"rest": os.environ.get("AIGRID_INFERENCE_SERVER_URL")}
             )
         elif "openai:" in self.model_name:
+            llm_params_ = copy.deepcopy(llm_params)
+            api_key = llm_params_.pop("api_key", None) or (blockDetails.api_key if hasattr(blockDetails, 'api_key') else (blockDetails.get('api_key') if blockDetails else None))
+            llm_params = copy.deepcopy(llm_params_)
             openai_block = OpenAIBlockInferenceSystem(
                 model=self.model_name.replace("openai:", "") or "gpt-4o-mini",
-                api_key=blockDetails.api_key if hasattr(blockDetails, 'api_key') else (blockDetails.get('api_key') if blockDetails else None),
+                api_key=api_key,
                 default_system_prompt=self.persona_default_system_message
             )
             self.llm_ai.add_custom_block(name=self.model_name, system=openai_block)
@@ -167,14 +177,23 @@ class CustomAIOS(dspy.LM):
         elif "openai:" in self.model_name:
             log.info(f"CustomAIOS: Calling chat_completions for {self.model_name}...")
             try:
-                waiter = self.llm_ai.chat_completions(name=self.model_name, session_id=session_id, messages=[
+                if "max_tokens" in llm_params:
+                    del llm_params["max_tokens"]
+                log.info(f"CustomAIOS: llm_params: {llm_params} session_id: {session_id}")
+                result = self.llm_ai.chat_completions(name=self.model_name, session_id=session_id, messages=[
                     {"role": "system", "content": system_message},
                     {"role": "user", "content": prompt}
                 ], data=llm_params)
-                log.info(f"CustomAIOS: chat_completions called, waiting for response...")
-                result = waiter.wait()
-                log.info(f"CustomAIOS: waiter.wait() (OpenAI) finished.")
-                out = result 
+                #log.info(f"CustomAIOS: chat_completions called, waiting for response...")
+                #result = waiter.wait()
+                out = None
+                if isinstance(result, dict) and "choices" in result:
+                    out = result["choices"][0]["message"]["content"]
+                    log.info(f"AIOS response received (length: {len(out)})")
+                else:
+                    log.warning("Could not extract message from result. Expected a dict with 'choices'.")
+                if out:
+                    log.debug(f"AIOS response preview: {out[:200]}...")
             except Exception as e:
                 log.error(f"CustomAIOS: Error in OpenAI path: {e}", exc_info=True)
                 raise e

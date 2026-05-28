@@ -273,7 +273,9 @@ class FinancialTeamLeadAgent:
                 "task_id": task_id,
                 "user_request": registry.get("user_request"),
                 "communication_type": comm_type,
-                "final_budget": registry["aggregated_budget"]
+                "final_budget": registry["aggregated_budget"],
+                "model_name": model_name,
+                "session_id": session_id
             }
             self._send_to_cos(task, job_data, session_id, comm_type)
         else:
@@ -288,7 +290,9 @@ class FinancialTeamLeadAgent:
                     "task_id": task_id,
                     "user_request": registry.get("user_request"),
                     "communication_type": comm_type,
-                    "final_budget": registry["aggregated_budget"]
+                    "final_budget": registry["aggregated_budget"],
+                    "model_name": model_name,
+                    "session_id": session_id
                 }
                 self._send_to_cos(task, job_data, session_id, comm_type)
                 return AgentResult(task_id=task.task_id, skip=True)
@@ -348,7 +352,9 @@ class FinancialTeamLeadAgent:
             "team_outcome": outcome_data,
             "task_id": task_id,
             "user_request": self.task_registry[task_id].get("user_request"),
-            "communication_type": comm_type
+            "communication_type": comm_type,
+            "model_name": model_name,
+            "session_id": session_id
         }
         self._send_to_cos(task, job_data, session_id, comm_type)
         return AgentResult(task_id=task.task_id, skip=True)

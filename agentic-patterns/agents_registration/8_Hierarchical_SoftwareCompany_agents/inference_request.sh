@@ -24,7 +24,7 @@ RESPONSE_1=$(curl -s -X POST ${DELEGATE_API_URL}/api/submit-and-wait \
      \"task_data\": {
        \"text\": \"Develop a Task Management Dashboard (Kanban Style). \\n\\nFrontend: A dashboard featuring a task board with columns for To-Do, In Progress, and Done. Include forms for creating new projects and detailed task views.\\nBackend: APIs to support CRUD operations for projects and tasks, user authentication, and persistent data storage.\",
        \"session_id\": \"${session_id_1}\",
-       \"model_name\": \"aios:qwen3-1-7b-vllm-block\",
+       \"model_name\": \"openai:gpt-5.4-mini\",
        \"communication_type\": \"p2p\"
      }
    }")

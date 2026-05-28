@@ -45,10 +45,50 @@ Our agent sample codes rely on two primary libraries for interfacing and integra
   - **Agent Search** capabilities to discover other agents dynamically.
   - **Agent Communication** protocols, supporting Direct, Peer-to-Peer, and Delegate methods.
 
+## Installation Requirements
+### *1.Docker* 
+```
+sudo apt update
+sudo apt install ca-certificates curl gnupg
+
+sudo install -m 0755 -d /etc/apt/keyrings
+sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+sudo chmod a+r /etc/apt/keyrings/docker.asc
+
+echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
+  $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
+  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+sudo apt update
+sudo apt install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+sudo usermod -aG docker $USER
+
+
+sudo nano /etc/docker/daemon.json
+{
+  "runtimes": {
+    "runsc": {
+      "path": "/usr/bin/runsc"
+    }
+  },
+  "insecure-registries": ["REGISTRYIP:31280"]
+}
+sudo systemctl restart docker
+```
+### *2. Python Virtual Environment*
+- Create a venv at root of the project i.e in `CosmosAI-AgentGrid/`. Run `python3 -m venv venv`. Then activate the virtual environment by running `source venv/bin/activate`. 
+- In this venv you would be running Jupyter notebook and streamlit app.Install packages: `pip3 install notebook streamlit load_dotenv`.
+- Go to `CosmosAI-AgentGrid/` and run `jupyter notebook --allow-root  --port 8002 --ip=0.0.0.0` to start the jupyter notebook. And Go to browser and open `http://IP:8002`
+- To Securely Run: `jupyter notebook password` to generate one time password for secure access
+- To Clear Outputs: Use `jupyter nbconvert --clear-output --inplace YOUR_JUPYTER_NOTEBOOK_NAME.ipynb` 
+
 ## Quick Start
 
-1. Clone the repository.
-2. Review the [`1_Sequential_Pattern.ipynb`](agentic-patterns/agent_guides/1_Sequential_Pattern/1_Sequential_Pattern.ipynb) notebook to understand the SDK and LLM integration basics.
-3. Configure your `.env` file using `.env.template` with your registry and AIGrid settings.
-4. Navigate to `/agentic-patterns/agents_registration/1_serial_meeting_agend_agents` and run `all.bash` to build and push your Docker images using the provided bash scripts and to deploy the agents in AgentGrid.
-5. For other patterns, use the specific scripts within `/agentic-patterns/agents_registration/` to build, register, and deploy your agents.
+1. Review the [`1_Sequential_Pattern.ipynb`](agentic-patterns/agent_guides/1_Sequential_Pattern/1_Sequential_Pattern.ipynb) notebook to understand the SDK and LLM integration basics.
+2. Configure your `.env` file using `.env.template` with your registry and AIGrid settings. Replace all the variables with your actual values.
+3. Use the respective jupter notebooks to understand different agentic patterns and how to use them to build agentic applications.
+
+
+
+
+

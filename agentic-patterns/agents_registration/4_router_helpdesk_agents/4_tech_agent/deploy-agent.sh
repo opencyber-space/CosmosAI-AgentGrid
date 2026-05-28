@@ -12,9 +12,10 @@ fi
 
 #/bin/bash
 
-curl -X POST ${API_BASE_URL}/api/deploy-agent/deployer-123 \
+curl -X POST "${API_BASE_URL}/api/deploy-agent/deployer-123" \
 -H "Content-Type: application/json" \
--d '{
+-d @- <<EOF
+{
   "subject_id": "tech-agent",
   "allocation": {
     "delegate_api_url": "${DELEGATE_API_URL}",
@@ -31,4 +32,5 @@ curl -X POST ${API_BASE_URL}/api/deploy-agent/deployer-123 \
       }
     ]
   }
-}'
+}
+EOF

@@ -12,9 +12,10 @@ fi
 
 #/bin/bash
 
-curl -X POST ${API_BASE_URL}/api/deploy-agent/deployer-111 \
+curl -X POST "${API_BASE_URL}/api/deploy-agent/deployer-111" \
 -H "Content-Type: application/json" \
--d '{
+-d @- <<EOF
+{
   "subject_id": "agent-workflow-loan-risk-router",
   "allocation": {
     "delegate_api_url": "${DELEGATE_API_URL}",
@@ -31,11 +32,13 @@ curl -X POST ${API_BASE_URL}/api/deploy-agent/deployer-111 \
       }
     ]
   }
-}'
+}
+EOF
 
-curl -X POST ${API_BASE_URL}/api/deploy-agent/deployer-111 \
+curl -X POST "${API_BASE_URL}/api/deploy-agent/deployer-111" \
 -H "Content-Type: application/json" \
--d '{
+-d @- <<EOF
+{
   "subject_id": "agent-workflow-financial-profile",
   "allocation": {
     "delegate_api_url": "${DELEGATE_API_URL}",
@@ -52,11 +55,13 @@ curl -X POST ${API_BASE_URL}/api/deploy-agent/deployer-111 \
       }
     ]
   }
-}'
+}
+EOF
 
-curl -X POST ${API_BASE_URL}/api/deploy-agent/deployer-111 \
+curl -X POST "${API_BASE_URL}/api/deploy-agent/deployer-111" \
 -H "Content-Type: application/json" \
--d '{
+-d @- <<EOF
+{
   "subject_id": "agent-workflow-market-risk",
   "allocation": {
     "delegate_api_url": "${DELEGATE_API_URL}",
@@ -73,11 +78,13 @@ curl -X POST ${API_BASE_URL}/api/deploy-agent/deployer-111 \
       }
     ]
   }
-}'
+}
+EOF
 
-curl -X POST ${API_BASE_URL}/api/deploy-agent/deployer-111 \
+curl -X POST "${API_BASE_URL}/api/deploy-agent/deployer-111" \
 -H "Content-Type: application/json" \
--d '{
+-d @- <<EOF
+{
   "subject_id": "agent-workflow-collateral-evaluator",
   "allocation": {
     "delegate_api_url": "${DELEGATE_API_URL}",
@@ -94,11 +101,13 @@ curl -X POST ${API_BASE_URL}/api/deploy-agent/deployer-111 \
       }
     ]
   }
-}'
+}
+EOF
 
-curl -X POST ${API_BASE_URL}/api/deploy-agent/deployer-111 \
+curl -X POST "${API_BASE_URL}/api/deploy-agent/deployer-111" \
 -H "Content-Type: application/json" \
--d '{
+-d @- <<EOF
+{
   "subject_id": "agent-workflow-loan-decision",
   "allocation": {
     "delegate_api_url": "${DELEGATE_API_URL}",
@@ -115,11 +124,13 @@ curl -X POST ${API_BASE_URL}/api/deploy-agent/deployer-111 \
       }
     ]
   }
-}'
+}
+EOF
 
-curl -X POST ${API_BASE_URL}/api/deploy-agent/deployer-111 \
+curl -X POST "${API_BASE_URL}/api/deploy-agent/deployer-111" \
 -H "Content-Type: application/json" \
--d '{
+-d @- <<EOF
+{
   "subject_id": "agent-workflow-transaction-history",
   "allocation": {
     "delegate_api_url": "${DELEGATE_API_URL}",
@@ -136,11 +147,13 @@ curl -X POST ${API_BASE_URL}/api/deploy-agent/deployer-111 \
       }
     ]
   }
-}'
+}
+EOF
 
-curl -X POST ${API_BASE_URL}/api/deploy-agent/deployer-111 \
+curl -X POST "${API_BASE_URL}/api/deploy-agent/deployer-111" \
 -H "Content-Type: application/json" \
--d '{
+-d @- <<EOF
+{
   "subject_id": "agent-workflow-identity-verification",
   "allocation": {
     "delegate_api_url": "${DELEGATE_API_URL}",
@@ -157,11 +170,13 @@ curl -X POST ${API_BASE_URL}/api/deploy-agent/deployer-111 \
       }
     ]
   }
-}'
+}
+EOF
 
-curl -X POST ${API_BASE_URL}/api/deploy-agent/deployer-111 \
+curl -X POST "${API_BASE_URL}/api/deploy-agent/deployer-111" \
 -H "Content-Type: application/json" \
--d '{
+-d @- <<EOF
+{
   "subject_id": "agent-workflow-fraud-score",
   "allocation": {
     "delegate_api_url": "${DELEGATE_API_URL}",
@@ -178,4 +193,5 @@ curl -X POST ${API_BASE_URL}/api/deploy-agent/deployer-111 \
       }
     ]
   }
-}'
+}
+EOF

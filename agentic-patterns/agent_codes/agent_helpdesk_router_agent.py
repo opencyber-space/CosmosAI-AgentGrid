@@ -11,8 +11,11 @@ from agents_sdk.core.agent_executor import AgentTask, AgentResult, Context
 from agents_sdk.core.main import main
 from agents_sdk.core.known_agents import KnownAgents
 from agents_search.search import AgentSearchSelector
+from agents_search.custom import OpenAISearchSelector
 from utils.dspy_aios_llms import AIOS_DSPy_LMs
 from utils.help_desk_pydatic_models import validate_helpdesk_llm_output, RouterOutput
+from openai import OpenAI
+import os
 
 log = logging.getLogger(__name__)
 
@@ -104,6 +107,9 @@ class SampleAgent:
             BLOCKS_DB_URL = params['BLOCKS_DB_URL']
             INFERENCE_SERVER_ID = params['INFERENCE_SERVER_ID']
             AGENT_SELECTOR_LLM = params['AGENT_SELECTOR_LLM']
+            api_key = None
+            if 'api_key' in params:
+                api_key = params['api_key']
 
             known_agents = KnownAgents(default_compact=False)
             known_agents.query_and_add(query={
@@ -113,23 +119,38 @@ class SampleAgent:
             log.info("Known agents for help-desk: %s", self.all_agent_ids)
 
             mgr = AgentSearchSelector()
-            mgr.register_new_selector(
-                name="default",
-                model=AGENT_SELECTOR_LLM,
-                inference_server_id=INFERENCE_SERVER_ID,
-                aios_url_map={
-                    "inference_server_url": INFERENCE_SERVER_REGISTRY_URL,
-                    "blocks_db_url": BLOCKS_DB_URL,
-                }
-            )
+            ##------------------For AIOS LLM Registration ----------------
+            # mgr.register_new_selector(
+            #     name="default",
+            #     model=AGENT_SELECTOR_LLM,
+            #     inference_server_id=INFERENCE_SERVER_ID,
+            #     aios_url_map={
+            #         "inference_server_url": INFERENCE_SERVER_REGISTRY_URL,
+            #         "blocks_db_url": BLOCKS_DB_URL,
+            #     }
+            # )
+            ##---------------------------------------------
+            selector = None
+            if "openai:" in AGENT_SELECTOR_LLM:
+                model_name = AGENT_SELECTOR_LLM.replace("openai:", "")
+                
+                selector = OpenAISearchSelector(
+                    model=model_name,
+                    client=OpenAI(api_key=api_key)
+                )
+            if selector:
+                mgr.register_custom_selector(
+                    name="default",
+                    selector=selector
+                )
 
-            chosen_id = mgr.search_from_objects(
-                name="default",
-                objects=known_agents.list_all(),
-                query="For routing task in help-desk related",
-            )
-            self.chosen_agent_id = chosen_id
-            log.info("Chosen ID: %s", self.chosen_agent_id)
+                chosen_id = mgr.search_from_objects(
+                    name="default",
+                    objects=known_agents.list_all(),
+                    query="For routing task in help-desk related",
+                )
+                self.chosen_agent_id = chosen_id
+                log.info("Chosen ID: %s", self.chosen_agent_id)
         except Exception as e:
             log.error(f"Failed to initialize dynamic selection: {e}")
             self.chosen_agent_id = "unknown"

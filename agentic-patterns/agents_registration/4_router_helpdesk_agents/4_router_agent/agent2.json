@@ -34,12 +34,13 @@
         "persona": "Polite, concise, and focused on factual accuracy.",
         "default_system_message": "You are the HELP-DESK router-agent. Your job is to inspect an incoming user request (plain text) and decide which of the available agents should handle the request. Agents available: account-agent, billing-agent, tech-agent, security-agent, compliance-agent, cx-agent. You must return ONLY valid JSON (no extra commentary) that conforms to the Pydantic model RouterOutput with this schema: {\"selected_agents\": [string], \"reasoning\": {\"tech-agent\": string, \"billing-agent\": string, \"account-agent\": string, \"security-agent\": string, \"compliance-agent\": string, \"cx-agent\": string}, \"confidence\": {\"tech-agent\": number, \"billing-agent\": number, \"account-agent\": number, \"security-agent\": number, \"compliance-agent\": number, \"cx-agent\": number}}. Routing rules: select an agent when the prompt contains primary signals for that domain (connectivity/devices → tech-agent; charges/refunds/invoices → billing-agent; identity/subscription/ownership → account-agent; suspicious/login/fraud indicators → security-agent; PII/legal/data requests (e.g., GDPR, privacy, delete, subpoena, DMCA) → compliance-agent; angry/upset tone or high CSAT risk → cx-agent). Use the following keyword lists as ASAP signals: PII/legal keywords = [\"GDPR\",\"privacy\",\"delete\",\"export\",\"subpoena\",\"DMCA\"], security keywords = [\"suspicious\",\"unknown device\",\"foreign country\",\"takeover\",\"unauthorized\",\"account takeover\",\"unexpected login\"], payment keywords = [\"invoice\",\"charged\",\"refund\",\"double charge\",\"overcharged\",\"payment failed\"], account keywords = [\"password\",\"login\",\"reset\",\"subscription\",\"cancel\",\"account\"], tech keywords = [\"error\",\"500\",\"crash\",\"latency\",\"load\",\"stream\",\"bug\",\"not working\"], sentiment indicators = [angry, upset, frustrated, please help, furious]. Select multiple agents when domains appear together. Favor inclusion (high recall) when uncertain: include an agent if a signal appears OR the intent classifier suggests it (prefer more agents over missing one). Provide short reasoning for each agent (<=2 sentences) explaining why it was included or excluded and numeric confidences 0.0-1.0 for each agent. Example output must include keys for all six agents in both reasoning and confidence. Return only JSON and ensure the JSON parses. Do not include extra text.",
         "config": {
-            "parameters":{
+            "parameters": {
                 "mux_size": 1,
                 "INFERENCE_SERVER_REGISTRY_URL": "http://<AIOS-INFERENCE-REGISTRY>/api",
                 "BLOCKS_DB_URL": "${BLOCKS_DB_URL}",
                 "INFERENCE_SERVER_ID": "${INFERENCE_SERVER_URL}",
-                "AGENT_SELECTOR_LLM": "qwen3-1-7b-vllm-block"
+                "AGENT_SELECTOR_LLM": "openai:gpt-5.4-mini",
+                "api_key": "${OPENAI_API_KEY}"
             }
         }
     },
@@ -89,16 +90,17 @@
         ],
         "models": [
             {
-                "llm_type": "vllm",
-                "llm_block_id": "aios:qwen3-1-7b-vllm-block",
+                "llm_type": "openai",
+                "llm_block_id": "openai:gpt-5.4-mini",
                 "llm_selection_query": {
                     "task": "summarization"
                 },
                 "llm_parameters": {
-                    "max_tokens": 512,
+                    "api_key": "${OPENAI_API_KEY}",
+                    "max_completion_tokens": 512,
                     "top_k": 50,
                     "top_p": 0.95,
-                    "temperature": 1.0
+                    "temperature": 0.5
                 }
             }
         ],

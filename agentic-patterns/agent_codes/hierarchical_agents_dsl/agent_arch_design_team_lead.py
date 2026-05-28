@@ -23,6 +23,7 @@ class ArchEstimationSignature(dspy.Signature):
 
     ### TASK
     Estimate the budget and effort for architecture planning and system design.
+    IMPORTANT: The estimated amount must be purely a number (e.g., 38000), do not use text or currency symbols like '$38,000'.
     
     ### OUTPUT
     Output EXACTLY a JSON block: {team_name, amount, deliverables}
@@ -150,13 +151,15 @@ class ArchDesignTeamLeadAgent:
             "budget_estimate": be_data,
             "task_id": task_id,
             "user_request": self.task_registry[task_id].get("user_request"),
-            "communication_type": comm_type
+            "communication_type": comm_type,
+            "model_name": model_name,
+            "session_id": session_id
         }
         
         # Globally store deliverables for execution phase
         self.task_registry[task_id]["deliverables"] = be_data.get("deliverables", [])
         
-        self._send_to_cos(task, job_data, session_id, comm_type)
+        self._send_to_cos(task, job_data, session_id, comm_type, model_name)
         return AgentResult(task_id=task.task_id, skip=True)
 
     def _handle_execution(self, task, task_id, problem_statement, session_id, model_name, comm_type):
@@ -200,11 +203,13 @@ class ArchDesignTeamLeadAgent:
             "team_outcome": outcome_data,
             "task_id": task_id,
             "user_request": self.task_registry[task_id].get("user_request"),
-            "communication_type": comm_type
+            "communication_type": comm_type,
+            "session_id": session_id,
+            "model_name":model_name
         }
         
         # Broadcast to CoS
-        self._send_to_cos(task, job_data, session_id, comm_type)
+        self._send_to_cos(task, job_data, session_id, comm_type, model_name)
         
         # Broadcast to Dev and Testing Team Leads (P2P only)
         # targets = ["company-developer-team-lead", "company-testing-team-lead"]
@@ -226,7 +231,7 @@ class ArchDesignTeamLeadAgent:
 
         return AgentResult(task_id=task.task_id, skip=True)
 
-    def _send_to_cos(self, parent_task, job_data, session_id, comm_type):
+    def _send_to_cos(self, parent_task, job_data, session_id, comm_type, model_name):
         target_id = "company-chief-of-staff-agent"
         if comm_type == "delegate":
             self._log_to_his(target_id, job_data)
