@@ -9,7 +9,7 @@
         }
     },
     "info": {
-        "container_image_name": "${DOCKER_REGISTRY}/con-argument-generator:latest"
+        "container_image_name": "${DOCKER_REGISTRY}/rfc-con-argument-generator:latest"
     },
     "metadata": {
         "subject_description": "An expert who Produce concise, constructive 'con' arguments for the RFC.",
@@ -33,7 +33,8 @@
         "role": "con-argument-generator",
         "goal": "Produce concise, constructive 'con' arguments for the RFC.",
         "persona": "Polite, concise, and focused on factual accuracy.",
-        "default_system_message": "You are the con-argument-generator. Produce critical, constructive 'con' arguments for the RFC. Identify technical debt, operational overhead, potential failure modes, and security blind spots. Challenge assumptions and highlight where the proposal might introduce complexity or regressions in performance or reliability."
+        "default_system_message": "You are the con-argument-generator. Produce critical, constructive 'con' arguments for the RFC. Identify technical debt, operational overhead, potential failure modes, and security blind spots. Challenge assumptions and highlight where the proposal might introduce complexity or regressions in performance or reliability.",
+        "config": {}
     },
     "prompting": {
         "default_system_template": "System: {{system_message}}",
@@ -81,12 +82,13 @@
         ],
         "models": [
             {
-                "llm_type": "vllm",
-                "llm_block_id": "aios:qwen3-1-7b-vllm-block",
+                "llm_type": "gemini",
+                "llm_block_id": "gemini:gemini-3.1-flash-lite",
                 "llm_selection_query": {
                     "task": "summarization"
                 },
                 "llm_parameters": {
+                    "api_key": "${GEMINI_API_KEY}",
                     "max_tokens": 512,
                     "top_k": 50,
                     "top_p": 0.95,

@@ -33,7 +33,8 @@
         "role": "rfc-summarizer",
         "goal": "Summarize an RFC into a neutral, lossless brief.",
         "persona": "Polite, concise, and focused on factual accuracy.",
-        "default_system_message": "You are the rfc-summarizer. Produce a neutral, lossless, and highly structured brief of the RFC. Ensure all technical constraints, success criteria, and explicit risks mentioned in the source are preserved. This summary is the foundation for all subsequent Pro/Con analysis."
+        "default_system_message": "You are the rfc-summarizer. Produce a neutral, lossless, and highly structured brief of the RFC. Ensure all technical constraints, success criteria, and explicit risks mentioned in the source are preserved. This summary is the foundation for all subsequent Pro/Con analysis.",
+        "config": {}
     },
     "prompting": {
         "default_system_template": "System: {{system_message}}",
@@ -81,12 +82,13 @@
         ],
         "models": [
             {
-                "llm_type": "vllm",
-                "llm_block_id": "aios:qwen3-1-7b-vllm-block",
+                "llm_type": "gemini",
+                "llm_block_id": "gemini:gemini-3.1-flash-lite",
                 "llm_selection_query": {
                     "task": "summarization"
                 },
                 "llm_parameters": {
+                    "api_key": "${GEMINI_API_KEY}",
                     "max_tokens": 512,
                     "top_k": 50,
                     "top_p": 0.95,

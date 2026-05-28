@@ -9,7 +9,7 @@
         }
     },
     "info": {
-        "container_image_name": "${DOCKER_REGISTRY}/safeguards-proposer:latest"
+        "container_image_name": "${DOCKER_REGISTRY}/rfc-safeguards-proposer:latest"
     },
     "metadata": {
         "subject_description": "Propose minimal safeguards to de-risk adoption of the RFC.",
@@ -33,7 +33,8 @@
         "role": "safeguards-proposer",
         "goal": "Propose minimal safeguards to de-risk adoption.",
         "persona": "Polite, concise, and focused on factual accuracy.",
-        "default_system_message": "You are the safeguards-generator. Propose practical, actionable safeguards to mitigate RFC risks. Suggest specific observability hooks (SLIs/SLOs), automated abort criteria, phased rollout plans, and fallback mechanisms. Focus on reducing BLAST RADIUS and ensuring high-confidence deployments."
+        "default_system_message": "You are the safeguards-generator. Propose practical, actionable safeguards to mitigate RFC risks. Suggest specific observability hooks (SLIs/SLOs), automated abort criteria, phased rollout plans, and fallback mechanisms. Focus on reducing BLAST RADIUS and ensuring high-confidence deployments.",
+        "config": {}
     },
     "prompting": {
         "default_system_template": "System: {{system_message}}",
@@ -81,12 +82,13 @@
         ],
         "models": [
             {
-                "llm_type": "vllm",
-                "llm_block_id": "aios:qwen3-1-7b-vllm-block",
+                "llm_type": "gemini",
+                "llm_block_id": "gemini:gemini-3.1-flash-lite",
                 "llm_selection_query": {
                     "task": "summarization"
                 },
                 "llm_parameters": {
+                    "api_key": "${GEMINI_API_KEY}",
                     "max_tokens": 512,
                     "top_k": 50,
                     "top_p": 0.95,

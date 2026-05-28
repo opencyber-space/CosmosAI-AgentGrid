@@ -3,13 +3,14 @@ import copy
 import random
 import string
 import os
-from google import genai
-from google.genai import types
-import dspy
 from dotenv import load_dotenv
 
 load_dotenv("/app/.env")
 load_dotenv()
+
+from google import genai
+from google.genai import types
+import dspy
 
 from agents_llm import AIGridClient
 from agents_llm.custom import OpenAIBlockInferenceSystem
@@ -50,6 +51,8 @@ class CustomAIOS(dspy.LM):
         # }
         
         if "aios:" in self.model_name:
+            print("AIGRID_MASTER: ", os.environ.get("AIGRID_MASTER"))
+            print("AIGRID_INFERENCE_SERVER_URL: ", os.environ.get("AIGRID_INFERENCE_SERVER_URL"))
             self.llm_ai.add_block(
                 name=self.model_name,
                 network_host=os.environ.get("AIGRID_MASTER"),
@@ -61,18 +64,21 @@ class CustomAIOS(dspy.LM):
                 urls={"rest": os.environ.get("AIGRID_INFERENCE_SERVER_URL")}
             )
         elif "openai:" in self.model_name:
+            llm_params_ = copy.deepcopy(llm_params)
+            api_key = llm_params_.pop("api_key", None) or (blockDetails.api_key if hasattr(blockDetails, 'api_key') else (blockDetails.get('api_key') if blockDetails else None))
+            llm_params = copy.deepcopy(llm_params_)
             openai_block = OpenAIBlockInferenceSystem(
                 model=self.model_name.replace("openai:", "") or "gpt-4o-mini",
-                api_key=blockDetails.api_key if hasattr(blockDetails, 'api_key') else (blockDetails.get('api_key') if blockDetails else None),
+                api_key=api_key,
                 default_system_prompt=self.persona_default_system_message
             )
             self.llm_ai.add_custom_block(name=self.model_name, system=openai_block)
-        elif "google:" in self.model_name:
+        elif "google:" in self.model_name or "gemini:" in self.model_name:
             log.info(f"Adding google model {self.model_name} to pool llm_params:{llm_params} oneBlock:{blockDetails}")
             llm_params_ = copy.deepcopy(llm_params)
             api_key = llm_params_.pop("api_key", None) or (blockDetails.api_key if hasattr(blockDetails, 'api_key') else (blockDetails.get('api_key') if blockDetails else None))
             llm_params = copy.deepcopy(llm_params_)
-            model_id = self.model_name.replace("google:", "")
+            model_id = self.model_name.replace("google:", "").replace("gemini:", "gemini/")
             # if "gemini" in model_id and "2.5" not in model_id:
             #     model_id = "gemini-2.5-flash"
             
@@ -191,7 +197,7 @@ class CustomAIOS(dspy.LM):
             except Exception as e:
                 log.error(f"CustomAIOS: Error in OpenAI path: {e}", exc_info=True)
                 raise e
-        elif "google:" in self.model_name:
+        elif "google:" in self.model_name or "gemini:" in self.model_name:
             log.info(f"CustomAIOS: Calling Google LM instance for {self.model_name}...")
             try:
                 # The user registered a dspy.LM instance via add_custom_block

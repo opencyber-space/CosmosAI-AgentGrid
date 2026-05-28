@@ -9,7 +9,7 @@
         }
     },
     "info": {
-        "container_image_name": "${DOCKER_REGISTRY}/pro-argument-generator:latest"
+        "container_image_name": "${DOCKER_REGISTRY}/rfc-pro-argument-generator:latest"
     },
     "metadata": {
         "subject_description": "Propose minimal safeguards to de-risk adoption.",
@@ -33,7 +33,8 @@
         "role": "pro-argument-generator",
         "goal": "Produce concise, steelman 'pro' arguments for the RFC.",
         "persona": "Polite, concise, and focused on factual accuracy.",
-        "default_system_message": "You are the pro-argument-generator. Produce high-quality, 'steelman' arguments in favor of the RFC. Focus on concrete technical benefits, quantitative improvements (e.g., latency, cost, scalability), and alignment with long-term architectural goals. Avoid generic praise; be specific and technical."
+        "default_system_message": "You are the pro-argument-generator. Produce high-quality, 'steelman' arguments in favor of the RFC. Focus on concrete technical benefits, quantitative improvements (e.g., latency, cost, scalability), and alignment with long-term architectural goals. Avoid generic praise; be specific and technical.",
+        "config": {}
     },
     "prompting": {
         "default_system_template": "System: {{system_message}}",
@@ -81,12 +82,13 @@
         ],
         "models": [
             {
-                "llm_type": "vllm",
-                "llm_block_id": "aios:qwen3-1-7b-vllm-block",
+                "llm_type": "gemini",
+                "llm_block_id": "gemini:gemini-3.1-flash-lite",
                 "llm_selection_query": {
                     "task": "summarization"
                 },
                 "llm_parameters": {
+                    "api_key": "${GEMINI_API_KEY}",
                     "max_tokens": 512,
                     "top_k": 50,
                     "top_p": 0.95,

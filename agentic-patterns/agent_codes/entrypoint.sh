@@ -43,12 +43,16 @@ case "${AGENT}" in
     ;;
 
   #for 3_parallel_rfc_pro_con_safegaurds_mux agents
+  rfc-con-argument-generator)
+    echo "Starting con-argument-generator agent (agent_rfc_con_argument_generator.py)"
+    exec python3 agent_rfc_consensus_synthesizer.py
+    ;;
   rfc-consensus-synthesizer)
-    echo "Starting rfc-consensus-synthesizer agent (agent_rfc_consensus_synthesizer.py)"
+    echo "Starting consensus-synthesizer agent (agent_rfc_consensus_synthesizer.py)"
     exec python3 agent_rfc_consensus_synthesizer.py
     ;;
   rfc-pro-argument-generator)
-    echo "Starting rfc-pro-argument-generator agent (agent_rfc_pro_argument_generator.py)"
+    echo "Starting pro-argument-generator agent (agent_rfc_pro_argument_generator.py)"
     exec python3 agent_rfc_pro_argument_generator.py
     ;;
   rfc-summarizer)
@@ -56,7 +60,7 @@ case "${AGENT}" in
     exec python3 agent_rfc_rfc_summarizer.py
     ;;
   rfc-safeguards-proposer)
-    echo "Starting rfc-safeguards-proposer agent (agent_rfc_safeguards_proposer.py)"
+    echo "Starting safeguards-proposer agent (agent_rfc_safeguards_proposer.py)"
     exec python3 agent_rfc_safeguards_proposer.py
     ;;
 
