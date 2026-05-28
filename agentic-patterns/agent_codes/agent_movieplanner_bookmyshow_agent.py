@@ -12,7 +12,7 @@ from agents_sdk.core.main import main
 from agents_sdk.core.known_agents import KnownAgents
 from agents_sdk.core.his import HisClient
 from agents_search.search import AgentSearchSelector
-from agents_search.custom import OpenAISearchSelector
+from agents_search.custom import OpenAISearchSelector,GeminiSearchSelector
 from utils.dspy_aios_llms import AIOS_DSPy_LMs
 from openai import OpenAI
 import os
@@ -228,11 +228,37 @@ class BookMyShowAgent:
         selector = None
         if "openai:" in AGENT_SELECTOR_LLM:
             model_name = AGENT_SELECTOR_LLM.replace("openai:", "")
-            
+            from openai import OpenAI
             selector = OpenAISearchSelector(
                 model=model_name,
                 client=OpenAI(api_key=api_key)
             )
+        elif "gemini:" in AGENT_SELECTOR_LLM or "google:" in AGENT_SELECTOR_LLM:
+            model_name = AGENT_SELECTOR_LLM.replace("gemini:", "").replace("google:", "")
+            from google import genai
+            selector = GeminiSearchSelector(
+                model=model_name,
+                client= genai.Client(api_key=api_key)
+            )
+        elif "aios:" in AGENT_SELECTOR_LLM:
+            model_name = AGENT_SELECTOR_LLM.replace("aios:", "")
+            mgr.register_new_selector(
+                name="default",
+                model=AGENT_SELECTOR_LLM,
+                inference_server_id=INFERENCE_SERVER_ID,
+                aios_url_map={
+                    "inference_server_url": INFERENCE_SERVER_REGISTRY_URL,
+                    "blocks_db_url": BLOCKS_DB_URL,
+                }
+            )
+
+            chosen_id = mgr.search_from_objects(
+                name="default",
+                objects=known_agents.list_all(),
+                query="For movie theater showtime aggregation and booking",
+            )
+            self.chosen_agent_id = chosen_id
+            log.info("Chosen ID: %s", self.chosen_agent_id)
         if selector:
             mgr.register_custom_selector(
                 name="default",

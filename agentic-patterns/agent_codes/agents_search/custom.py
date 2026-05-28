@@ -529,3 +529,125 @@ class OpenAISearchRanker(BaseSearchRanker):
         parsed = self._extract_json(content)
         scores = self._parse_scores(parsed, valid_ids)
         return self._finalize_ranking(scores, valid_ids)
+
+
+class GeminiSearchSelector(BaseSearchSelector):
+    """
+    Concrete selector using Gemini (google-genai) Chat Completions.
+    """
+
+    def __init__(
+        self,
+        *,
+        model: str = "gemini-2.5-flash",
+        client: Optional[Any] = None,
+        api_key: Optional[str] = None,
+        **kwargs: Any,
+    ) -> None:
+        super().__init__(model=model, **kwargs)
+        from google import genai
+        self.client = client or genai.Client(api_key=api_key)
+
+    def select_item(
+        self,
+        *,
+        items: Sequence[Dict[str, Any]],
+        id_key: str = "id",
+        query: Optional[str] = None,
+        fields_to_show: Optional[List[str]] = None,
+        temperature: float = 0.0,
+        top_p: float = 0.95,
+        max_tokens: int = 512,
+        system_message: Optional[str] = None,
+        **_: Any,
+    ) -> str:
+        from google.genai import types
+
+        # Normalize + prompt
+        normalized = self._normalize_items(items, id_key=id_key)
+        prompt = self._build_prompt(
+            normalized, id_key=id_key, query=query, fields_to_show=fields_to_show
+        )
+        valid_ids = {str(it[id_key]) for it in normalized}
+
+        try:
+            chat = self.client.chats.create(
+                model=self.model,
+                config=types.GenerateContentConfig(
+                    system_instruction=self._effective_system_message(system_message),
+                    temperature=temperature,
+                    top_p=top_p,
+                    max_output_tokens=max_tokens,
+                )
+            )
+            resp = chat.send_message(prompt)
+            content = resp.text
+        except Exception as e:
+            self.logger.exception("Gemini selection failed")
+            raise SelectionError(str(e)) from e
+
+        parsed = self._extract_json(content)
+        return self._validate_selected_id(parsed, valid_ids)
+
+
+class GeminiSearchRanker(BaseSearchRanker):
+    """
+    Concrete ranker using Gemini (google-genai) Chat Completions.
+    """
+
+    def __init__(
+        self,
+        *,
+        model: str = "gemini-2.5-flash",
+        client: Optional[Any] = None,
+        api_key: Optional[str] = None,
+        **kwargs: Any,
+    ) -> None:
+        super().__init__(model=model, **kwargs)
+        from google import genai
+        self.client = client or genai.Client(api_key=api_key)
+
+    def rank_items(
+        self,
+        *,
+        items: Sequence[Dict[str, Any]],
+        id_key: str = "id",
+        query: Optional[str] = None,
+        fields_to_show: Optional[List[str]] = None,
+        temperature: float = 0.0,
+        top_p: float = 0.95,
+        max_tokens: int = 512,
+        system_message: Optional[str] = None,
+        **_: Any,
+    ) -> List[Tuple[str, float]]:
+        from google.genai import types
+
+        # Normalize + prompt
+        normalized = self._normalize_items(items, id_key=id_key)
+        prompt = self._build_ranking_prompt(
+            normalized,
+            id_key=id_key,
+            query=query,
+            fields_to_show=fields_to_show,
+        )
+        valid_ids = {str(it[id_key]) for it in normalized}
+
+        try:
+            chat = self.client.chats.create(
+                model=self.model,
+                config=types.GenerateContentConfig(
+                    system_instruction=self._effective_system_message(system_message),
+                    temperature=temperature,
+                    top_p=top_p,
+                    max_output_tokens=max_tokens,
+                )
+            )
+            resp = chat.send_message(prompt)
+            content = resp.text
+        except Exception as e:
+            self.logger.exception("Gemini ranking failed")
+            raise RankingError(str(e)) from e
+
+        parsed = self._extract_json(content)
+        scores = self._parse_scores(parsed, valid_ids)
+        return self._finalize_ranking(scores, valid_ids)
