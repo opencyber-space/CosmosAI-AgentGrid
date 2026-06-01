@@ -55,24 +55,8 @@
       }
     ],
     "graph": {
-      "my-company-marketing-team-lead-agent": [
-        "my-company-marketing-content-agent",
-        "my-company-marketing-planning-agent",
-        "my-company-marketing-strategy-agent",
-        "my-company-marketing-visual-agent"
-      ],
-      "my-company-marketing-content-agent": [
-        "my-company-marketing-team-lead-agent"
-      ],
-      "my-company-marketing-planning-agent": [
-        "my-company-marketing-team-lead-agent"
-      ],
-      "my-company-marketing-strategy-agent": [
-        "my-company-marketing-team-lead-agent"
-      ],
-      "my-company-marketing-visual-agent": [
-        "my-company-marketing-team-lead-agent"
-      ]
+      "type": "dynamic",
+      "nodeID": "my-company-marketing-team-lead-agent"
     }
   }
 }

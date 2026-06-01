@@ -18,7 +18,15 @@ NODE_ID_MAPPING = {
     "agent-workflow-marketing-planning": "my-company-marketing-planning-agent",
     "agent-workflow-marketing-strategy": "my-company-marketing-strategy-agent",
     "agent-workflow-marketing-visual": "my-company-marketing-visual-agent",
+    "agent-workflow-cos":"my-chief-of-staff-agent"
 }
+
+NODE_TEAM_LEAD = "my-company-marketing-team-lead-agent"
+NODE_MARKETING_CONTENT = "my-company-marketing-content-agent"
+NODE_MARKETING_PLANNING = "my-company-marketing-planning-agent"
+NODE_MARKETING_STRATEGY = "my-company-marketing-strategy-agent"
+NODE_MARKETING_VISUAL = "my-company-marketing-visual-agent"
+NODE_COS = "my-chief-of-staff-agent"
 
 class MarketingEstimationSignature(dspy.Signature):
     """
@@ -131,9 +139,29 @@ class MarketingTeamLeadAgent:
             task_id = data.get("task_id", task.task_id)
             user_request = data.get("user_request")
             priority = data.get("priority", "Fast")
+            task_type = data.get("task_type", "approve_budget")
+
+            history      = task.job_data.get("history", [])
+            outputs      = task.job_data.get("outputs", {})
+            initial_input = task.job_data.get("initial_input", {})
+            last_executed = task.job_data.get("last_executed")
+            # Note: use last_executed_batch when task is executed in parallel from this agent
+            last_executed_batch = task.job_data.get("last_executed_batch")
+            final_blueprint = ""
+            last_node = None
+            last_nodes = None
+            if len(last_executed_batch)>1:
+                # Note: use last_executed_batch when task is executed in parallel from this agent
+                task_type = last_executed["output"]["task_type"]
+                last_nodes = [node["nodeID"] for node in last_executed_batch]
+            elif last_executed and "output" in last_executed:
+                if "final_blueprint" in last_executed["output"]:
+                    final_blueprint = last_executed["output"]["final_blueprint"]
+                #elif last_executed["output"]["task_type"] == "specialist_output":
+                last_node = last_executed["nodeID"]
+                task_type = last_executed["output"]["task_type"]
             
             raw_text, communication_type, model_name, session_id = self.payload_processor.prepare_payload(task)
-            task_type = data.get("task_type", "estimate_budget")
 
             if task_id not in self.task_registry:
                 self.task_registry[task_id] = {
@@ -155,11 +183,13 @@ class MarketingTeamLeadAgent:
                 return self._handle_execution(task, task_id, problem_statement, llm_session_id, model_name, communication_type)
 
             elif task_type == "specialist_report":
-                report = data.get("specialist_report")
-                if report:
-                    spec_id = report.get('team_name', 'unknown_specialist')
-                    self.task_registry[task_id]["collected_reports"][spec_id] = report
-                    log.info(f"Marketing Lead collected report from {spec_id}. Total: {len(self.task_registry[task_id]['collected_reports'])}")
+                for i, one_last_node in enumerate(last_nodes):
+                    team_name = last_executed_batch[i]["output"]["specialist_report"]["team_name"]
+                    if "collected_reports" not in self.task_registry[task_id]:
+                        self.task_registry[task_id]["collected_reports"] = {}
+
+                    self.task_registry[task_id]["collected_reports"][team_name] = last_executed_batch[i]["output"]["specialist_report"]
+                    log.info(f"Marketing Lead collected report from {team_name}. Total: {len(self.task_registry[task_id]['collected_reports'])}")
                     
                     if len(self.task_registry[task_id]["collected_reports"]) >= 4:
                         return self._finalize_execution(task, task_id, problem_statement, llm_session_id, model_name, communication_type)
@@ -187,7 +217,7 @@ class MarketingTeamLeadAgent:
             "session_id": session_id,
             "model_name": model_name
         }
-        self._log_to_his("my-chief-of-staff-agent", job_data)
+        self._log_to_his(NODE_COS, job_data)
         #return AgentResult(task_id=task.task_id, job_output=job_data, is_error=False)
         # Note: In if agent is a dynamic unit, then it can return job_output as [] or [{"nodeID":"", "input":{}}...] or {}
         # If  job_output={} then it is returned as it to the caller. If it is array then Workflow unit will break it down to whome to call next
@@ -211,10 +241,16 @@ class MarketingTeamLeadAgent:
             "user_request": self.task_registry[task_id].get("user_request")
         }
         
-        for sub_id in ["my-marketing-content-agent", "my-marketing-planning-agent", "my-marketing-strategy-agent", "my-marketing-visual-agent"]:
+        for sub_id in [NODE_MARKETING_CONTENT, NODE_MARKETING_PLANNING, NODE_MARKETING_STRATEGY, NODE_MARKETING_VISUAL]:
             self._log_to_his(sub_id, job_data)
-                
-        return AgentResult(task_id=task.task_id, job_output=job_data, is_error=False)
+        input_to_next_agents = [{"nodeID":NODE_MARKETING_CONTENT, "input":job_data},
+                                {"nodeID":NODE_MARKETING_PLANNING, "input":job_data},
+                                {"nodeID":NODE_MARKETING_STRATEGY, "input":job_data},
+                                {"nodeID":NODE_MARKETING_VISUAL, "input":job_data}]
+        return AgentResult(task_id=task.task_id, 
+                            job_output=input_to_next_agents, 
+                            job_output_metadata={"next_nodes": [NODE_MARKETING_CONTENT, NODE_MARKETING_PLANNING, NODE_MARKETING_STRATEGY, NODE_MARKETING_VISUAL]}, 
+                            is_error=False)
 
     def _finalize_execution(self, task, task_id, problem_statement, session_id, model_name, comm_type):
         reports = self.task_registry[task_id].get("collected_reports", {})
@@ -239,8 +275,8 @@ class MarketingTeamLeadAgent:
             "session_id": session_id,
             "model_name": model_name
         }
-        self._log_to_his("my-chief-of-staff-agent", job_data)
-        return AgentResult(task_id=task.task_id, job_output=job_data, is_error=False)
+        self._log_to_his(NODE_COS, job_data)
+        return AgentResult(task_id=task.task_id, job_output=job_data,job_output_metadata={"next_nodes": []}, is_error=False)
 
 if __name__ == "__main__":
     main(MarketingTeamLeadAgent)
