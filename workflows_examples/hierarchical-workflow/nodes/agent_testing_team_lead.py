@@ -169,6 +169,26 @@ class TestingTeamLeadAgent:
                 data = data.get("initial_input", {})
                 
             task_type = data.get("task_type", "estimate_budget")
+
+            history      = task.job_data.get("history", [])
+            outputs      = task.job_data.get("outputs", {})
+            initial_input = task.job_data.get("initial_input", {})
+            last_executed = task.job_data.get("last_executed")
+            # Note: use last_executed_batch when task is executed in parallel from this agent
+            last_executed_batch = task.job_data.get("last_executed_batch")
+            final_blueprint = ""
+            last_node = None
+            last_nodes = None
+            if len(last_executed_batch)>1:
+                # Note: use last_executed_batch when task is executed in parallel from this agent
+                task_type = last_executed["output"]["task_type"]
+                last_nodes = [node["nodeID"] for node in last_executed_batch]
+            elif last_executed and "output" in last_executed:
+                if "final_blueprint" in last_executed["output"]:
+                    final_blueprint = last_executed["output"]["final_blueprint"]
+                #elif last_executed["output"]["task_type"] == "specialist_output":
+                last_node = last_executed["nodeID"]
+                task_type = last_executed["output"]["task_type"]
             
             task_id = data.get("task_id", task.task_id)
             user_request = data.get("user_request")
@@ -267,7 +287,7 @@ class TestingTeamLeadAgent:
             "model_name": model_name
         }
         self._log_to_his("my-chief-of-staff-agent", job_data)
-        # return AgentResult(task_id=task.task_id, job_output=job_data, is_error=False)
+        #return AgentResult(task_id=task.task_id, job_output=job_data, is_error=False)
         # Note: In if agent is a dynamic unit, then it can return job_output as [] or [{"nodeID":"", "input":{}}...] or {}
         # If  job_output={} then it is returned as it to the caller. If it is array then Workflow unit will break it down to whome to call next
         return AgentResult(
@@ -310,13 +330,14 @@ class TestingTeamLeadAgent:
                 "user_request": registry["user_request"]
             }
             self._log_to_his("my-company-testing-dev-agent", job_data)
-            return AgentResult(task_id=task.task_id, job_output=job_data, is_error=False)
+            input_for_testing_dev = [{"nodeID":"my-company-testing-dev-agent", "input":job_data}]
+            return AgentResult(task_id=task.task_id, job_output=input_for_testing_dev, job_output_metadata={"next_nodes":["my-company-testing-dev-agent"]}, is_error=False)
         else:
             log.info("Testing Team Lead awaiting dependencies for %s. Deliverables: %s | Dev Output: %s",
                      task_id,
                      "Cached" if registry.get("deliverables") is not None else "Missing",
                      "Cached" if registry.get("dev_output") is not None else "Missing")
-            return AgentResult(task_id=task.task_id, skip=True)
+            return AgentResult(task_id=task.task_id, job_output={}, job_output_metadata={"next_nodes":[]}, is_error=False)
 
     def _finalize_execution(self, task, task_id, problem_statement, session_id, model_name, comm_type):
         architecture = self.task_registry[task_id].get("architecture")
@@ -348,7 +369,7 @@ class TestingTeamLeadAgent:
             "model_name": model_name
         }
         self._log_to_his("my-chief-of-staff-agent", job_data)
-        return AgentResult(task_id=task.task_id, job_output=job_data, is_error=False)
+        return AgentResult(task_id=task.task_id, job_output=job_data, job_output_metadata={"next_nodes":[]}, is_error=False)
 
 if __name__ == "__main__":
     main(TestingTeamLeadAgent)

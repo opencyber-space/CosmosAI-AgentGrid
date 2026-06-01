@@ -366,7 +366,7 @@ class DeveloperTeamLeadAgent:
             "model_name": model_name
         }
         self._log_to_his(NODE_COS, job_data)
-        return AgentResult(task_id=task.task_id, job_output=job_data, job_output_metadata={"next_nodes":[NODE_COS]}, is_error=False)
+        return AgentResult(task_id=task.task_id, job_output=job_data, job_output_metadata={"next_nodes":[]}, is_error=False)
 
 if __name__ == "__main__":
     main(DeveloperTeamLeadAgent)

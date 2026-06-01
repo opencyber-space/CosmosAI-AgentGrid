@@ -25,6 +25,7 @@ ESTIMATE_BUDGET_PAYLOAD=$(cat <<EOF
 {
   "task_type": "estimate_budget",
   "text": "$PROBLEM_STATEMENT",
+  "problem_statement": {"product": "A new AI-driven smart coffee machine that adjusts brewing based on morning grogginess detected by face scan."},
   "session_id": "$SESSION_ID",
   "model_name": "openai:gpt-5.4-mini",
   "communication_type": "workflow",
@@ -48,6 +49,7 @@ ARCH_ARTIFACT_PAYLOAD=$(cat <<EOF
 {
   "task_type": "process_artifact",
   "text": "$PROBLEM_STATEMENT",
+  "problem_statement": {"product": "A new AI-driven smart coffee machine that adjusts brewing based on morning grogginess detected by face scan."},
   "artifact_data": {
     "team_name": "Arch & Design Team",
     "status": "success",
@@ -76,6 +78,7 @@ DEV_ARTIFACT_PAYLOAD=$(cat <<EOF
 {
   "task_type": "process_artifact",
   "text": "$PROBLEM_STATEMENT",
+  "problem_statement": {"product": "A new AI-driven smart coffee machine that adjusts brewing based on morning grogginess detected by face scan."},
   "artifact_data": {
     "team_name": "Developer Team Lead",
     "status": "success",
@@ -108,6 +111,7 @@ EXECUTE_TASK_PAYLOAD=$(cat <<EOF
 {
   "task_type": "execute_task",
   "text": "$PROBLEM_STATEMENT",
+  "problem_statement": {"product": "A new AI-driven smart coffee machine that adjusts brewing based on morning grogginess detected by face scan."},
   "session_id": "$SESSION_ID",
   "model_name": "openai:gpt-5.4-mini",
   "communication_type": "workflow",

@@ -31,12 +31,8 @@
       }
     ],
     "graph": {
-      "my-company-testing-team-lead-agent": [
-        "my-company-testing-dev-agent"
-      ],
-      "my-company-testing-dev-agent": [
-        "my-company-testing-team-lead-agent"
-      ]
+      "type": "dynamic",
+      "nodeID": "my-company-testing-team-lead-agent"
     }
   }
 }
