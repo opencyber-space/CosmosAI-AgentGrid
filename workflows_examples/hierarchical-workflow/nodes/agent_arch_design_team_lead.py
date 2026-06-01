@@ -139,6 +139,7 @@ class ArchDesignTeamLeadAgent:
             outputs      = task.job_data.get("outputs", {})
             initial_input = task.job_data.get("initial_input", {})
             last_executed = task.job_data.get("last_executed")
+            # Note: use last_executed_batch when task is executed in parallel from this agent
             last_executed_batch = task.job_data.get("last_executed_batch")
             final_blueprint = ""
             # if last_executed_batch:

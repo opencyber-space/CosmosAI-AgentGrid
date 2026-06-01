@@ -43,7 +43,7 @@
                     "HIS_POLL_INTERVAL": 1.0,
                     "HIS_MAX_WAIT": 120
                 },
-                "initial_budget": 70000,
+                "initial_budget": 200000,
                 "api_key": "${OPENAI_API_KEY}"
             }
         }

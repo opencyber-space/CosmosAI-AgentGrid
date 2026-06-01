@@ -497,8 +497,8 @@ def display_team_timeline(team_name, agent_ids):
     # Sort ALL messages globally by precise time (descending: newest at the top)
     all_team_messages.sort(key=lambda x: x.get("precise_time", x.get("creation_time", 0)), reverse=True)
             
-    # Render Messages Row by Row (Calling st.columns inside the loop exactly like multi-level-workflow to create the staggered flow!)
-    for op in all_team_messages:
+    # Render Messages Row by Row (Limit to latest 50 to prevent Streamlit UI from hanging/crashing)
+    for op in all_team_messages[:50]:
         cols = st.columns(len(agent_ids))
         
         agent_id = op["agent_context"]
@@ -521,7 +521,7 @@ def display_team_timeline(team_name, agent_ids):
                 except: pass
             
             precise_t = op.get("precise_time", op.get("creation_time", 0))
-            ts = datetime.datetime.fromtimestamp(precise_t).strftime('%H:%M:%S')
+            ts = datetime.datetime.fromtimestamp(precise_t).strftime('%H:%M:%S.%f')[:-3]
             
             parsed_json = parse_raw_json(text_content)
             import html

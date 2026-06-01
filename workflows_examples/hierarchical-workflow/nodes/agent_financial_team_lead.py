@@ -1,3 +1,4 @@
+import copy
 import logging
 import uuid
 import json
@@ -148,6 +149,7 @@ class FinancialTeamLeadAgent:
             outputs      = task.job_data.get("outputs", {})
             initial_input = task.job_data.get("initial_input", {})
             last_executed = task.job_data.get("last_executed")
+            # Note: use last_executed_batch when task is executed in parallel from this agent
             last_executed_batch = task.job_data.get("last_executed_batch")
             final_blueprint = ""
             # if last_executed_batch:
@@ -157,8 +159,15 @@ class FinancialTeamLeadAgent:
             # else:
             #     last_node = []
             last_node = None
-            if last_executed and "output" in last_executed and "final_blueprint" in last_executed["output"]:
-                final_blueprint = last_executed["output"]["final_blueprint"]
+            last_nodes = None
+            if len(last_executed_batch)>1:
+                # Note: use last_executed_batch when task is executed in parallel from this agent
+                task_type = last_executed["output"]["task_type"]
+                last_nodes = [node["nodeID"] for node in last_executed_batch]
+            elif last_executed and "output" in last_executed:
+                if "final_blueprint" in last_executed["output"]:
+                    final_blueprint = last_executed["output"]["final_blueprint"]
+                #elif last_executed["output"]["task_type"] == "specialist_output":
                 last_node = last_executed["nodeID"]
                 task_type = last_executed["output"]["task_type"]
             
@@ -167,6 +176,17 @@ class FinancialTeamLeadAgent:
                     self.task_registry[task_id] = {
                         "approval_loops": 0
                     }
+                    log.info(f"Initialized task registry for task {task_id}")
+
+            priority = initial_input.get("priority", "Fast")
+            user_request = initial_input.get("user_request")
+            if task_id not in self.task_registry:
+                self.task_registry[task_id] = {"user_request": user_request, "priority": priority}
+            else:
+                if user_request:
+                    self.task_registry[task_id]["user_request"] = user_request
+                if "priority" in initial_input:
+                    self.task_registry[task_id]["priority"] = priority
 
             if task_type == "execute_task":
                 if not last_node:
@@ -192,23 +212,13 @@ class FinancialTeamLeadAgent:
                     is_error=False,
                 )
             elif task_type == "specialist_output":
-                # text = data.get("text")
-                # if text:
-                #     payload = extract_json(text)
-                #     if isinstance(payload, dict):
-                #         # Merge payload keys to job_data for easier checks below
-                #         for k, v in payload.items():
-                #             data[k] = v
 
-                role = data.get("role")
-                #if role in ["Financial Accountant", "Financial Controller", "Financial Strategist"]:
-                if last_executed["output"]["role"] == "Financial Accountant" and last_executed["output"]["is_balance_report"]:
+                if last_node and last_executed["output"]["role"] == "Financial Accountant" and last_executed["output"]["is_balance_report"]:
                     # Step 2: Receive Balance from Accountant & Dispatch to Specialists
                     specialist_output = last_executed["output"]["specialist_output"]
                     self.task_registry[task_id]["available_budget"] = specialist_output.get("available_budget", 0)
                     
                     # Dispatch to both Controller and Strategist
-                    #specialist_targets = ["company-financial-controller-agent", "company-financial-strategist-agent"]
                     nav_data = {
                         "task_type": "validate",
                         "aggregated_budget": self.task_registry[task_id]["aggregated_budget"],
@@ -221,34 +231,27 @@ class FinancialTeamLeadAgent:
                         "user_request": self.task_registry[task_id]["user_request"]
                     }
                     
-                    # for target in specialist_targets:
-                    #     if communication_type == "delegate":
-                    #         self._log_to_his(target, nav_data)
-                    #         self.context.delegator.submit_and_wait(subject_id=target, session_id=session_id, task_id=task.task_id, task_data=nav_data)
-                    #     else:
-                    #         self._log_to_his(target, nav_data)
-                    #         self.context.p2p_manager.send_sync(task=task, subject_id=target, job_data=nav_data, session_id=session_id)
                     self._log_to_his(NODE_CONTROLLER, nav_data)
                     self._log_to_his(NODE_STRATEGIST, nav_data)
                     return AgentResult(
-                        task_id=task.task_id,
-                        job_output=[{
-                            "nodeID": NODE_CONTROLLER,
-                            "input": nav_data
-                        },
-                        {
-                            "nodeID": NODE_STRATEGIST,
-                            "input": nav_data
-                        }],
-                        job_output_metadata={"next_nodes": [NODE_CONTROLLER,NODE_STRATEGIST]},
-                        is_error=False
-                    )
+                            task_id=task.task_id,
+                            job_output=[{
+                                "nodeID": NODE_CONTROLLER,
+                                "input": nav_data
+                            },
+                            {
+                                "nodeID": NODE_STRATEGIST,
+                                "input": nav_data
+                            }],
+                            job_output_metadata={"next_nodes": [NODE_CONTROLLER,NODE_STRATEGIST]},
+                            is_error=False
+                        )
 
-                elif last_executed["output"]["role"] == "Financial Accountant" and last_executed["output"]["is_deduction_report"]:
+                elif last_node and last_executed["output"]["role"] == "Financial Accountant" and last_executed["output"]["is_deduction_report"]:
                     specialist_output = last_executed["output"]["specialist_output"]
                     #update the budget after available budget deducted
                     self.task_registry[task_id]["available_budget"] = specialist_output.get("available_budget", 0)
-                    decision_data = last_executed["output"]["decision_data"]
+                    decision_data = specialist_output["decision_data"]
                     # Send success to CoS
                     job_data = {
                         "approval_decision": decision_data,
@@ -269,16 +272,17 @@ class FinancialTeamLeadAgent:
                         job_output=job_data,
                         job_output_metadata={}, 
                         is_error=False)
-                elif last_executed["output"]["role"] in ["Financial Controller", "Financial Strategist"]:
+                elif last_nodes:
                     # Step 3: Accumulate Specialist Output
-                    if last_executed["output"]["role"] == "Financial Controller":
-                        self.task_registry[task_id]["controller_feedback"] = last_executed["output"]["specialist_output"]
-                    elif last_executed["output"]["role"] == "Financial Strategist":
-                        self.task_registry[task_id]["strategist_feedback"] = last_executed["output"]["specialist_output"]
+                    for last_node_id in last_nodes:
+                        if outputs[last_node_id]["role"] == "Financial Controller":
+                            self.task_registry[task_id]["controller_feedback"] = copy.deepcopy(outputs[last_node_id]["specialist_output"])
+                        elif outputs[last_node_id]["role"] == "Financial Strategist":
+                            self.task_registry[task_id]["strategist_feedback"] = copy.deepcopy(outputs[last_node_id]["specialist_output"])
                     
                     # If both have replied, evaluate via LLM
                     if self.task_registry[task_id].get("controller_feedback") and self.task_registry[task_id].get("strategist_feedback"):
-                        return self._evaluate_approval(task, task_id, session_id, model_name, communication_type)
+                        return self._evaluate_approval(task, task_id, initial_input, model_name, session_id, communication_type)
                     
                     return AgentResult(task_id=task.task_id,
                         job_output=[],
@@ -328,61 +332,15 @@ class FinancialTeamLeadAgent:
                     "communication_type": communication_type,
                     "user_request": self.task_registry[task_id]["user_request"]
                 }
-            
-            # return [{
-            #     "nodeID": NODE_ACCOUNTANT,
-            #     "input": {**initial_input, "task_type": "check_balance", "aggregated_budget": agg_budget, "problem_statement": prob_stmt}
-            # }]
+
             self._log_to_his(NODE_ACCOUNTANT, accountant_data)
 
             return [{
                 "nodeID": NODE_ACCOUNTANT,
                 "input": accountant_data
             }]
-            
-        # Step 2: After Accountant replies
-        # if NODE_ACCOUNTANT in last_node:
-        #     accountant_out = outputs.get(NODE_ACCOUNTANT, {})
-        #     # Check if this is from check_balance
-        #     if accountant_out.get("is_balance_report"):
-        #         log.info("Step 2: balance checked, dispatching to Controller and Strategist")
-        #         avail_budget = accountant_out.get("specialist_output", {}).get("available_budget", 0)
-                
-        #         current_agg_budget = self.task_registry[task_id].get("aggregated_budget")
-        #         prob_stmt = self.task_registry[task_id].get("problem_statement")
-                
-        #         nav_data = {
-        #             **initial_input,
-        #             "task_type": "validate",
-        #             "available_budget": avail_budget,
-        #             "aggregated_budget": current_agg_budget,
-        #             "problem_statement": prob_stmt
-        #         }
-        #         return [
-        #             {"nodeID": NODE_CONTROLLER, "input": nav_data},
-        #             {"nodeID": NODE_STRATEGIST, "input": nav_data}
-        #         ]
-            
-        #     # Check if this is from deduct_budget
-        #     elif accountant_out.get("is_deduction_report"):
-        #         log.info("Step 5: deduction completed, workflow done")
-        #         return []
 
-        # # Step 3 & 4: Waiting for or processing Controller & Strategist
-        # has_controller = NODE_CONTROLLER in last_node
-        # has_strategist = NODE_STRATEGIST in last_node
-        
-        # if has_controller or has_strategist:
-        #     if has_controller and has_strategist:
-        #         log.info("Step 4: parallel execution finished, evaluating approval")
-        #         return self._evaluate_approval(task_id, initial_input, model_name, session_id, communication_type)
-        #     else:
-        #         log.info("Step 3: waiting for parallel nodes (Controller & Strategist)")
-        #         return []
-                
-        # return []
-
-    def _evaluate_approval(self, task_id, initial_input, model_name, session_id,communication_type):
+    def _evaluate_approval(self, task, task_id, initial_input, model_name, session_id,communication_type):
         controller_out = self.task_registry[task_id]["controller_feedback"]
         strategist_out = self.task_registry[task_id]["strategist_feedback"]
         # accountant_out = outputs.get(NODE_ACCOUNTANT, {}).get("specialist_output", {})
@@ -416,10 +374,15 @@ class FinancialTeamLeadAgent:
                 "decision_data":decision_data
             }
             self._log_to_his(NODE_ACCOUNTANT, accountant_data)
-            return [{
-                "nodeID": NODE_ACCOUNTANT,
-                "input": accountant_data
-            }]
+            return AgentResult(
+                            task_id=task.task_id,
+                            job_output=[{
+                                "nodeID": NODE_ACCOUNTANT,
+                                "input": accountant_data
+                            }],
+                            job_output_metadata={"next_nodes": [NODE_ACCOUNTANT]},
+                            is_error=False
+                        )
         else:
             self.task_registry[task_id]["approval_loops"] += 1
             if self.task_registry[task_id]["approval_loops"] > 3:
@@ -437,10 +400,15 @@ class FinancialTeamLeadAgent:
                     "decision_data":decision_data
                 }
                 self._log_to_his(NODE_ACCOUNTANT, accountant_data)
-                return [{
-                    "nodeID": NODE_ACCOUNTANT,
-                    "input": accountant_data
-                }]
+                return AgentResult(
+                            task_id=task.task_id,
+                            job_output=[{
+                                "nodeID": NODE_ACCOUNTANT,
+                                "input": accountant_data
+                            }],
+                            job_output_metadata={"next_nodes": [NODE_ACCOUNTANT]},
+                            is_error=False
+                        )
             
             log.info("Approval FAILED. Adjusting budget by 20% and looping.")
             if isinstance(current_agg_budget, dict) and "estimates" in current_agg_budget:
@@ -465,10 +433,19 @@ class FinancialTeamLeadAgent:
             }
             self._log_to_his(NODE_CONTROLLER, nav_data)
             self._log_to_his(NODE_STRATEGIST, nav_data)
-            return [
-                {"nodeID": NODE_CONTROLLER, "input": nav_data},
-                {"nodeID": NODE_STRATEGIST, "input": nav_data}
-            ]
+            return AgentResult(
+                            task_id=task.task_id,
+                            job_output=[{
+                                "nodeID": NODE_CONTROLLER,
+                                "input": nav_data
+                            },
+                            {
+                                "nodeID": NODE_STRATEGIST,
+                                "input": nav_data
+                            }],
+                            job_output_metadata={"next_nodes": [NODE_CONTROLLER,NODE_STRATEGIST]},
+                            is_error=False
+                        )
 
     def _handle_audit(self, task, task_id, initial_input, session_id, model_name):
         with self.model_context.get_context(model_name=model_name, session_id=session_id):

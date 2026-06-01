@@ -14,9 +14,9 @@ fi
 
 echo "Executing workflow at $WORKFLOW_URL"
 
-SESSION_ID="session-financial-demo"
-TASK_ID="task-financial-demo-1"
-USER_REQUEST="I need a marketing budget for the smart coffee machine"
+SESSION_ID="session-financial-demo-"$(( RANDOM % 100 ))
+TASK_ID="task-financial-demo--"$(( RANDOM % 100 ))
+USER_REQUEST="I need a total budget for the smart coffee machine"
 
 # CoS passes an AggregatedBudget object for approve_budget
 BUDGET_PAYLOAD=$(cat <<EOF
@@ -24,12 +24,27 @@ BUDGET_PAYLOAD=$(cat <<EOF
   "estimates": [
     {
       "team_name": "Marketing Team",
-      "amount": 50000,
+      "amount": 10000,
       "deliverables": ["Social Ads", "Landing Page"]
-    }
+    },
+    {
+      "team_name": "Architecture Team",
+      "amount": 10000,
+      "deliverables": ["Architecture", "Components"]
+    },
+    {
+      "team_name": "Developer Team",
+      "amount": 10000,
+      "deliverables": ["Backend", "UI"]
+    },
+    {
+      "team_name": "Testing Team",
+      "amount": 10000,
+      "deliverables": ["Testing", "QA"]
+    },
   ],
   "buffer": 5000,
-  "total": 55000
+  "total": 45000
 }
 EOF
 )
@@ -57,28 +72,29 @@ echo "Sending Request 1 (approve_budget)"
 curl -X POST "$WORKFLOW_URL/api/execute" -H "Content-Type: application/json" -d "$APPROVE_BUDGET_JSON"
 echo -e "\nRequest 1 executed.\n"
 
-sleep 2
+# sleep 2
 
-PROBLEM_STATEMENT='{\"product\": \"A new AI-driven smart coffee machine that adjusts brewing based on morning grogginess detected by face scan.\"}'
+# PROBLEM_STATEMENT='{\"product\": \"A new AI-driven smart coffee machine that adjusts brewing based on morning grogginess detected by face scan.\"}'
 
-# --- Request 2: execute_task ---
-# execute_task in financial team translates to an audit request
-EXECUTE_TASK_JSON=$(cat <<EOF
-{
-  "task_type": "execute_task",
-  "text": "$PROBLEM_STATEMENT",
-  "session_id": "$SESSION_ID",
-  "model_name": "openai:gpt-5.4-mini",
-  "communication_type": "workflow",
-  "task_id": "$TASK_ID",
-  "user_request": "$USER_REQUEST",
-  "priority": "Fast",
-  "deliverables": []
-}
-EOF
-)
+# # --- Request 2: execute_task ---
+# SESSION_ID="session-financial-demo-"$(( RANDOM % 100 ))
+# # execute_task in financial team translates to an audit request
+# EXECUTE_TASK_JSON=$(cat <<EOF
+# {
+#   "task_type": "execute_task",
+#   "text": "$PROBLEM_STATEMENT",
+#   "session_id": "$SESSION_ID",
+#   "model_name": "openai:gpt-5.4-mini",
+#   "communication_type": "workflow",
+#   "task_id": "$TASK_ID",
+#   "user_request": "$USER_REQUEST",
+#   "priority": "Fast",
+#   "deliverables": []
+# }
+# EOF
+# )
 
-echo "---------------------------------------------------"
-echo "Sending Request 2 (execute_task)"
-curl -X POST "$WORKFLOW_URL/api/execute" -H "Content-Type: application/json" -d "$EXECUTE_TASK_JSON"
-echo -e "\nRequest 2 executed.\n"
+# echo "---------------------------------------------------"
+# echo "Sending Request 2 (execute_task)"
+# curl -X POST "$WORKFLOW_URL/api/execute" -H "Content-Type: application/json" -d "$EXECUTE_TASK_JSON"
+# echo -e "\nRequest 2 executed.\n"

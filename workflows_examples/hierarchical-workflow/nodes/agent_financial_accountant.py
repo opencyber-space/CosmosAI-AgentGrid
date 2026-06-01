@@ -108,6 +108,7 @@ class FinancialAccountantAgent:
         try:
             source_id = getattr(self.subject.identity, 'subject_id', 'unknown')
             target_id_mapped = {v: k for k, v in NODE_ID_MAPPING.items()}.get(target_id, target_id)
+            log.info(f"LOGGIN TO HIS: source_id:{source_id} destination_id:{target_id_mapped} team:Finance Team timestamp:{time.time()}")
             msg = {"text": str(job_data), "source_id": source_id, "destination_id": target_id_mapped, "team": "Finance Team", "timestamp": time.time()}
             self.his_client.submit(input_data=msg)
         except Exception:
@@ -179,7 +180,12 @@ class FinancialAccountantAgent:
             }
 
             self._log_to_his("my-company-financial-team-lead-agent", job_data)
-            return AgentResult(task_id=task.task_id, job_output=job_data, is_error=False)
+            return AgentResult(
+                            task_id=task.task_id,
+                            job_output=job_data,
+                            job_output_metadata={},
+                            is_error=False,
+                        )
 
         except Exception as e:
             log.exception(f"Error in Financial Accountant: {e}")

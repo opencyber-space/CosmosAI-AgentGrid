@@ -146,9 +146,9 @@ class FinancialControllerAgent:
                 }
 
                 self._log_to_his("my-company-financial-team-lead-agent", job_data)
-                return AgentResult(task_id=task.task_id, job_output=job_data, is_error=False)
+                return AgentResult(task_id=task.task_id, job_output=job_data,job_output_metadata={}, is_error=False)
             
-            return AgentResult(task_id=task.task_id, skip=True)
+            return AgentResult(task_id=task.task_id, job_output={},job_output_metadata={},skip=True)
 
         except Exception as e:
             log.exception(f"Error in Financial Controller: {e}")
