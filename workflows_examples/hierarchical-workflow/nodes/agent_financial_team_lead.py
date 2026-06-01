@@ -152,12 +152,6 @@ class FinancialTeamLeadAgent:
             # Note: use last_executed_batch when task is executed in parallel from this agent
             last_executed_batch = task.job_data.get("last_executed_batch")
             final_blueprint = ""
-            # if last_executed_batch:
-            #     last_node = [node["nodeID"] for node in last_executed_batch]
-            # elif last_executed:
-            #     last_node = [last_executed["nodeID"]]
-            # else:
-            #     last_node = []
             last_node = None
             last_nodes = None
             if len(last_executed_batch)>1:

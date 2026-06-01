@@ -70,11 +70,15 @@ class MinioUploader:
             secure=False
         )
         self.minio_bucket = self.minio_config["MINIO_BUCKET"]
+        self.minio_external_port = self.minio_config["MINIO_EXTERNAL_PORT"]
+        self.minio_internal_port = self.minio_config["MINIO_INTERNAL_PORT"]
         
         if not self.minio_client.bucket_exists(self.minio_bucket):
             self.minio_client.make_bucket(self.minio_bucket)
+
     def upload(self, data_bytes, session_id, task_id):
-        
+        if not self.minio_config:
+            return ""
         object_name = f"{session_id}_{task_id}_{uuid.uuid4().hex[:8]}.png"
         self.minio_client.put_object(
             self.minio_bucket,
@@ -84,7 +88,8 @@ class MinioUploader:
             content_type="image/png"
         )
         img_url = self.minio_client.presigned_get_object(self.minio_bucket, object_name, expires=timedelta(hours=1))
-        img_url = img_url.replace(self.minio_config["MINIO_URL"], self.minio_config.get("MINIO_EXTERNAL_URL"))
+        img_url = img_url.replace(self.minio_config["MINIO_URL"], self.minio_config.get("MINIO_EXTERNAL_URL", self.minio_config["MINIO_URL"]))
+        img_url = img_url.replace(self.minio_internal_port, self.minio_external_port)
         return img_url.split("?")[0]
 class VisualSignature(dspy.Signature):
     """

@@ -29,11 +29,13 @@ class MinioCodeUploader:
             secure=False
         )
         self.minio_bucket = self.minio_config["MINIO_BUCKET"]
+        self.minio_external_port = self.minio_config["MINIO_EXTERNAL_PORT"]
+        self.minio_internal_port = self.minio_config["MINIO_INTERNAL_PORT"]
         
         if not self.minio_client.bucket_exists(self.minio_bucket):
             self.minio_client.make_bucket(self.minio_bucket)
+
     def upload(self, code_string, filename, session_id, task_id):
-        
         safe_filename = filename.replace("/", "_")
         object_name = f"{session_id}/{safe_filename}"
         
@@ -47,6 +49,7 @@ class MinioCodeUploader:
         )
         file_url = self.minio_client.presigned_get_object(self.minio_bucket, object_name, expires=timedelta(hours=1))
         file_url = file_url.replace(self.minio_config["MINIO_URL"], self.minio_config.get("MINIO_EXTERNAL_URL"))
+        file_url = file_url.replace(self.minio_internal_port, self.minio_external_port)
         return file_url.split("?")[0]
 
 class CodePlanSignature(dspy.Signature):

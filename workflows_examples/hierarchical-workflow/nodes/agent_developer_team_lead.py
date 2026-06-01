@@ -17,11 +17,13 @@ log = logging.getLogger(__name__)
 NODE_ID_MAPPING = {
     "agent-workflow-developer-team-lead": "my-company-developer-team-lead-agent",
     "agent-workflow-dev-backend": "my-company-dev-backend-agent",
-    "agent-workflow-dev-frontend": "my-company-dev-frontend-agent"
+    "agent-workflow-dev-frontend": "my-company-dev-frontend-agent",
+    "agent-workflow-cos":"my-chief-of-staff-agent"
 }
 
 NODE_BACKEND = "my-company-dev-backend-agent"
 NODE_FRONTEND = "my-company-dev-frontend-agent"
+NODE_COS = "my-chief-of-staff-agent"
 
 # --- 1. The Signatures ---
 
@@ -180,6 +182,26 @@ class DeveloperTeamLeadAgent:
                 data = data.get("initial_input", {})
                 
             task_type = data.get("task_type", "estimate_budget")
+
+            history      = task.job_data.get("history", [])
+            outputs      = task.job_data.get("outputs", {})
+            initial_input = task.job_data.get("initial_input", {})
+            last_executed = task.job_data.get("last_executed")
+            # Note: use last_executed_batch when task is executed in parallel from this agent
+            last_executed_batch = task.job_data.get("last_executed_batch")
+            final_blueprint = ""
+            last_node = None
+            last_nodes = None
+            if len(last_executed_batch)>1:
+                # Note: use last_executed_batch when task is executed in parallel from this agent
+                task_type = last_executed["output"]["task_type"]
+                last_nodes = [node["nodeID"] for node in last_executed_batch]
+            elif last_executed and "output" in last_executed:
+                if "final_blueprint" in last_executed["output"]:
+                    final_blueprint = last_executed["output"]["final_blueprint"]
+                #elif last_executed["output"]["task_type"] == "specialist_output":
+                last_node = last_executed["nodeID"]
+                task_type = last_executed["output"]["task_type"]
             
             task_id = data.get("task_id", task.task_id)
             user_request = data.get("user_request")
@@ -200,10 +222,11 @@ class DeveloperTeamLeadAgent:
             if not problem_statement:
                 problem_statement = self.task_registry[task_id].get("user_request", user_request)
 
-            if task_type == "process_artifact" and not data.get("artifact_data") and isinstance(extracted, dict):
-                data["artifact_data"] = extracted
+            # if task_type == "process_artifact" and not data.get("artifact_data") and isinstance(extracted, dict):
+            #     data["artifact_data"] = extracted
 
             if task_type == "process_artifact":
+                log.info(f"Dev Team Lead received artifact data for {task_id}: {data.get('artifact_data')}")
                 src = data.get("artifact_data", {}).get("team_name", "")
                 if "Arch" not in src and "Senior" not in src:
                     log.info(f"Dev Team Lead ignoring unrelated artifact from {src}")
@@ -224,15 +247,18 @@ class DeveloperTeamLeadAgent:
                 
             elif task_type == "specialist_report":
                 # Received dev results from frontend/backend subordinates
-                agent_role = data.get("role", "Unknown Dev")
-                self.task_registry[task_id]["specialist_reports"][agent_role] = data.get("specialist_report")
-                log.info(f"Dev Team Lead received {agent_role} report. Total: {len(self.task_registry[task_id]['specialist_reports'])}")
+                for i, one_last_node in enumerate(last_nodes):
+                    agent_role = last_executed_batch[i]["output"]["role"]
+                    if "specialist_reports" not in self.task_registry[task_id]:
+                        self.task_registry[task_id]["specialist_reports"] = {}
+                    self.task_registry[task_id]["specialist_reports"][agent_role] = last_executed_batch[i]["output"]["specialist_report"]
+                    log.info(f"Dev Team Lead received {agent_role} report. Total: {len(self.task_registry[task_id]['specialist_reports'])}")
                 
                 # If we have both Frontend and Backend, finalize the task.
                 if len(self.task_registry[task_id]["specialist_reports"]) >= len(self.subordinates):
                     return self._finalize_execution(task, task_id, problem_statement, llm_session_id, model_name, communication_type)
 
-            return AgentResult(task_id=task.task_id, skip=True)
+            return AgentResult(task_id=task.task_id, job_output={}, job_output_metadata={"next_nodes":[]}, is_error=False)
 
         except Exception as e:
             log.exception(f"Error in Developer Team Lead: {e}")
@@ -255,7 +281,7 @@ class DeveloperTeamLeadAgent:
             "session_id": session_id,
             "model_name": model_name
         }
-        self._log_to_his("my-chief-of-staff-agent", job_data)
+        self._log_to_his(NODE_COS, job_data)
         #return AgentResult(task_id=task.task_id, job_output=job_data, is_error=False)
         # Note: In if agent is a dynamic unit, then it can return job_output as [] or [{"nodeID":"", "input":{}}...] or {}
         # If  job_output={} then it is returned as it to the caller. If it is array then Workflow unit will break it down to whome to call next
@@ -301,14 +327,14 @@ class DeveloperTeamLeadAgent:
             
             for sub_id in [NODE_BACKEND, NODE_FRONTEND]:
                 self._log_to_his(sub_id, job_data)
-                
-            return AgentResult(task_id=task.task_id, job_output=job_data, is_error=False)
+            input_for_dev = [{"nodeID":NODE_BACKEND, "input":job_data}, {"nodeID":NODE_FRONTEND, "input":job_data}]
+            return AgentResult(task_id=task.task_id, job_output=input_for_dev, job_output_metadata={"next_nodes":[NODE_BACKEND, NODE_FRONTEND]}, is_error=False)
         else:
             log.info("Dev Team Lead awaiting dependencies for %s. Deliverables: %s | Architecture: %s",
                      task_id,
                      "Cached" if registry.get("deliverables") is not None else "Missing",
                      "Cached" if registry.get("architecture") is not None else "Missing")
-            return AgentResult(task_id=task.task_id, skip=True)
+            return AgentResult(task_id=task.task_id, job_output={}, job_output_metadata={"next_nodes":[]}, is_error=False)
 
     def _finalize_execution(self, task, task_id, problem_statement, session_id, model_name, comm_type):
         architecture = self.task_registry[task_id].get("architecture")
@@ -339,8 +365,8 @@ class DeveloperTeamLeadAgent:
             "session_id": session_id,
             "model_name": model_name
         }
-        self._log_to_his("my-chief-of-staff-agent", job_data)
-        return AgentResult(task_id=task.task_id, job_output=job_data, is_error=False)
+        self._log_to_his(NODE_COS, job_data)
+        return AgentResult(task_id=task.task_id, job_output=job_data, job_output_metadata={"next_nodes":[NODE_COS]}, is_error=False)
 
 if __name__ == "__main__":
     main(DeveloperTeamLeadAgent)

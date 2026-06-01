@@ -39,16 +39,8 @@
       }
     ],
     "graph": {
-      "my-company-developer-team-lead-agent": [
-        "my-company-dev-backend-agent",
-        "my-company-dev-frontend-agent"
-      ],
-      "my-company-dev-backend-agent": [
-        "my-company-developer-team-lead-agent"
-      ],
-      "my-company-dev-frontend-agent": [
-        "my-company-developer-team-lead-agent"
-      ]
+      "type": "dynamic",
+      "nodeID": "my-company-developer-team-lead-agent"
     }
   }
 }

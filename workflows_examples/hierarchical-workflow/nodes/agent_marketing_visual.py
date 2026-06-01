@@ -73,6 +73,8 @@ class MinioUploader:
                 secure=False
             )
             self.minio_bucket = self.minio_config["MINIO_BUCKET"]
+            self.minio_external_port = self.minio_config["MINIO_EXTERNAL_PORT"]
+            self.minio_internal_port = self.minio_config["MINIO_INTERNAL_PORT"]
             
             if not self.minio_client.bucket_exists(self.minio_bucket):
                 self.minio_client.make_bucket(self.minio_bucket)
@@ -90,6 +92,7 @@ class MinioUploader:
         )
         img_url = self.minio_client.presigned_get_object(self.minio_bucket, object_name, expires=timedelta(hours=1))
         img_url = img_url.replace(self.minio_config["MINIO_URL"], self.minio_config.get("MINIO_EXTERNAL_URL", self.minio_config["MINIO_URL"]))
+        img_url = img_url.replace(self.minio_internal_port, self.minio_external_port)
         return img_url.split("?")[0]
 
 class VisualSignature(dspy.Signature):
@@ -166,17 +169,16 @@ class MarketingVisualAgent:
         self.model_context = ModelContextManager(self.aios_dspy_lm)
         self.image_generator = GoogleImageGenerator(subject)
         
-        his_config = getattr(self.subject.persona, 'config', {}).get("parameters", {}) if hasattr(self.subject, 'persona') else {}
-        self.minio_config = his_config.get("MINIO_CONFIG", {})
+        his_config = getattr(self.subject.persona, 'config', {}).get("parameters", {}).get("HIS_CONFIG", {}) if hasattr(self.subject, 'persona') else {}
+        self.minio_config = getattr(self.subject.persona, 'config', {}).get("parameters", {}).get("MINIO_CONFIG", {}) if hasattr(self.subject, 'persona') else {}
         self.minio_uploader = MinioUploader(self.minio_config)
         self.task_registry = {}
         
         # Initialize HIS Client
-        his_cfg = his_config.get("HIS_CONFIG", {})
         self.his_client = HisClient(
-            base_url=his_cfg.get("HIS_BASE_URL", "http://localhost"),
-            poll_interval=his_cfg.get("HIS_POLL_INTERVAL", 1.0),
-            max_wait=his_cfg.get("HIS_MAX_WAIT", 60)
+            base_url=his_config.get("HIS_BASE_URL", "http://localhost"),
+            poll_interval=his_config.get("HIS_POLL_INTERVAL", 1.0),
+            max_wait=his_config.get("HIS_MAX_WAIT", 60)
         )
 
     def on_preprocess(self, task: AgentTask) -> Optional[List[AgentTask]]:

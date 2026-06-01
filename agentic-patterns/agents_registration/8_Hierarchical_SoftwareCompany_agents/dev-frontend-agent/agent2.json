@@ -58,7 +58,9 @@
                     "MINIO_EXTERNAL_URL": "${EXTERNAL_IP}:9000",
                     "MINIO_ACCESS_KEY": "${MINIO_ACCESS_KEY}",
                     "MINIO_SECRET_KEY": "${MINIO_SECRET_KEY}",
-                    "MINIO_BUCKET": "dev-code-bucket"
+                    "MINIO_BUCKET": "dev-code-bucket",
+                    "MINIO_EXTERNAL_PORT": "${MINIO_EXTERNAL_PORT}",
+                    "MINIO_INTERNAL_PORT": "${MINIO_INTERNAL_PORT}"
                 }
             }
         }

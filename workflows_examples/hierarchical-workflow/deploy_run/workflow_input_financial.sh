@@ -15,7 +15,7 @@ fi
 echo "Executing workflow at $WORKFLOW_URL"
 
 SESSION_ID="session-financial-demo-"$(( RANDOM % 100 ))
-TASK_ID="task-financial-demo--"$(( RANDOM % 100 ))
+TASK_ID="task-financial-demo-"$(( RANDOM % 100 ))
 USER_REQUEST="I need a total budget for the smart coffee machine"
 
 # CoS passes an AggregatedBudget object for approve_budget

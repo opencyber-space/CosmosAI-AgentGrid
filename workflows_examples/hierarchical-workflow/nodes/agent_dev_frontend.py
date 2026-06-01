@@ -22,6 +22,9 @@ NODE_ID_MAPPING = {
     "agent-workflow-dev-backend": "my-company-dev-backend-agent",
     "agent-workflow-dev-frontend": "my-company-dev-frontend-agent"
 }
+DEV_TEAM_LEAD = "my-company-developer-team-lead-agent"
+DEV_BACKEND = "my-company-dev-backend-agent"
+DEV_FRONTEND = "my-company-dev-frontend-agent"
 
 # MinIO Config
 
@@ -35,6 +38,8 @@ class MinioCodeUploader:
             secure=False
         )
         self.minio_bucket = self.minio_config["MINIO_BUCKET"]
+        self.minio_external_port = self.minio_config["MINIO_EXTERNAL_PORT"]
+        self.minio_internal_port = self.minio_config["MINIO_INTERNAL_PORT"]
         
         if not self.minio_client.bucket_exists(self.minio_bucket):
             self.minio_client.make_bucket(self.minio_bucket)
@@ -53,6 +58,7 @@ class MinioCodeUploader:
         )
         file_url = self.minio_client.presigned_get_object(self.minio_bucket, object_name, expires=timedelta(hours=1))
         file_url = file_url.replace(self.minio_config["MINIO_URL"], self.minio_config.get("MINIO_EXTERNAL_URL"))
+        file_url = file_url.replace(self.minio_internal_port, self.minio_external_port)
         return file_url.split("?")[0]
 
 class CodePlanSignature(dspy.Signature):
@@ -152,16 +158,15 @@ class FrontendDevAgent:
         self.model_context = ModelContextManager(self.aios_dspy_lm)
         self.task_registry = {}
         
-        his_config = getattr(self.subject.persona, 'config', {}).get("parameters", {}) if hasattr(self.subject, 'persona') else {}
-        self.minio_config = his_config.get("MINIO_CONFIG", {})
+        his_config = getattr(self.subject.persona, 'config', {}).get("parameters", {}).get("HIS_CONFIG", {}) if hasattr(self.subject, 'persona') else {}
+        self.minio_config = getattr(self.subject.persona, 'config', {}).get("parameters", {}).get("MINIO_CONFIG", {}) if hasattr(self.subject, 'persona') else {}
         self.minio_uploader = MinioCodeUploader(self.minio_config)
-        
+
         # Initialize HIS Client
-        his_client_config = his_config.get("HIS_CONFIG", {})
         self.his_client = HisClient(
-            base_url=his_client_config.get("HIS_BASE_URL", "http://localhost"),
-            poll_interval=his_client_config.get("HIS_POLL_INTERVAL", 1.0),
-            max_wait=his_client_config.get("HIS_MAX_WAIT", 60)
+            base_url=his_config.get("HIS_BASE_URL", "http://localhost"),
+            poll_interval=his_config.get("HIS_POLL_INTERVAL", 1.0),
+            max_wait=his_config.get("HIS_MAX_WAIT", 60)
         )
 
     def on_preprocess(self, task: AgentTask) -> Optional[List[AgentTask]]:
@@ -274,7 +279,7 @@ class FrontendDevAgent:
                 "file_urls": file_urls
             }
 
-            parent_id = "my-company-developer-team-lead-agent"
+            parent_id = DEV_TEAM_LEAD
             job_data = {
                 "task_type": "specialist_report",
                 "specialist_report": output_data,
@@ -287,11 +292,11 @@ class FrontendDevAgent:
             }
 
             self._log_to_his(parent_id, job_data)
-            return AgentResult(task_id=task.task_id, job_output=job_data, is_error=False)
+            return AgentResult(task_id=task.task_id, job_output=job_data, job_output_metadata={}, is_error=False)
 
         except Exception as e:
             log.exception(f"Error in Frontend Dev: {e}")
-            return AgentResult(task_id=task.task_id, is_error=True, error_data={"message": str(e)})
+            return AgentResult(task_id=task.task_id, job_output={}, job_output_metadata={}, is_error=True, error_data={"message": str(e)})
 
 if __name__ == "__main__":
     main(FrontendDevAgent)

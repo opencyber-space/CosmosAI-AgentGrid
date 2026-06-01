@@ -45,11 +45,13 @@
                     "HIS_MAX_WAIT": 120
                 },
                 "MINIO_CONFIG": {
-                    "MINIO_URL": "${MINIO_URL}",
+                    "MINIO_URL": "${INTERNAL_IP}:9000",
+                    "MINIO_EXTERNAL_URL": "${EXTERNAL_IP}:9000",
                     "MINIO_ACCESS_KEY": "${MINIO_ACCESS_KEY}",
                     "MINIO_SECRET_KEY": "${MINIO_SECRET_KEY}",
-                    "MINIO_BUCKET": "${MINIO_BUCKET}",
-                    "MINIO_EXTERNAL_URL": "${MINIO_EXTERNAL_URL}"
+                    "MINIO_BUCKET": "dev-code-bucket",
+                    "MINIO_EXTERNAL_PORT": "${MINIO_EXTERNAL_PORT}",
+                    "MINIO_INTERNAL_PORT": "${MINIO_INTERNAL_PORT}"
                 },
                 "api_key": "${OPENAI_API_KEY}"
             }
