@@ -1,0 +1,46 @@
+{
+  "header": {
+    "workflow_id": {
+      "name": "workflow-architecture-team",
+      "version": "1.0.0",
+      "release": "production"
+    },
+    "metadata": {
+      "description": "Architecture Team nested workflow with static loop debate routing",
+      "owner": "architecture-team",
+      "created_at": "2026-05-26"
+    }
+  },
+  "body": {
+    "nodes": [
+      {
+        "nodeID": "my-company-arch-design-team-lead-agent",
+        "type": "agent",
+        "id": "agent-workflow-arch-design-team-lead",
+        "settings": {
+          "model_name": "gpt-4o"
+        }
+      },
+      {
+        "nodeID": "my-company-arch-junior-agent",
+        "type": "agent",
+        "id": "agent-workflow-arch-junior",
+        "settings": {
+          "model_name": "gpt-4o"
+        }
+      },
+      {
+        "nodeID": "my-company-arch-senior-agent",
+        "type": "agent",
+        "id": "agent-workflow-arch-senior",
+        "settings": {
+          "model_name": "gpt-4o"
+        }
+      }
+    ],
+    "graph": {
+      "type": "dynamic",
+      "nodeID": "my-company-arch-design-team-lead-agent"
+    }
+  }
+}

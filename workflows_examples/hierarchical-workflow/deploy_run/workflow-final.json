@@ -1,0 +1,37 @@
+{
+  "header": {
+    "workflow_id": {
+      "name": "workflow-software-company",
+      "version": "1.0.0",
+      "release": "production"
+    },
+    "metadata": {
+      "description": "Hierarchical Software Company Workflow with CEO entry point and Chief of Staff nested sub-workflow",
+      "owner": "executive-board",
+      "created_at": "2026-05-27"
+    }
+  },
+  "body": {
+    "nodes": [
+      {
+        "nodeID": "my-ceo-agent",
+        "type": "agent",
+        "id": "agent-workflow-ceo",
+        "settings": {
+          "model_name": "gpt-4o"
+        }
+      },
+      {
+        "nodeID": "my-chief-of-staff-workflow",
+        "type": "workflow",
+        "id": "workflow-cos:1.0.0-production",
+        "settings": {}
+      }
+    ],
+    "graph": {
+      "my-ceo-agent": [
+        "my-chief-of-staff-workflow"
+      ]
+    }
+  }
+}

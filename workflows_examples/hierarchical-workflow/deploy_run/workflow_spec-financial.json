@@ -1,0 +1,53 @@
+{
+  "header": {
+    "workflow_id": {
+      "name": "workflow-financial-team",
+      "version": "1.0.0",
+      "release": "production"
+    },
+    "metadata": {
+      "description": "Financial Team nested workflow with dynamic routing",
+      "owner": "financial-team"
+    }
+  },
+  "body": {
+    "nodes": [
+      {
+        "nodeID": "my-company-financial-team-lead-agent",
+        "type": "agent",
+        "id": "agent-workflow-financial-team-lead",
+        "settings": {
+          "model_name": "gpt-4o"
+        }
+      },
+      {
+        "nodeID": "my-company-financial-accountant-agent",
+        "type": "agent",
+        "id": "agent-workflow-financial-accountant",
+        "settings": {
+          "model_name": "gpt-4o"
+        }
+      },
+      {
+        "nodeID": "my-company-financial-controller-agent",
+        "type": "agent",
+        "id": "agent-workflow-financial-controller",
+        "settings": {
+          "model_name": "gpt-4o"
+        }
+      },
+      {
+        "nodeID": "my-company-financial-strategist-agent",
+        "type": "agent",
+        "id": "agent-workflow-financial-strategist",
+        "settings": {
+          "model_name": "gpt-4o"
+        }
+      }
+    ],
+    "graph": {
+      "type": "dynamic",
+      "nodeID": "my-company-financial-team-lead-agent"
+    }
+  }
+}

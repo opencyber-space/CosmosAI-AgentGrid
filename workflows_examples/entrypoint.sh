@@ -66,6 +66,84 @@ case "${AGENT}" in
     echo "Starting agent-workflow-transaction-history agent (multi-level-workflow/nodes/transaction_history_agent.py)"
     exec python3 multi-level-workflow/nodes/transaction_history_agent.py
     ;;
+  
+  # For Hierarchical workflow agents
+  agent-workflow-ceo)
+    echo "Starting agent-workflow-ceo agent (hierarchical-workflow/nodes/agent_ceo.py)"
+    exec python3 hierarchical-workflow/nodes/agent_ceo.py
+    ;;
+  agent-workflow-cos)
+    echo "Starting agent-workflow-cos agent (hierarchical-workflow/nodes/agent_cos.py)"
+    exec python3 hierarchical-workflow/nodes/agent_cos.py
+    ;;
+  agent-workflow-financial-team-lead)
+    echo "Starting agent-workflow-financial-team-lead agent (hierarchical-workflow/nodes/agent_financial_team_lead.py)"
+    exec python3 hierarchical-workflow/nodes/agent_financial_team_lead.py
+    ;;
+  agent-workflow-financial-accountant)
+    echo "Starting agent-workflow-financial-accountant agent (hierarchical-workflow/nodes/agent_financial_accountant.py)"
+    exec python3 hierarchical-workflow/nodes/agent_financial_accountant.py
+    ;;
+  agent-workflow-financial-controller)
+    echo "Starting agent-workflow-financial-controller agent (hierarchical-workflow/nodes/agent_financial_controller.py)"
+    exec python3 hierarchical-workflow/nodes/agent_financial_controller.py
+    ;;
+  agent-workflow-financial-strategist)
+    echo "Starting agent-workflow-financial-strategist agent (hierarchical-workflow/nodes/agent_financial_strategist.py)"
+    exec python3 hierarchical-workflow/nodes/agent_financial_strategist.py
+    ;;
+  agent-workflow-marketing-team-lead)
+    echo "Starting agent-workflow-marketing-team-lead agent (hierarchical-workflow/nodes/agent_marketing_team_lead.py)"
+    exec python3 hierarchical-workflow/nodes/agent_marketing_team_lead.py
+    ;;
+  agent-workflow-marketing-content)
+    echo "Starting agent-workflow-marketing-content agent (hierarchical-workflow/nodes/agent_marketing_content.py)"
+    exec python3 hierarchical-workflow/nodes/agent_marketing_content.py
+    ;;
+  agent-workflow-marketing-planning)
+    echo "Starting agent-workflow-marketing-planning agent (hierarchical-workflow/nodes/agent_marketing_planning.py)"
+    exec python3 hierarchical-workflow/nodes/agent_marketing_planning.py
+    ;;
+  agent-workflow-marketing-strategy)
+    echo "Starting agent-workflow-marketing-strategy agent (hierarchical-workflow/nodes/agent_marketing_strategy.py)"
+    exec python3 hierarchical-workflow/nodes/agent_marketing_strategy.py
+    ;;
+  agent-workflow-marketing-visual)
+    echo "Starting agent-workflow-marketing-visual agent (hierarchical-workflow/nodes/agent_marketing_visual.py)"
+    exec python3 hierarchical-workflow/nodes/agent_marketing_visual.py
+    ;;
+  agent-workflow-testing-team-lead)
+    echo "Starting agent-workflow-testing-team-lead agent (hierarchical-workflow/nodes/agent_testing_team_lead.py)"
+    exec python3 hierarchical-workflow/nodes/agent_testing_team_lead.py
+    ;;
+  agent-workflow-testing-dev)
+    echo "Starting agent-workflow-testing-dev agent (hierarchical-workflow/nodes/agent_testing_dev.py)"
+    exec python3 hierarchical-workflow/nodes/agent_testing_dev.py
+    ;;
+  agent-workflow-developer-team-lead)
+    echo "Starting agent-workflow-developer-team-lead agent (hierarchical-workflow/nodes/agent_developer_team_lead.py)"
+    exec python3 hierarchical-workflow/nodes/agent_developer_team_lead.py
+    ;;
+  agent-workflow-dev-backend)
+    echo "Starting agent-workflow-dev-backend agent (hierarchical-workflow/nodes/agent_dev_backend.py)"
+    exec python3 hierarchical-workflow/nodes/agent_dev_backend.py
+    ;;
+  agent-workflow-dev-frontend)
+    echo "Starting agent-workflow-dev-frontend agent (hierarchical-workflow/nodes/agent_dev_frontend.py)"
+    exec python3 hierarchical-workflow/nodes/agent_dev_frontend.py
+    ;;
+  agent-workflow-arch-design-team-lead)
+    echo "Starting agent-workflow-arch-design-team-lead agent (hierarchical-workflow/nodes/agent_arch_design_team_lead.py)"
+    exec python3 hierarchical-workflow/nodes/agent_arch_design_team_lead.py
+    ;;
+  agent-workflow-arch-junior)
+    echo "Starting agent-workflow-arch-junior agent (hierarchical-workflow/nodes/agent_arch_junior.py)"
+    exec python3 hierarchical-workflow/nodes/agent_arch_junior.py
+    ;;
+  agent-workflow-arch-senior)
+    echo "Starting agent-workflow-arch-senior agent (hierarchical-workflow/nodes/agent_arch_senior.py)"
+    exec python3 hierarchical-workflow/nodes/agent_arch_senior.py
+    ;;
   *)
     echo "Starting no agent for '${AGENT}' (unknown mapping)"
     #exec python3 agent.py --agent "${AGENT}"

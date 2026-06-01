@@ -1,0 +1,130 @@
+#!/bin/bash
+
+GIT_ROOT=$(git rev-parse --show-toplevel 2>/dev/null)
+if [ -z "$GIT_ROOT" ]; then GIT_ROOT=$(pwd); fi
+if [ -f "$GIT_ROOT/.env" ]; then set -a; source "$GIT_ROOT/.env"; set +a; else echo "Error: .env file MUST be present at $GIT_ROOT"; exit 1; fi
+
+RESPONSE=$(curl -s "${API_BASE_URL}/api/runtime-workflows?workflow_uri=workflow-testing-team:1.0.0-production&limit=20&skip=0")
+WORKFLOW_URL=$(echo "$RESPONSE" | python3 -c 'import sys, json; print(json.load(sys.stdin)["data"][0]["url"])' 2>/dev/null)
+
+if [ -z "$WORKFLOW_URL" ]; then
+    echo "Error: Could not retrieve workflow URL from response: $RESPONSE"
+    exit 1
+fi  
+
+echo "Executing workflow at $WORKFLOW_URL"
+
+# Shared variables
+PROBLEM_STATEMENT='{\"product\": \"A new AI-driven smart coffee machine that adjusts brewing based on morning grogginess detected by face scan.\"}'
+SESSION_ID="session-testing-demo-multistep"
+TASK_ID="task-testing-demo-multistep-1"
+USER_REQUEST="Validate the coffee machine implementation"
+
+# --- Request 1: estimate_budget ---
+ESTIMATE_BUDGET_PAYLOAD=$(cat <<EOF
+{
+  "task_type": "estimate_budget",
+  "text": "$PROBLEM_STATEMENT",
+  "session_id": "$SESSION_ID",
+  "model_name": "openai:gpt-5.4-mini",
+  "communication_type": "workflow",
+  "task_id": "$TASK_ID",
+  "user_request": "$USER_REQUEST",
+  "priority": "Fast"
+}
+EOF
+)
+
+echo "---------------------------------------------------"
+echo "Sending Request 1 (estimate_budget):"
+echo "$ESTIMATE_BUDGET_PAYLOAD"
+curl -X POST "$WORKFLOW_URL/api/execute" -H "Content-Type: application/json" -d "$ESTIMATE_BUDGET_PAYLOAD"
+echo -e "\nRequest 1 executed.\n"
+
+sleep 1
+
+# --- Request 2: process_artifact (Architecture Blueprint) ---
+ARCH_ARTIFACT_PAYLOAD=$(cat <<EOF
+{
+  "task_type": "process_artifact",
+  "text": "$PROBLEM_STATEMENT",
+  "artifact_data": {
+    "team_name": "Arch & Design Team",
+    "status": "success",
+    "blueprint": "The system consists of a smart camera scanner frontend component that sends face scans to a grogginess classifier service. The service computes a grogginess score (1-10) and calls the brewing optimization service, which adjusts water temperature and flow rate."
+  },
+  "session_id": "$SESSION_ID",
+  "model_name": "openai:gpt-5.4-mini",
+  "communication_type": "workflow",
+  "task_id": "$TASK_ID",
+  "user_request": "$USER_REQUEST",
+  "priority": "Fast"
+}
+EOF
+)
+
+echo "---------------------------------------------------"
+echo "Sending Request 2 (process_artifact - Architecture):"
+echo "$ARCH_ARTIFACT_PAYLOAD"
+curl -X POST "$WORKFLOW_URL/api/execute" -H "Content-Type: application/json" -d "$ARCH_ARTIFACT_PAYLOAD"
+echo -e "\nRequest 2 executed.\n"
+
+sleep 1
+
+# --- Request 3: process_artifact (Developer Output Summary) ---
+DEV_ARTIFACT_PAYLOAD=$(cat <<EOF
+{
+  "task_type": "process_artifact",
+  "text": "$PROBLEM_STATEMENT",
+  "artifact_data": {
+    "team_name": "Developer Team Lead",
+    "status": "success",
+    "repo_summary": "The frontend face scanner React component is completed. It connects to /api/grogginess on the backend. The backend classifier API evaluates grogginess via a pre-trained model and returns JSON. The optimizer service adjusts brewing parameters accordingly.",
+    "detailed_dev_reports": {
+      "Backend Developer": "Implemented /api/grogginess endpoint and DB schema.",
+      "Frontend Developer": "Created Scanner.jsx React component."
+    }
+  },
+  "session_id": "$SESSION_ID",
+  "model_name": "openai:gpt-5.4-mini",
+  "communication_type": "workflow",
+  "task_id": "$TASK_ID",
+  "user_request": "$USER_REQUEST",
+  "priority": "Fast"
+}
+EOF
+)
+
+echo "---------------------------------------------------"
+echo "Sending Request 3 (process_artifact - Development):"
+echo "$DEV_ARTIFACT_PAYLOAD"
+curl -X POST "$WORKFLOW_URL/api/execute" -H "Content-Type: application/json" -d "$DEV_ARTIFACT_PAYLOAD"
+echo -e "\nRequest 3 executed.\n"
+
+sleep 1
+
+# --- Request 4: execute_task (Deliverables) ---
+EXECUTE_TASK_PAYLOAD=$(cat <<EOF
+{
+  "task_type": "execute_task",
+  "text": "$PROBLEM_STATEMENT",
+  "session_id": "$SESSION_ID",
+  "model_name": "openai:gpt-5.4-mini",
+  "communication_type": "workflow",
+  "task_id": "$TASK_ID",
+  "user_request": "$USER_REQUEST",
+  "priority": "Fast",
+  "deliverables": [
+    "Test Scenario Document",
+    "Validation Report",
+    "Bugs Log"
+  ]
+}
+EOF
+)
+
+echo "---------------------------------------------------"
+echo "Sending Request 4 (execute_task - Trigger Deliverables):"
+echo "$EXECUTE_TASK_PAYLOAD"
+curl -X POST "$WORKFLOW_URL/api/execute" -H "Content-Type: application/json" -d "$EXECUTE_TASK_PAYLOAD"
+echo -e "\nRequest 4 executed.\n"

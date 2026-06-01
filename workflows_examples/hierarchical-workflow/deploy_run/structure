@@ -1,0 +1,7 @@
+my-ceo-agent -> my-chief-of-staff-workflow (Master Workflow)
+                 └── my-chief-of-staff-agent (Dynamic Orchestrator/Router)
+                          ├── workflow-financial-team (Sub-Workflow)
+                          ├── workflow-marketing-team (Sub-Workflow)
+                          ├── workflow-architecture-team (Sub-Workflow)
+                          ├── workflow-developer-team (Sub-Workflow)
+                          └── workflow-testing-team (Sub-Workflow)
