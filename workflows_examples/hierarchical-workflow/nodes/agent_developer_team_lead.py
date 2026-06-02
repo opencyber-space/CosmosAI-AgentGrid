@@ -37,6 +37,7 @@ class DevEstimationSignature(dspy.Signature):
     
     ### OUTPUT
     Output EXACTLY a JSON block: {team_name, amount, deliverables}
+    CRITICAL: The 'amount' field MUST be a single integer representing the total cost. DO NOT output 'amount' as a dictionary with currency and value.
     """
     problem_statement = dspy.InputField(desc="The product idea")
     budget_estimate = dspy.OutputField(desc="JSON matching BudgetEstimate schema")
@@ -72,6 +73,10 @@ class DevTaskBreakdownSignature(dspy.Signature):
     
     ### OUTPUT
     Output EXACTLY a valid JSON block mapping the comprehensive backend pointers and frontend pointers. All keys MUST be double-quoted.
+    CRITICAL ESCAPING RULES:
+    1. The values for "backend_pointers" and "frontend_pointers" are JSON strings.
+    2. You MUST escape all double quotes inside these strings as \\". Example: {\\"email\\": \\"string\\"}
+    3. You MUST escape all newlines as \\n. DO NOT use literal newlines inside the string values.
     """
     problem_statement = dspy.InputField(desc="The product idea")
     architecture = dspy.InputField(desc="The system blueprint")

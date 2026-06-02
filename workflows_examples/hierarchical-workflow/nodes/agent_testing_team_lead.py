@@ -30,6 +30,7 @@ class TestingEstimationSignature(dspy.Signature):
     
     ### OUTPUT
     Output EXACTLY a JSON block: {team_name, amount, deliverables}
+    CRITICAL: The 'amount' field MUST be a single integer representing the total cost. DO NOT output 'amount' as a string (like "$18,000") or a dictionary.
     """
     problem_statement = dspy.InputField(desc="The product idea")
     budget_estimate = dspy.OutputField(desc="JSON matching BudgetEstimate schema")

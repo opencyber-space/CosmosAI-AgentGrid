@@ -271,6 +271,10 @@ class BackendDevAgent:
                     uploaded_url = self.minio_uploader.upload(file_content, fname, llm_session_id, task_id)
                     file_urls[fname] = uploaded_url
                     synthesized_files[fname] = True
+
+                    #Comment below break if you need all code files
+                    #currently we will be writing only one code file for saving time
+                    break
             
             output_data = {
                 "api_description": "Backend implementation complete.",

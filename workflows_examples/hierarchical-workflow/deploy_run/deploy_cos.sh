@@ -6,12 +6,13 @@ if [ -f "$GIT_ROOT/.env" ]; then set -a; source "$GIT_ROOT/.env"; set +a; else e
 curl -X POST ${API_BASE_URL}/api/deploy-workflow/deployer-123 -H "Content-Type: application/json" \
 -d '
 {
-    "deployment_name": "workflow-software-company",
-    "workflow_id": "workflow-software-company",
-    "workflow_uri": "workflow-software-company:1.0.0-production",
+    "deployment_name": "workflow-cos",
+    "workflow_id": "workflow-cos",
+    "workflow_uri": "workflow-cos:1.0.0-production",
     "allocation": {
         "policy_db_url": "${POLICY_DB_URL}",
         "delegate_api_url": "${DELEGATE_API_URL}"
     }
 }
 '
+echo -e "\nCOS sub-workflow deployed successfully!"

@@ -176,7 +176,7 @@ class CEOAgent:
             }
 
             self._log_to_his(cos_agent_id, job_data)
-            return AgentResult(task_id=task.task_id, job_output=job_data, is_error=False)
+            return AgentResult(task_id=task.task_id, job_output=job_data, job_output_metadata={"next_nodes":[cos_agent_id]}, is_error=False)
 
         except Exception as e:
             log.exception(f"Error in CEO Agent: {e}")

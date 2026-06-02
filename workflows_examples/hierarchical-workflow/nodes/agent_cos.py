@@ -15,6 +15,16 @@ from utils.json_utils import extract_json
 
 log = logging.getLogger(__name__)
 
+NODE_ID_MAPPING = {
+    "agent-workflow-developer-team-lead": "my-company-developer-team-lead-agent",
+    "agent-workflow-arch-design-team-lead": "my-company-arch-design-team-lead-agent",
+    "agent-workflow-financial-team-lead": "my-company-financial-team-lead-agent",
+    "agent-workflow-marketing-team-lead": "my-company-marketing-team-lead-agent",
+    "agent-workflow-testing-team-lead": "my-company-testing-team-lead-agent",
+    "agent-workflow-ceo": "my-ceo-agent",
+    "agent-workflow-cos": "my-chief-of-staff-agent"
+}
+
 # --- 1. The Signatures ---
 
 class CoSExecutionTriggerSignature(dspy.Signature):
@@ -184,13 +194,20 @@ class CoSAgent:
             last_executed = data.get("last_executed")
             last_executed_batch = data.get("last_executed_batch")
 
-            if last_executed_batch:
+            final_blueprint = ""
+            last_node = None
+            last_nodes = None
+            if len(last_executed_batch)>1:
+                # Note: use last_executed_batch when task is executed in parallel from this agent
+                #task_type = last_executed["output"]["task_type"]
                 last_node = [node["nodeID"] for node in last_executed_batch]
-            elif last_executed:
-                last_node = [last_executed["nodeID"]]
-            else:
-                last_node = []
-
+            elif last_executed and "output" in last_executed:
+                if "final_blueprint" in last_executed["output"]:
+                    final_blueprint = last_executed["output"]["final_blueprint"]
+                #elif last_executed["output"]["task_type"] == "specialist_output":
+                last_node = last_executed["nodeID"]
+                #task_type = last_executed["output"]["task_type"]
+                
             log.info("CoS Router called | last_node=%s | history=%s", last_node, history)
 
             # Get project context parameters from history/outputs/inputs
@@ -199,12 +216,12 @@ class CoSAgent:
             # Log incoming request
             self._log_to_his(
                 target_id=self.subject.identity.subject_id if hasattr(self.subject.identity, 'subject_id') else "agent-workflow-cos",
-                job_data={"task_type": "ROUTER_INCOMING", "last_node": last_node, "history": history}
+                job_data={"task_type": "ROUTER_INCOMING", "last_node": last_node, "history": history,"initial_input":initial_input,"last_executed_batch":last_executed_batch,"last_executed":last_executed,"outputs":outputs}
             )
 
             # Pure Routing Logic mapped directly to workflow stages:
             next_steps, final_job_output = self._route(
-                task_id=task.task_id if task.task_id else task_id,
+                task_id=task_id,
                 last_node=last_node,
                 outputs=outputs,
                 problem_statement=problem_statement,
@@ -219,7 +236,11 @@ class CoSAgent:
 
             # Log outgoing requests
             for step in next_steps:
-                self._log_to_his(target_id=step["nodeID"], job_data={"task_type": "ROUTER_OUTGOING", "payload": step["input"]})
+                self._log_to_his(target_id=step["nodeID"], job_data={"task_type": step["input"]["task_type"], "payload": step["input"]})
+
+            # send final outcome to HIS to CEO
+            if final_job_output:
+                self._log_to_his(target_id="my-ceo-agent", job_data={"task_type":"final_outcome","payload": final_job_output})
 
             return AgentResult(
                 task_id=task.task_id,
