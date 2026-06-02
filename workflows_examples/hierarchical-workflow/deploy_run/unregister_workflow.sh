@@ -1,29 +1,33 @@
 #!/bin/bash
-GIT_ROOT=$(git rev-parse --show-toplevel 2>/dev/null)
-if [ -z "$GIT_ROOT" ]; then GIT_ROOT=$(pwd); fi
-if [ -f "$GIT_ROOT/.env" ]; then set -a; source "$GIT_ROOT/.env"; set +a; else echo "Error: .env file MUST be present at $GIT_ROOT"; exit 1; fi
 
-echo "Unregistering all workflows..."
+# Get directory of current script
+CUR_DIR=$(dirname "$(realpath "$0")")
 
-curl -s -X DELETE "${API_BASE_URL}/api/workflows/workflow-software-company:1.0.0-production"
-echo ""
+echo "=========================================================="
+echo "Unregistering ALL Hierarchical Workflows..."
+echo "=========================================================="
 
-curl -s -X DELETE "${API_BASE_URL}/api/workflows/workflow-cos:1.0.0-production"
-echo ""
+echo -e "\n---> Executing unregister_workflow_architectureteam.sh..."
+bash "$CUR_DIR/unregister_workflow_architectureteam.sh"
 
-curl -s -X DELETE "${API_BASE_URL}/api/workflows/workflow-architecture-team:1.0.0-production"
-echo ""
+echo -e "\n---> Executing unregister_workflow_developerteam.sh..."
+bash "$CUR_DIR/unregister_workflow_developerteam.sh"
 
-curl -s -X DELETE "${API_BASE_URL}/api/workflows/workflow-developer-team:1.0.0-production"
-echo ""
+echo -e "\n---> Executing unregister_workflow_financeteam.sh..."
+bash "$CUR_DIR/unregister_workflow_financeteam.sh"
 
-curl -s -X DELETE "${API_BASE_URL}/api/workflows/workflow-financial-team:1.0.0-production"
-echo ""
+echo -e "\n---> Executing unregister_workflow_marketingteam.sh..."
+bash "$CUR_DIR/unregister_workflow_marketingteam.sh"
 
-curl -s -X DELETE "${API_BASE_URL}/api/workflows/workflow-marketing-team:1.0.0-production"
-echo ""
+echo -e "\n---> Executing unregister_workflow_testingteam.sh..."
+bash "$CUR_DIR/unregister_workflow_testingteam.sh"
 
-curl -s -X DELETE "${API_BASE_URL}/api/workflows/workflow-testing-team:1.0.0-production"
-echo ""
+echo -e "\n---> Executing unregister_workflow_costeam.sh..."
+bash "$CUR_DIR/unregister_workflow_costeam.sh"
 
-echo "All workflows unregistered successfully."
+echo -e "\n---> Executing unregister_workflow_final.sh..."
+bash "$CUR_DIR/unregister_workflow_final.sh"
+
+echo -e "\n=========================================================="
+echo "All Hierarchical Workflows unregistered successfully."
+echo "=========================================================="

@@ -1,31 +1,33 @@
 #!/bin/bash
-GIT_ROOT=$(git rev-parse --show-toplevel 2>/dev/null)
-if [ -z "$GIT_ROOT" ]; then
-    GIT_ROOT=$(pwd) # Fallback if not run within git
-fi
-if [ -f "$GIT_ROOT/.env" ]; then
-    set -a; source "$GIT_ROOT/.env"; set +a
-else
-    echo "Error: .env file MUST be present at $GIT_ROOT"
-    exit 1
-fi
 
+# Get directory of current script
 CUR_DIR=$(dirname "$(realpath "$0")")
 
-echo "Registering all 19 Hierarchical Workflow Agents..."
+echo "=========================================================="
+echo "Registering ALL Hierarchical Workflow Agents..."
+echo "=========================================================="
 
-for spec_file in "$CUR_DIR"/agent_workflow_*.json; do
-    echo "Registering: $(basename "$spec_file")"
-    base_name=$(basename "$spec_file" .json)
-    eval_file="$CUR_DIR/${base_name}_evaluated.json"
-    
-    envsubst < "$spec_file" > "$eval_file"
-    curl -s -X POST \
-        -H "Content-Type: application/json" \
-        -d @"$eval_file" \
-        ${API_BASE_URL}/api/subjects
-    rm -f "$eval_file"
-    echo ""
-done
+echo -e "\n---> Executing register_architecture_agents.sh..."
+bash "$CUR_DIR/register_architecture_agents.sh"
 
-echo "All 19 Hierarchical Workflow Agents registered successfully."
+echo -e "\n---> Executing register_developer_agents.sh..."
+bash "$CUR_DIR/register_developer_agents.sh"
+
+echo -e "\n---> Executing register_finanace_agents.sh..."
+bash "$CUR_DIR/register_finanace_agents.sh"
+
+echo -e "\n---> Executing register_marketing_agents.sh..."
+bash "$CUR_DIR/register_marketing_agents.sh"
+
+echo -e "\n---> Executing register_testing_agents.sh..."
+bash "$CUR_DIR/register_testing_agents.sh"
+
+echo -e "\n---> Executing register_cos_agents.sh..."
+bash "$CUR_DIR/register_cos_agents.sh"
+
+echo -e "\n---> Executing register_ceo_agents.sh..."
+bash "$CUR_DIR/register_ceo_agents.sh"
+
+echo -e "\n=========================================================="
+echo "All Hierarchical Workflow Agents registered successfully."
+echo "=========================================================="

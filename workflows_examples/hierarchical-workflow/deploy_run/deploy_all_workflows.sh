@@ -1,30 +1,33 @@
 #!/bin/bash
-GIT_ROOT=$(git rev-parse --show-toplevel 2>/dev/null)
-if [ -z "$GIT_ROOT" ]; then GIT_ROOT=$(pwd); fi
-if [ -f "$GIT_ROOT/.env" ]; then set -a; source "$GIT_ROOT/.env"; set +a; else echo "Error: .env file MUST be present at $GIT_ROOT"; exit 1; fi
 
-DEPLOY_RUN_DIR="$GIT_ROOT/workflows_examples/hierarchical-workflow/deploy_run"
+# Get directory of current script
+CUR_DIR=$(dirname "$(realpath "$0")")
 
-echo "Deploying all 5 nested sub-workflows..."
+echo "=========================================================="
+echo "Deploying ALL Hierarchical Workflows..."
+echo "=========================================================="
 
-for spec_file in "$DEPLOY_RUN_DIR"/workflow_spec-*.json; do
-    echo "Deploying: $(basename "$spec_file")"
-    curl -s -X POST "${API_BASE_URL}/api/workflows" \
-      -H "Content-Type: application/json" \
-      -d @"$spec_file"
-    echo ""
-done
+# echo -e "\n---> Executing deploy_architectureteam_workflow_test.bash..."
+# bash "$CUR_DIR/deploy_architectureteam_workflow_test.bash"
 
-echo "Deploying the Chief of Staff Sub-Workflow (workflow-cos.json)..."
-curl -s -X POST "${API_BASE_URL}/api/workflows" \
-  -H "Content-Type: application/json" \
-  -d @"$DEPLOY_RUN_DIR/workflow-cos.json"
-echo ""
+# echo -e "\n---> Executing deploy_developerteam_workflow_test.bash..."
+# bash "$CUR_DIR/deploy_developerteam_workflow_test.bash"
 
-echo "Deploying the Master Workflow (workflow-final.json)..."
-curl -s -X POST "${API_BASE_URL}/api/workflows" \
-  -H "Content-Type: application/json" \
-  -d @"$DEPLOY_RUN_DIR/workflow-final.json"
-echo ""
+# echo -e "\n---> Executing deploy_financeteam_workflow_test.bash..."
+# bash "$CUR_DIR/deploy_financeteam_workflow_test.bash"
 
-echo "All workflows deployed successfully."
+# echo -e "\n---> Executing deploy_marketingteam_workflow_test.bash..."
+# bash "$CUR_DIR/deploy_marketingteam_workflow_test.bash"
+
+# echo -e "\n---> Executing deploy_testingteam_workflow_test.bash..."
+# bash "$CUR_DIR/deploy_testingteam_workflow_test.bash"
+
+# echo -e "\n---> Executing deploy_cos.sh..."
+# bash "$CUR_DIR/deploy_cos.sh"
+
+echo -e "\n---> Executing deploy_final_workflow.bash..."
+bash "$CUR_DIR/deploy_final_workflow.bash"
+
+echo -e "\n=========================================================="
+echo "All Hierarchical Workflows deployed successfully."
+echo "=========================================================="

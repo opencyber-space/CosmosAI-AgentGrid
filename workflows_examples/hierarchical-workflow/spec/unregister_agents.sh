@@ -1,36 +1,33 @@
 #!/bin/bash
-GIT_ROOT=$(git rev-parse --show-toplevel 2>/dev/null)
-if [ -z "$GIT_ROOT" ]; then GIT_ROOT=$(pwd); fi
-if [ -f "$GIT_ROOT/.env" ]; then set -a; source "$GIT_ROOT/.env"; set +a; else echo "Error: .env file MUST be present at $GIT_ROOT"; exit 1; fi
 
-HIERARCHICAL_AGENTS=(
-  "agent-workflow-ceo"
-  "agent-workflow-cos"
-  "agent-workflow-financial-team-lead"
-  "agent-workflow-financial-accountant"
-  "agent-workflow-financial-controller"
-  "agent-workflow-financial-strategist"
-  "agent-workflow-marketing-team-lead"
-  "agent-workflow-marketing-content"
-  "agent-workflow-marketing-planning"
-  "agent-workflow-marketing-strategy"
-  "agent-workflow-marketing-visual"
-  "agent-workflow-testing-team-lead"
-  "agent-workflow-testing-dev"
-  "agent-workflow-developer-team-lead"
-  "agent-workflow-dev-backend"
-  "agent-workflow-dev-frontend"
-  "agent-workflow-arch-design-team-lead"
-  "agent-workflow-arch-junior"
-  "agent-workflow-arch-senior"
-)
+# Get directory of current script
+CUR_DIR=$(dirname "$(realpath "$0")")
 
-echo "Unregistering all 19 Hierarchical Workflow Agents..."
+echo "=========================================================="
+echo "Unregistering ALL Hierarchical Workflow Agents..."
+echo "=========================================================="
 
-for agent in "${HIERARCHICAL_AGENTS[@]}"; do
-    echo "Unregistering Agent: ${agent}"
-    curl -s -X DELETE "${API_BASE_URL}/api/subjects/${agent}"
-    echo ""
-done
+echo -e "\n---> Executing unregister_architecture_agents.sh..."
+bash "$CUR_DIR/unregister_architecture_agents.sh"
 
-echo "All 19 Hierarchical Workflow Agents unregistered successfully."
+echo -e "\n---> Executing unregister_developer_agents.sh..."
+bash "$CUR_DIR/unregister_developer_agents.sh"
+
+echo -e "\n---> Executing unregister_finanace_agents.sh..."
+bash "$CUR_DIR/unregister_finanace_agents.sh"
+
+echo -e "\n---> Executing unregister_marketing_agents.sh..."
+bash "$CUR_DIR/unregister_marketing_agents.sh"
+
+echo -e "\n---> Executing unregister_testing_agents.sh..."
+bash "$CUR_DIR/unregister_testing_agents.sh"
+
+echo -e "\n---> Executing unregister_cos_agents.sh..."
+bash "$CUR_DIR/unregister_cos_agents.sh"
+
+echo -e "\n---> Executing unregister_ceo_agents.sh..."
+bash "$CUR_DIR/unregister_ceo_agents.sh"
+
+echo -e "\n=========================================================="
+echo "All Hierarchical Workflow Agents unregistered successfully."
+echo "=========================================================="

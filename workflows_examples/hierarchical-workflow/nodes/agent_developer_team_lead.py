@@ -65,18 +65,19 @@ class DevTaskBreakdownSignature(dspy.Signature):
     You are the Senior Technical Developer Team Lead.
 
     ### TASK
-    Analyze the system architecture blueprint and the user request. Break down the system into highly detailed, step-by-step technical specifications for your frontend and backend engineers.
-    Your instructions MUST be extraordinarily detailed:
-    - Backend: Specify exact API endpoints, precise database schemas/models, authentication workflows (e.g. JWT/OAuth), and expected JSON payload structures.
-    - Frontend: Specify the exact React component hierarchy, state management stores (Redux/Context), UI/UX layout instructions, and exact Axios API integration patterns.
-    - Integration: Heavily emphasize how the frontend must cleanly consume the backend specifications.
+    Analyze the system architecture blueprint and the user request. Break down the system into high-level technical specifications for your frontend and backend engineers.
+    Your instructions MUST be extremely concise and action-oriented:
+    - Backend: Key API endpoints, core database models, and critical auth workflows.
+    - Frontend: Core React component hierarchy, state management approach, and key API integration patterns.
+    - CRITICAL: Keep your response as short as possible (under 1500 words) to prevent JSON truncation errors! DO NOT write exhaustive code or exhaustive schema boilerplate. Provide strictly high-level pointers.
     
     ### OUTPUT
     Output EXACTLY a valid JSON block mapping the comprehensive backend pointers and frontend pointers. All keys MUST be double-quoted.
-    CRITICAL ESCAPING RULES:
-    1. The values for "backend_pointers" and "frontend_pointers" are JSON strings.
-    2. You MUST escape all double quotes inside these strings as \\". Example: {\\"email\\": \\"string\\"}
-    3. You MUST escape all newlines as \\n. DO NOT use literal newlines inside the string values.
+    CRITICAL JSON PARSING RULES:
+    1. DO NOT USE double quotes (") ANYWHERE inside the text content of your pointers.
+    2. For any JSON payloads or code examples, you MUST use single quotes (') instead of double quotes. Example: {'email': 'string'}
+    3. Escape all newlines as \\n. DO NOT use literal newlines.
+    4. ENSURE the JSON is fully closed and not truncated. Keep text short!
     """
     problem_statement = dspy.InputField(desc="The product idea")
     architecture = dspy.InputField(desc="The system blueprint")

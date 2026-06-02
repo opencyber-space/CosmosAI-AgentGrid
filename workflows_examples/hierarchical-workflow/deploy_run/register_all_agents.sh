@@ -1,31 +1,33 @@
 #!/bin/bash
-GIT_ROOT=$(git rev-parse --show-toplevel 2>/dev/null)
-if [ -z "$GIT_ROOT" ]; then
-    GIT_ROOT=$(pwd) # Fallback if not run within git
-fi
-if [ -f "$GIT_ROOT/.env" ]; then
-    set -a; source "$GIT_ROOT/.env"; set +a
-else
-    echo "Error: .env file MUST be present at $GIT_ROOT"
-    exit 1
-fi
 
-SPEC_DIR="$GIT_ROOT/workflows_examples/hierarchical-workflow/spec"
+# Get directory of current script
+CUR_DIR=$(dirname "$(realpath "$0")")
 
-echo "Registering all Hierarchical Workflow Agents..."
+echo "=========================================================="
+echo "Registering ALL Hierarchical Workflows..."
+echo "=========================================================="
 
-for spec_file in "$SPEC_DIR"/agent_workflow_*.json; do
-    echo "Registering: $(basename "$spec_file")"
-    base_name=$(basename "$spec_file" .json)
-    eval_file="$SPEC_DIR/${base_name}_evaluated.json"
-    
-    envsubst < "$spec_file" > "$eval_file"
-    curl -X POST \
-        -H "Content-Type: application/json" \
-        -d @"$eval_file" \
-        ${API_BASE_URL}/api/subjects
-    rm -f "$eval_file"
-    echo ""
-done
+echo -e "\n---> Executing register_workflow_architectureteam.sh..."
+bash "$CUR_DIR/register_workflow_architectureteam.sh"
 
-echo "All 19 Hierarchical Workflow Agents registered successfully."
+echo -e "\n---> Executing register_workflow_developerteam.sh..."
+bash "$CUR_DIR/register_workflow_developerteam.sh"
+
+echo -e "\n---> Executing register_workflow_financeteam.sh..."
+bash "$CUR_DIR/register_workflow_financeteam.sh"
+
+echo -e "\n---> Executing register_workflow_marketingteam.sh..."
+bash "$CUR_DIR/register_workflow_marketingteam.sh"
+
+echo -e "\n---> Executing register_workflow_testingteam.sh..."
+bash "$CUR_DIR/register_workflow_testingteam.sh"
+
+echo -e "\n---> Executing register_workflow_cos.sh..."
+bash "$CUR_DIR/register_workflow_cos.sh"
+
+echo -e "\n---> Executing register_workflow_final.sh..."
+bash "$CUR_DIR/register_workflow_final.sh"
+
+echo -e "\n=========================================================="
+echo "All Hierarchical Workflows registered successfully."
+echo "=========================================================="

@@ -1,8 +1,33 @@
 #!/bin/bash
-GIT_ROOT=$(git rev-parse --show-toplevel 2>/dev/null)
-if [ -z "$GIT_ROOT" ]; then GIT_ROOT=$(pwd); fi
-if [ -f "$GIT_ROOT/.env" ]; then set -a; source "$GIT_ROOT/.env"; set +a; else echo "Error: .env file MUST be present at $GIT_ROOT"; exit 1; fi
 
-curl -X POST ${API_BASE_URL}/api/remove-workflow/deployer-123/workflow-software-company \
--H "Content-Type: application/json" \
--d '{}'
+# Get directory of current script
+CUR_DIR=$(dirname "$(realpath "$0")")
+
+echo "=========================================================="
+echo "Removing ALL Hierarchical Workflows..."
+echo "=========================================================="
+
+echo -e "\n---> Executing remove_workflow_architectureteam.sh..."
+bash "$CUR_DIR/remove_workflow_architectureteam.sh"
+
+echo -e "\n---> Executing remove_workflow_developerteam.sh..."
+bash "$CUR_DIR/remove_workflow_developerteam.sh"
+
+echo -e "\n---> Executing remove_workflow_financeteam.sh..."
+bash "$CUR_DIR/remove_workflow_financeteam.sh"
+
+echo -e "\n---> Executing remove_workflow_marketingteam.sh..."
+bash "$CUR_DIR/remove_workflow_marketingteam.sh"
+
+echo -e "\n---> Executing remove_workflow_testingteam.sh..."
+bash "$CUR_DIR/remove_workflow_testingteam.sh"
+
+echo -e "\n---> Executing remove_workflow_costeam.sh..."
+bash "$CUR_DIR/remove_workflow_costeam.sh"
+
+echo -e "\n---> Executing remove_workflow_final.sh..."
+bash "$CUR_DIR/remove_workflow_final.sh"
+
+echo -e "\n=========================================================="
+echo "All Hierarchical Workflows removed successfully."
+echo "=========================================================="
