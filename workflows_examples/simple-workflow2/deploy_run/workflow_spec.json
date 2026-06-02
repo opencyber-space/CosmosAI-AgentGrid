@@ -1,0 +1,39 @@
+{
+  "header": {
+    "workflow_id": {
+      "name": "legal-contract-review-workflow-static-dynamic-static",
+      "version": "1.0.0",
+      "release": "stable"
+    },
+    "metadata": {
+      "description": "Multi-agent pipeline to review contracts, flag risks and produce a legal memo",
+      "owner": "legal-ops-team",
+      "created_at": "2026-03-09"
+    }
+  },
+  "body": {
+    "nodes": [
+      {
+        "nodeID": "my-clause-extractor-agent-2",
+        "type": "agent",
+        "id": "clause-extractor-agent-2",
+        "settings": {
+          "model_name": "openai:gpt-5.4-mini"
+        }
+      },
+      {
+        "nodeID": "my-simple-dynamic-workflow",
+        "type": "workflow",
+        "id": "simple-dynamic-workflow:1.0.0-stable",
+        "settings": {
+          "model_name": "openai:gpt-5.4-mini"
+        }
+      }
+    ],
+    "graph": {
+      "my-clause-extractor-agent-2": [
+        "my-simple-dynamic-workflow"
+      ]
+    }
+  }
+}

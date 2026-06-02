@@ -1,0 +1,1 @@
+clause-extractor-agent --> router-agent --> [ risk-identifier-agent -->  compliance-checker-agent --> negotiation-advisor-agent --> legal-memo-agent ]

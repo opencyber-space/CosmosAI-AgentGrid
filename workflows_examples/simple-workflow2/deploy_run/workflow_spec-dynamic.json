@@ -1,0 +1,38 @@
+{
+  "header": {
+    "workflow_id": {
+      "name": "simple-dynamic-workflow",
+      "version": "1.0.0",
+      "release": "stable"
+    },
+    "metadata": {
+      "description": "Workflow to demonstrate simple dynamic node addition in sequential workflow",
+      "owner": "legal-ops-team",
+      "created_at": "2026-03-09"
+    }
+  },
+  "body": {
+    "nodes": [
+      {
+        "nodeID": "my-simple-workflow-router-agent",
+        "type": "agent",
+        "id": "simple-workflow-router-agent",
+        "settings": {
+          "model_name": "openai:gpt-5.4-mini"
+        }
+      },
+      {
+        "nodeID": "my-simple-static-workflow",
+        "type": "workflow",
+        "id": "simple-static-workflow:1.0.0-stable",
+        "settings": {
+          "model_name": "openai:gpt-5.4-mini"
+        }
+      }
+    ],
+    "graph": {
+      "type": "dynamic",
+      "nodeID": "my-simple-workflow-router-agent"
+    }
+  }
+}

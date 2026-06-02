@@ -4,6 +4,7 @@ set -euo pipefail
 # entrypoint.sh - choose runtime behavior based on $AGENT
 # If AGENT is not provided, default to 'default' and run agent.py
 AGENT=${AGENT:-default}
+export PYTHONPATH="/app:${PYTHONPATH:-}"
 
 case "${AGENT}" in
   default)
@@ -31,6 +32,32 @@ case "${AGENT}" in
   risk-identifier-agent)
     echo "Starting risk-identifier-agent agent (simple-workflow/nodes/risk_identifier_agent.py)"
     exec python3 simple-workflow/nodes/risk_identifier_agent.py
+    ;;
+
+  #For simple-workflow2 agents
+  clause-extractor-agent-2)
+    echo "Starting clause-extractor-agent-2 agent (simple-workflow2/nodes/clause_extractor_agent.py)"
+    exec python3 simple-workflow2/nodes/clause_extractor_agent.py
+    ;;
+  compliance-checker-agent-2)
+    echo "Starting compliance-checker-agent-2 agent (simple-workflow2/nodes/compliance_checker_agent.py)"
+    exec python3 simple-workflow2/nodes/compliance_checker_agent.py
+    ;;
+  legal-memo-agent-2)
+    echo "Starting legal-memo-agent-2 agent (simple-workflow2/nodes/legal_memo_agent.py)"
+    exec python3 simple-workflow2/nodes/legal_memo_agent.py
+    ;;
+  negotiation-adviser-agent-2)
+    echo "Starting negotiation-adviser-agent-2 agent (simple-workflow2/nodes/negotiation_adviser_agent.py)"
+    exec python3 simple-workflow2/nodes/negotiation_adviser_agent.py
+    ;;
+  risk-identifier-agent-2)
+    echo "Starting risk-identifier-agent-2 agent (simple-workflow2/nodes/risk_identifier_agent.py)"
+    exec python3 simple-workflow2/nodes/risk_identifier_agent.py
+    ;;
+  simple-workflow-router-agent)
+    echo "Starting simple-workflow-router-agent agent (simple-workflow2/nodes/router_agent.py)"
+    exec python3 simple-workflow2/nodes/router_agent.py
     ;;
 
   #For Multi-level workflow agents
