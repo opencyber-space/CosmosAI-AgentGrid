@@ -1,0 +1,65 @@
+CEO:
+    1. Receive input from User
+    2. give idea to COS
+    3. Return Final result
+
+
+COS:
+    1. get idea from CEO
+    2. estimte_budget -> 4 team leads
+    3. sum budget and add buffers
+    4. approve_budget --> Finance Team Lead
+    5. approval_decision <---- from Finance Team Lead
+    6. execute_task --> all teams
+    7. team_outcome <---- Marketing Team
+    8. team_outcome <---- Architecture Team
+    9. process_artifact (Collected Arch details)--> Developer and Testing Team
+    9. team_outcome <---- Developer Team
+    10. team_outcome <---- Testing Team
+    11. final_outcome ----> to CEO
+
+
+Finance:
+    1. approve_budget <---- from COS
+    2. check_balance ----> to Accoutant
+    3. balance_report <---- from Account
+    4. validate_budget ----> to Controller and Strategist
+    5  specialist_report <---- from Controller and Strategist
+    5. deduct_budget <---- to Accoutant
+    6. budegt_deducted to ----> Team Lead
+    8. approval_decision to COS
+
+
+Marketing:
+    1. estimte_budget <---- from COS
+    2. budget_estimate ----> to COS
+    3. execute_task <---- from COS
+    4. execute_task to ----> Content,Planning,Strategy,Visual
+    5. reply from all 4 agents ----> specialist_report
+    6. team_outcome to COS
+
+Architecture:
+    1.estimte_budget <---- from COS
+    2. budget_estimate ----> to COS
+    3. execute_task <---- from COS
+    4. execute_task to ----> Senior agent (Senior to Junior Critic-Reflection pattern)
+    5. reply from Senior agent ----> final_blueprint
+    6. team_outcome to COS
+
+Developer:
+    1. estimte_budget <---- from COS
+    2. budget_estimate ----> to COS
+    3. execute_task <---- from COS --> notes down deliverables in list of deliverables
+    4. return empty to COS after list of deliverables are created
+    5. execute_task to ----> Backend and Frontend agent
+    6. reply from Backend and Frontend agent ----> specialist_report
+    7. team_outcome to COS
+
+Testing:
+    1. estimte_budget <---- from COS
+    2. budget_estimate ----> to COS
+    3. execute_task <---- from COS --> notes down deliverables in list of deliverables
+    4. return empty to COS after list of deliverables are created
+    5. execute_task to ----> Dev agent
+    6. reply from Dev agent ----> specialist_report
+    7. team_outcome to COS
