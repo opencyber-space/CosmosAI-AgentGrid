@@ -5,6 +5,12 @@ set -euo pipefail
 # If AGENT is not provided, default to 'default' and run agent.py
 AGENT=${AGENT:-default}
 
+if [ -f /app/.env ]; then
+  set -a
+  source /app/.env
+  set +a
+fi
+
 case "${AGENT}" in
   default)
     echo "Starting default agent (agent.py)"

@@ -30,13 +30,9 @@ HIS_BASE_URL = os.environ["HIS_BASE_URL"]
 
 # Team Mapping to Agent IDs
 TEAM_MAPPING = {
-    "Legal Workflow": [
-        "clause-extractor-agent-2",
-        "simple-workflow-router-agent",
-        "risk-identifier-agent-2",
-        "compliance-checker-agent-2",
-        "negotiation-adviser-agent-2",
-        "legal-memo-agent-2"
+    "Behavioral Workflow": [
+        "agent-behavioral-code-creator",
+        "agent-behavioral-reviewer"
     ]
 }
 
@@ -282,7 +278,7 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-st.title("⚖️ Legal Workflow Dashboard")
+st.title("Behavioral Workflow Dashboard")
 st.markdown("Live monitor of the linear agent sequence execution.")
 
 # --- Functions ---
@@ -531,16 +527,16 @@ for idx, tab in enumerate(tabs):
 # --- Sidebar ---
 st.sidebar.header("Control Panel")
 if st.sidebar.button("Refresh Dashboard"):
-    print("Refresh Dashboard button is pressed in workflows_examples/simple-workflow2/deploy_run/streamlit_app.py", flush=True)
+    print("Refresh Dashboard button is pressed in workflows_examples/behavioral-workflow/deploy_run/streamlit_app.py", flush=True)
     import logging
-    logging.warning("Refresh Dashboard button is pressed in workflows_examples/simple-workflow2/deploy_run/streamlit_app.py")
+    logging.warning("Refresh Dashboard button is pressed in workflows_examples/behavioral-workflow/deploy_run/streamlit_app.py")
     st.rerun()
 
 st.sidebar.divider()
 if st.sidebar.button("Delete All"):
-    print("Delete All button is pressed in workflows_examples/simple-workflow2/deploy_run/streamlit_app.py", flush=True)
+    print("Delete All button is pressed in workflows_examples/behavioral-workflow/deploy_run/streamlit_app.py", flush=True)
     import logging
-    logging.warning("Delete All button is pressed in workflows_examples/simple-workflow2/deploy_run/streamlit_app.py")
+    logging.warning("Delete All button is pressed in workflows_examples/behavioral-workflow/deploy_run/streamlit_app.py")
     clear_all_data()
 
 st.sidebar.divider()

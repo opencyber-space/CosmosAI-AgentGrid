@@ -13,7 +13,7 @@ RUN pip3 install -r requirements.txt
 
 
 COPY . /app/
-RUN if [ -f /app/.env ]; then grep -E '^(AIGRID_MASTER|AIGRID_INFERENCE_SERVER_URL)=' /app/.env > /app/.env.tmp && mv /app/.env.tmp /app/.env; fi
+RUN if [ -f /app/.env ]; then grep -E '^(AIGRID_MASTER|AIGRID_INFERENCE_SERVER_URL|POLICY_DB_URL|POLICY_DB_IP)=' /app/.env > /app/.env.tmp && mv /app/.env.tmp /app/.env; fi
 
 #ENTRYPOINT [ "python3", "main.py" ]
 

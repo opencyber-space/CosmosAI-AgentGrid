@@ -6,6 +6,12 @@ set -euo pipefail
 AGENT=${AGENT:-default}
 export PYTHONPATH="/app:${PYTHONPATH:-}"
 
+if [ -f /app/.env ]; then
+  set -a
+  source /app/.env
+  set +a
+fi
+
 case "${AGENT}" in
   default)
     echo "Starting default agent (agent.py)"
@@ -170,6 +176,15 @@ case "${AGENT}" in
   agent-workflow-arch-senior)
     echo "Starting agent-workflow-arch-senior agent (hierarchical-workflow/nodes/agent_arch_senior.py)"
     exec python3 hierarchical-workflow/nodes/agent_arch_senior.py
+    ;;
+  # For Behavioral workflow agents
+  agent-behavioral-code-creator)
+    echo "Starting agent-behavioral-code-creator agent (behavioral-workflow/nodes/agent_behavioral_code_creator.py)"
+    exec python3 behavioral-workflow/nodes/agent_behavioral_code_creator.py
+    ;;
+  agent-behavioral-reviewer)
+    echo "Starting agent-behavioral-reviewer agent (behavioral-workflow/nodes/agent_behavioral_reviewer.py)"
+    exec python3 behavioral-workflow/nodes/agent_behavioral_reviewer.py
     ;;
   *)
     echo "Starting no agent for '${AGENT}' (unknown mapping)"
