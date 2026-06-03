@@ -41,4 +41,4 @@ echo "$INPUT_TEXT"
 curl -X POST "$WORKFLOW_URL/api/execute" -H "Content-Type: application/json" \
 -d '{
   "text": "'"$INPUT_TEXT"'"
-}'
+}' | json_pp

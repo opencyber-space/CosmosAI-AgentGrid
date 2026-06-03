@@ -12,7 +12,7 @@ fi
 
 #/bin/bash
 
-curl -X POST "${API_BASE_URL}/api/deploy-agent/deployer-111" \
+curl -X POST "${API_BASE_URL}/api/deploy-agent/deployer-123" \
 -H "Content-Type: application/json" \
 -d @- <<EOF
 {
@@ -35,7 +35,7 @@ curl -X POST "${API_BASE_URL}/api/deploy-agent/deployer-111" \
 }
 EOF
 
-curl -X POST "${API_BASE_URL}/api/deploy-agent/deployer-111" \
+curl -X POST "${API_BASE_URL}/api/deploy-agent/deployer-123" \
 -H "Content-Type: application/json" \
 -d @- <<EOF
 {
@@ -58,7 +58,7 @@ curl -X POST "${API_BASE_URL}/api/deploy-agent/deployer-111" \
 }
 EOF
 
-curl -X POST "${API_BASE_URL}/api/deploy-agent/deployer-111" \
+curl -X POST "${API_BASE_URL}/api/deploy-agent/deployer-123" \
 -H "Content-Type: application/json" \
 -d @- <<EOF
 {
@@ -81,7 +81,7 @@ curl -X POST "${API_BASE_URL}/api/deploy-agent/deployer-111" \
 }
 EOF
 
-curl -X POST "${API_BASE_URL}/api/deploy-agent/deployer-111" \
+curl -X POST "${API_BASE_URL}/api/deploy-agent/deployer-123" \
 -H "Content-Type: application/json" \
 -d @- <<EOF
 {
@@ -104,7 +104,7 @@ curl -X POST "${API_BASE_URL}/api/deploy-agent/deployer-111" \
 }
 EOF
 
-curl -X POST "${API_BASE_URL}/api/deploy-agent/deployer-111" \
+curl -X POST "${API_BASE_URL}/api/deploy-agent/deployer-123" \
 -H "Content-Type: application/json" \
 -d @- <<EOF
 {
@@ -127,7 +127,7 @@ curl -X POST "${API_BASE_URL}/api/deploy-agent/deployer-111" \
 }
 EOF
 
-curl -X POST "${API_BASE_URL}/api/deploy-agent/deployer-111" \
+curl -X POST "${API_BASE_URL}/api/deploy-agent/deployer-123" \
 -H "Content-Type: application/json" \
 -d @- <<EOF
 {
@@ -150,7 +150,7 @@ curl -X POST "${API_BASE_URL}/api/deploy-agent/deployer-111" \
 }
 EOF
 
-curl -X POST "${API_BASE_URL}/api/deploy-agent/deployer-111" \
+curl -X POST "${API_BASE_URL}/api/deploy-agent/deployer-123" \
 -H "Content-Type: application/json" \
 -d @- <<EOF
 {
@@ -173,7 +173,7 @@ curl -X POST "${API_BASE_URL}/api/deploy-agent/deployer-111" \
 }
 EOF
 
-curl -X POST "${API_BASE_URL}/api/deploy-agent/deployer-111" \
+curl -X POST "${API_BASE_URL}/api/deploy-agent/deployer-123" \
 -H "Content-Type: application/json" \
 -d @- <<EOF
 {

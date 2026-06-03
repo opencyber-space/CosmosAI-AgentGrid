@@ -13,6 +13,14 @@ from utils.json_utils import extract_json
 
 log = logging.getLogger(__name__)
 
+NODE_ID_MAPPING = {
+    "clause-extractor-agent": "my-clause-extractor-agent",
+    "risk-identifier-agent": "my-risk-identifier-agent",
+    "compliance-checker-agent": "my-compliance-checker-agent",
+    "negotiation-adviser-agent": "my-negotiation-advisor-agent",
+    "legal-memo-agent": "my-legal-memo-agent"
+}
+
 # --- 1. The Signatures ---
 
 class RiskIdentifierSignature(dspy.Signature):
@@ -113,7 +121,9 @@ class RiskIdentifierAgent:
 
     def _log_to_his(self, target_id, job_data):
         try:
-            msg = {"text": str(job_data), "source_id": self.subject.identity.subject_id, "destination_id": target_id, "team": "Legal Team", "timestamp": time.time()}
+            source_id = getattr(self.subject.identity, 'subject_id', 'unknown')
+            target_id_mapped = {v: k for k, v in NODE_ID_MAPPING.items()}.get(target_id, target_id)
+            msg = {"text": str(job_data), "source_id": source_id, "destination_id": target_id_mapped, "team": "Legal Team", "timestamp": time.time()}
             self.his_client.submit(input_data=msg)
         except Exception:
             pass
@@ -150,7 +160,7 @@ class RiskIdentifierAgent:
             
             # Log incoming request
             self._log_to_his(
-                target_id=self.subject.identity.subject_id, # Self is target of incoming
+                target_id="my-risk-identifier-agent", # Self is target of incoming
                 job_data={"task_type": "INCOMING_TASK", "payload": data}
             )
             

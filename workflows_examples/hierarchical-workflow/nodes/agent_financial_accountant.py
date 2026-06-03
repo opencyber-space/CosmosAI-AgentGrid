@@ -108,7 +108,6 @@ class FinancialAccountantAgent:
         try:
             source_id = getattr(self.subject.identity, 'subject_id', 'unknown')
             target_id_mapped = {v: k for k, v in NODE_ID_MAPPING.items()}.get(target_id, target_id)
-            log.info(f"LOGGIN TO HIS: source_id:{source_id} destination_id:{target_id_mapped} team:Finance Team timestamp:{time.time()}")
             msg = {"text": str(job_data), "source_id": source_id, "destination_id": target_id_mapped, "team": "Finance Team", "timestamp": time.time()}
             self.his_client.submit(input_data=msg)
         except Exception:

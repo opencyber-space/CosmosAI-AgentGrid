@@ -131,10 +131,9 @@ class RouterAgent:
 
     def _log_to_his(self, target_id, job_data):
         try:
-            source_id = self.subject.identity.subject_id
-            target_id = {v: k for k, v in NODE_ID_MAPPING.items()}.get(target_id, target_id)
-            log.info("Sending HIS log: source_id=%s, destination_id=%s", source_id, target_id)
-            msg = {"text": str(job_data), "source_id": source_id, "destination_id": target_id, "team": "Workflow Router", "timestamp": time.time()}
+            source_id = getattr(self.subject.identity, 'subject_id', 'unknown')
+            target_id_mapped = {v: k for k, v in NODE_ID_MAPPING.items()}.get(target_id, target_id)
+            msg = {"text": str(job_data), "source_id": source_id, "destination_id": target_id_mapped, "team": "Workflow Router", "timestamp": time.time()}
             self.his_client.submit(input_data=msg)
         except Exception:
             pass
@@ -182,12 +181,12 @@ class RouterAgent:
             # Log incoming request
             if not last_node:
                 self._log_to_his(
-                    target_id=self.subject.identity.subject_id, 
+                    target_id="my-router-agent", 
                     job_data={"task_type": "ROUTER_INCOMING", "last_node": last_node, "history": history, "initial_input":initial_input}
                 )
             else:
                 self._log_to_his(
-                    target_id=self.subject.identity.subject_id, 
+                    target_id="my-router-agent", 
                     job_data={"task_type": "ROUTER_INCOMING", "last_node": last_node, "history": history, "last_executed_batch":last_executed_batch, "last_executed": last_executed}
                 )
 

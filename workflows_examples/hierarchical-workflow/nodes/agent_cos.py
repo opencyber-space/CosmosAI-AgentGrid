@@ -150,8 +150,8 @@ class CoSAgent:
     def _log_to_his(self, target_id, job_data):
         try:
             source_id = getattr(self.subject.identity, 'subject_id', 'unknown')
-            mapped_target = NODE_TO_AGENT_MAPPING.get(target_id, target_id)
-            msg = {"text": str(job_data), "source_id": source_id, "destination_id": mapped_target, "team": "COS Team", "timestamp": time.time()}
+            target_id_mapped = {v: k for k, v in NODE_ID_MAPPING.items()}.get(target_id, target_id)
+            msg = {"text": str(job_data), "source_id": source_id, "destination_id": target_id_mapped, "team": "COS Team", "timestamp": time.time()}
             self.his_client.submit(input_data=msg)
         except Exception:
             pass
@@ -215,7 +215,7 @@ class CoSAgent:
 
             # Log incoming request
             self._log_to_his(
-                target_id=self.subject.identity.subject_id if hasattr(self.subject.identity, 'subject_id') else "agent-workflow-cos",
+                target_id="agent-workflow-cos",
                 job_data={"task_type": "ROUTER_INCOMING", "last_node": last_node, "history": history,"initial_input":initial_input,"last_executed_batch":last_executed_batch,"last_executed":last_executed,"outputs":outputs}
             )
 

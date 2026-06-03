@@ -12,12 +12,12 @@ else
 fi
 
 
-curl -X POST ${API_BASE_URL}/api/remove-agent/deployer-111/clause-extractor-agent
+curl -X POST ${API_BASE_URL}/api/remove-agent/deployer-123/clause-extractor-agent
 
-curl -X POST ${API_BASE_URL}/api/remove-agent/deployer-111/risk-identifier-agent
+curl -X POST ${API_BASE_URL}/api/remove-agent/deployer-123/risk-identifier-agent
 
-curl -X POST ${API_BASE_URL}/api/remove-agent/deployer-111/compliance-checker-agent
+curl -X POST ${API_BASE_URL}/api/remove-agent/deployer-123/compliance-checker-agent
 
-curl -X POST ${API_BASE_URL}/api/remove-agent/deployer-111/negotiation-adviser-agent
+curl -X POST ${API_BASE_URL}/api/remove-agent/deployer-123/negotiation-adviser-agent
 
-curl -X POST ${API_BASE_URL}/api/remove-agent/deployer-111/legal-memo-agent
+curl -X POST ${API_BASE_URL}/api/remove-agent/deployer-123/legal-memo-agent

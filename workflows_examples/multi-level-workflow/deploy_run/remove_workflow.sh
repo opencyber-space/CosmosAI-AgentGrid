@@ -12,14 +12,14 @@ else
 fi
 
 
-# curl -X POST ${API_BASE_URL}/api/remove-workflow/deployer-111/workflow-fraud-investigation \
+# curl -X POST ${API_BASE_URL}/api/remove-workflow/deployer-123/workflow-fraud-investigation \
 # -H "Content-Type: application/json" \
 # -d '
 # {
 # }
 # '
 
-curl -X POST ${API_BASE_URL}/api/remove-workflow/deployer-111/workflow-loan-risk-assessment \
+curl -X POST ${API_BASE_URL}/api/remove-workflow/deployer-123/workflow-loan-risk-assessment \
 -H "Content-Type: application/json" \
 -d '
 {

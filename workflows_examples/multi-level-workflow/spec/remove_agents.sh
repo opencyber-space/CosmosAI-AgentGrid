@@ -12,18 +12,18 @@ else
 fi
 
 
-curl -X POST ${API_BASE_URL}/api/remove-agent/deployer-111/agent-workflow-collateral-evaluator
+curl -X POST ${API_BASE_URL}/api/remove-agent/deployer-123/agent-workflow-collateral-evaluator
 
-curl -X POST ${API_BASE_URL}/api/remove-agent/deployer-111/agent-workflow-financial-profile
+curl -X POST ${API_BASE_URL}/api/remove-agent/deployer-123/agent-workflow-financial-profile
 
-curl -X POST ${API_BASE_URL}/api/remove-agent/deployer-111/agent-workflow-fraud-score
+curl -X POST ${API_BASE_URL}/api/remove-agent/deployer-123/agent-workflow-fraud-score
 
-curl -X POST ${API_BASE_URL}/api/remove-agent/deployer-111/agent-workflow-identity-verification
+curl -X POST ${API_BASE_URL}/api/remove-agent/deployer-123/agent-workflow-identity-verification
 
-curl -X POST ${API_BASE_URL}/api/remove-agent/deployer-111/agent-workflow-loan-decision
+curl -X POST ${API_BASE_URL}/api/remove-agent/deployer-123/agent-workflow-loan-decision
 
-curl -X POST ${API_BASE_URL}/api/remove-agent/deployer-111/agent-workflow-loan-risk-router
+curl -X POST ${API_BASE_URL}/api/remove-agent/deployer-123/agent-workflow-loan-risk-router
 
-curl -X POST ${API_BASE_URL}/api/remove-agent/deployer-111/agent-workflow-market-risk
+curl -X POST ${API_BASE_URL}/api/remove-agent/deployer-123/agent-workflow-market-risk
 
-curl -X POST ${API_BASE_URL}/api/remove-agent/deployer-111/agent-workflow-transaction-history
+curl -X POST ${API_BASE_URL}/api/remove-agent/deployer-123/agent-workflow-transaction-history

@@ -12,7 +12,7 @@ else
 fi
 
 
-curl -X POST ${API_BASE_URL}/api/remove-workflow/deployer-111/simple-sequential-workflow-001 \
+curl -X POST ${API_BASE_URL}/api/remove-workflow/deployer-123/simple-sequential-workflow-001 \
 -H "Content-Type: application/json" \
 -d '
 {

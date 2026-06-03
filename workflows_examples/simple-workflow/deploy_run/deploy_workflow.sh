@@ -12,7 +12,7 @@ else
 fi
 
 
-curl -X POST ${API_BASE_URL}/api/deploy-workflow/deployer-111 -H "Content-Type: application/json" \
+curl -X POST ${API_BASE_URL}/api/deploy-workflow/deployer-123 -H "Content-Type: application/json" \
 -d '
 {
     "deployment_name": "simple-sequential-workflow",

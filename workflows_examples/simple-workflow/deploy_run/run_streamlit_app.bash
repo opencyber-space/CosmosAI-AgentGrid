@@ -27,4 +27,4 @@ fi
 #        "status": "COMPLETED"  --> this is must
 #      }'
 
-streamlit run streamlit_app.py
+streamlit run streamlit_app.py --server.port 8003

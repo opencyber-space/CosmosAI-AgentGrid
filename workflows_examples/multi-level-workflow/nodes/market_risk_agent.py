@@ -116,10 +116,9 @@ class MarketRiskAgent:
 
     def _log_to_his(self, target_id, job_data):
         try:
-            source_id = self.subject.identity.subject_id
-            target_id = {v: k for k, v in NODE_ID_MAPPING.items()}.get(target_id, target_id)
-            log.info("Sending HIS log: source_id=%s, destination_id=%s", source_id, target_id)
-            msg = {"text": str(job_data), "source_id": source_id, "destination_id": target_id, "team": "Risk Management Team", "timestamp": time.time()}
+            source_id = getattr(self.subject.identity, 'subject_id', 'unknown')
+            target_id_mapped = {v: k for k, v in NODE_ID_MAPPING.items()}.get(target_id, target_id)
+            msg = {"text": str(job_data), "source_id": source_id, "destination_id": target_id_mapped, "team": "Risk Management Team", "timestamp": time.time()}
             self.his_client.submit(input_data=msg)
         except Exception:
             pass
@@ -145,7 +144,7 @@ class MarketRiskAgent:
             
             # Log incoming request
             self._log_to_his(
-                target_id=self.subject.identity.subject_id, # Self is target of incoming
+                target_id="my-market-risk-agent", # Self is target of incoming
                 job_data={"task_type": "INCOMING_TASK", "payload": data}
             )
             
@@ -165,7 +164,7 @@ class MarketRiskAgent:
 
             # Log outgoing result
             self._log_to_his(
-                target_id="my-router-agent", # Send to router
+                target_id="my-market-risk-agent", # Send to router
                 job_data={"task_type": "OUTGOING_RESULT", "payload": parsed}
             )
 

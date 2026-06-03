@@ -39,12 +39,13 @@
                 "INFERENCE_SERVER_REGISTRY_URL": "http://<AIOS-INFERENCE-REGISTRY>/api",
                 "BLOCKS_DB_URL": "${BLOCKS_DB_URL}",
                 "INFERENCE_SERVER_ID": "${INFERENCE_SERVER_URL}",
-                "AGENT_SELECTOR_LLM": "qwen3-1-7b-vllm-block",
+                "AGENT_SELECTOR_LLM": "openai:gpt-5.4-mini",
                 "HIS_CONFIG": {
                     "HIS_BASE_URL": "${HIS_BASE_URL}",
                     "HIS_POLL_INTERVAL": 1.0,
                     "HIS_MAX_WAIT": 120
-                }
+                },
+                "api_key": "${OPENAI_API_KEY}"
             }
         }
     },
