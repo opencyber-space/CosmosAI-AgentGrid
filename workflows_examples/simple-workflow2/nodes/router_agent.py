@@ -11,10 +11,21 @@ from agents_sdk.core.his import HisClient
 log = logging.getLogger(__name__)
 
 NODE_ID_MAPPING = {
+    "clause-extractor-agent-2": "my-clause-extractor-agent-2",
     "simple-workflow-router-agent": "my-simple-workflow-router-agent",
-    "simple-static-workflow:1.0.0:stable": "my-simple-static-workflow",
+    "risk-identifier-agent-2": "my-risk-identifier-agent-2",
+    "compliance-checker-agent-2": "my-compliance-checker-agent-2",
+    "negotiation-adviser-agent-2": "my-negotiation-advisor-agent-2",
+    "legal-memo-agent-2": "my-legal-memo-agent-2",
+    "simple-static-workflow:1.0.0:stable": "my-simple-static-workflow"
 }
 
+NODE_CLAUSE_EXTRACTOR = "my-clause-extractor-agent-2"
+NODE_ROUTER = "my-simple-workflow-router-agent"
+NODE_RISK_IDENTIFIER = "my-risk-identifier-agent-2"
+NODE_COMPLIANCE = "my-compliance-checker-agent-2"
+NODE_NEGOTIATION = "my-negotiation-advisor-agent-2"
+NODE_LEGAL_MEMO = "my-legal-memo-agent-2"
 NODE_STATIC_WORKFLOW = "my-simple-static-workflow"
 
 class AgentPayloadProcessor:
@@ -42,10 +53,9 @@ class RouterAgent:
 
     def _log_to_his(self, target_id, job_data):
         try:
-            source_id = self.subject.identity.subject_id
-            target_id = {v: k for k, v in NODE_ID_MAPPING.items()}.get(target_id, target_id)
-            log.info("Sending HIS log: source_id=%s, destination_id=%s", source_id, target_id)
-            msg = {"text": str(job_data), "source_id": source_id, "destination_id": target_id, "team": "Workflow Router", "timestamp": time.time()}
+            source_id = getattr(self.subject.identity, 'subject_id', 'unknown')
+            target_id_mapped = {v: k for k, v in NODE_ID_MAPPING.items()}.get(target_id, target_id)
+            msg = {"text": str(job_data), "source_id": source_id, "destination_id": target_id_mapped, "team": "Legal Team", "timestamp": time.time()}
             self.his_client.submit(input_data=msg)
         except Exception:
             pass
@@ -91,12 +101,12 @@ class RouterAgent:
 
             if not last_node:
                 self._log_to_his(
-                    target_id=self.subject.identity.subject_id, 
+                    target_id=NODE_ROUTER, 
                     job_data={"task_type": "ROUTER_INCOMING", "last_node": last_node, "history": history, "initial_input":initial_input}
                 )
             else:
                 self._log_to_his(
-                    target_id=self.subject.identity.subject_id, 
+                    target_id=NODE_ROUTER, 
                     job_data={"task_type": "ROUTER_INCOMING", "last_node": last_node, "history": history, "last_executed_batch":last_executed_batch, "last_executed": last_executed}
                 )
 
@@ -121,6 +131,12 @@ class RouterAgent:
                 self._log_to_his(
                     target_id=step["nodeID"],
                     job_data={"task_type": "ROUTER_OUTGOING", "payload": step["input"]}
+                )
+
+            if not next_steps and last_executed:
+                self._log_to_his(
+                    target_id=NODE_ROUTER,
+                    job_data={"task_type": "ROUTER_OUTGOING", "payload": last_executed}
                 )
 
             return AgentResult(

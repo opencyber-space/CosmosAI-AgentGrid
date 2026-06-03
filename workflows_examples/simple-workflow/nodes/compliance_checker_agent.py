@@ -1,3 +1,4 @@
+import time
 import logging
 import uuid
 import json
@@ -104,7 +105,7 @@ class ComplianceCheckerAgent:
 
     def _log_to_his(self, target_id, job_data):
         try:
-            msg = {"text": str(job_data), "source_id": self.subject.identity.subject_id, "destination_id": target_id, "team": "Legal Team"}
+            msg = {"text": str(job_data), "source_id": self.subject.identity.subject_id, "destination_id": target_id, "team": "Legal Team", "timestamp": time.time()}
             self.his_client.submit(input_data=msg)
         except Exception:
             pass

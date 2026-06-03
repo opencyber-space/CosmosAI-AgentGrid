@@ -1,3 +1,4 @@
+import time
 import logging
 import uuid
 import json
@@ -11,6 +12,23 @@ from utils.dspy_aios_llms import AIOS_DSPy_LMs
 from utils.json_utils import extract_json
 
 log = logging.getLogger(__name__)
+
+NODE_ID_MAPPING = {
+    "clause-extractor-agent-2": "my-clause-extractor-agent-2",
+    "simple-workflow-router-agent": "my-simple-workflow-router-agent",
+    "risk-identifier-agent-2": "my-risk-identifier-agent-2",
+    "compliance-checker-agent-2": "my-compliance-checker-agent-2",
+    "negotiation-adviser-agent-2": "my-negotiation-advisor-agent-2",
+    "legal-memo-agent-2": "my-legal-memo-agent-2"
+}
+
+NODE_CLAUSE_EXTRACTOR = "my-clause-extractor-agent-2"
+NODE_ROUTER = "my-simple-workflow-router-agent"
+NODE_RISK_IDENTIFIER = "my-risk-identifier-agent-2"
+NODE_COMPLIANCE = "my-compliance-checker-agent-2"
+NODE_NEGOTIATION = "my-negotiation-advisor-agent-2"
+NODE_LEGAL_MEMO = "my-legal-memo-agent-2"
+
 
 # --- 1. The Signatures ---
 
@@ -112,7 +130,9 @@ class RiskIdentifierAgent:
 
     def _log_to_his(self, target_id, job_data):
         try:
-            msg = {"text": str(job_data), "source_id": self.subject.identity.subject_id, "destination_id": target_id, "team": "Legal Team"}
+            source_id = getattr(self.subject.identity, 'subject_id', 'unknown')
+            target_id_mapped = {v: k for k, v in NODE_ID_MAPPING.items()}.get(target_id, target_id)
+            msg = {"text": str(job_data), "source_id": source_id, "destination_id": target_id_mapped, "team": "Legal Team", "timestamp": time.time()}
             self.his_client.submit(input_data=msg)
         except Exception:
             pass
@@ -134,7 +154,7 @@ class RiskIdentifierAgent:
             data = task.job_data
             if "final_project_outcome" in data:
                 log.info(f"Received Final Project Outcome! Task {task.task_id} successfully completed.")
-                return AgentResult(task_id=task.task_id, is_error=False, job_output=data)
+                return AgentResult(task_id=task.task_id, is_error=False, job_output=data, job_output_metadata={})
             
             user_message, communication_type, model_name, session_id = self.payload_processor.prepare_payload(task)
 
@@ -149,7 +169,7 @@ class RiskIdentifierAgent:
             
             # Log incoming request
             self._log_to_his(
-                target_id=self.subject.identity.subject_id, # Self is target of incoming
+                target_id=NODE_RISK_IDENTIFIER, # Self is target of incoming
                 job_data={"task_type": "INCOMING_TASK", "payload": data}
             )
             
@@ -186,7 +206,7 @@ class RiskIdentifierAgent:
             
             # Log outgoing result
             self._log_to_his(
-                target_id="my-compliance-checker-agent", # Send to next agent
+                target_id=NODE_COMPLIANCE, # Send to next agent
                 job_data={"task_type": "OUTGOING_RESULT", "payload": job_output}
             )
 
