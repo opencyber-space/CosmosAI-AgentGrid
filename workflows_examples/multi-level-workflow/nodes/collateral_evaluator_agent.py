@@ -34,8 +34,10 @@ class CollateralExtractionSignature(dspy.Signature):
     Extract the following financial figures from the loan application string text.
     Return ONLY a valid JSON object in this exact format, no preamble or markdown:
     {
-      "requested_loan_amount": <float>,
-      "estimated_market_value": <float>
+      "extracted_data": {
+        "requested_loan_amount": <float>,
+        "estimated_market_value": <float>
+      }
     }
     """
     application_text = dspy.InputField(desc="The loan application text")
@@ -58,15 +60,17 @@ class CollateralEvaluatorSignature(dspy.Signature):
 
     Respond ONLY with a valid JSON object in this exact format, no preamble, no markdown:
     {
-      "collateral_type":        "<e.g. residential property, vehicle, investment portfolio>",
-      "stated_value":           <float>,
-      "estimated_market_value": <float>,
-      "ltv_ratio":              <float>,
-      "liquidity":              "HIGH|MEDIUM|LOW",
-      "verifiability":          "VERIFIABLE|PARTIALLY_VERIFIABLE|UNVERIFIABLE",
-      "collateral_adequacy":    "ADEQUATE|MARGINAL|INADEQUATE",
-      "collateral_summary":     "<2-3 sentence summary>",
-      "fraud_signals":          ["<overvaluation, unverifiable claims, etc., empty if none>"]
+      "collateral_evaluation": {
+        "collateral_type":        "<e.g. residential property, vehicle, investment portfolio>",
+        "stated_value":           <float>,
+        "estimated_market_value": <float>,
+        "ltv_ratio":              <float>,
+        "liquidity":              "HIGH|MEDIUM|LOW",
+        "verifiability":          "VERIFIABLE|PARTIALLY_VERIFIABLE|UNVERIFIABLE",
+        "collateral_adequacy":    "ADEQUATE|MARGINAL|INADEQUATE",
+        "collateral_summary":     "<2-3 sentence summary>",
+        "fraud_signals":          ["<overvaluation, unverifiable claims, etc., empty if none>"]
+      }
     }
     """
     application_text = dspy.InputField(desc="The loan application text")
@@ -85,6 +89,7 @@ class CollateralEvaluatorModule(dspy.Module):
         
         # Calculate exactly in python
         parsed_ext = extract_json(ext_result.extracted_data)
+        parsed_ext = parsed_ext.get("extracted_data", parsed_ext)
         ltv_ratio = 1.0 # Safe default
         
         try:
@@ -191,6 +196,7 @@ class CollateralEvaluatorAgent:
             
             extracted_raw = result.collateral_evaluation
             parsed = extract_json(extracted_raw)
+            parsed = parsed.get("collateral_evaluation", parsed)
             
             log.info("Task %s — collateral evaluation complete | adequacy=%s fraud_signals=%d",
                      task.task_id, parsed.get("collateral_adequacy"), len(parsed.get("fraud_signals", [])))

@@ -38,7 +38,7 @@ class TransactionHistorySignature(dspy.Signature):
 
     Respond ONLY with a valid JSON object in this exact format, no preamble, no markdown:
     {
-      "transaction_analysis": {
+      "transaction_analysis_result": {
         "large_cash_deposits":    <true|false>,
         "income_consistency":     "CONSISTENT|INCONSISTENT|SUSPICIOUS",
         "unusual_patterns":       ["<pattern>", ...],
@@ -161,7 +161,7 @@ class TransactionHistoryAgent:
             
             extracted_raw = result.transaction_analysis_result
             parsed = extract_json(extracted_raw)
-            transaction_analysis = parsed.get("transaction_analysis", parsed)
+            transaction_analysis = parsed.get("transaction_analysis_result", parsed.get("transaction_analysis", parsed))
             
             log.info("Task %s — transaction analysis complete | risk_score=%s consistency=%s",
                      task.task_id,

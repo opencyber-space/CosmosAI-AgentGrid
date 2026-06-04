@@ -40,7 +40,6 @@ TEAM_MAPPING = {
         "agent-workflow-financial-profile",
         "agent-workflow-market-risk",
         "agent-workflow-collateral-evaluator",
-        "workflow-fraud-investigation",
         "agent-workflow-loan-decision"
     ],
     "Fraud Investigation Sub-workflow": [

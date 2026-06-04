@@ -38,7 +38,7 @@ class IdentityVerificationSignature(dspy.Signature):
 
     Respond ONLY with a valid JSON object in this exact format, no preamble, no markdown:
     {
-      "identity_verification": {
+      "identity_verification_result": {
         "identity_consistency":  "CONSISTENT|INCONSISTENT|SUSPICIOUS",
         "employer_verified":     <true|false>,
         "address_history_risk":  "LOW|MEDIUM|HIGH",
@@ -166,7 +166,7 @@ class IdentityVerificationAgent:
             
             extracted_raw = result.identity_verification_result
             parsed = extract_json(extracted_raw)
-            identity_verification = parsed.get("identity_verification", parsed) # Be safe against nested
+            identity_verification = parsed.get("identity_verification_result", parsed.get("identity_verification", parsed)) # Be safe against nested
             
             log.info("Task %s — identity verification complete | risk_score=%s consistency=%s",
                      task.task_id,

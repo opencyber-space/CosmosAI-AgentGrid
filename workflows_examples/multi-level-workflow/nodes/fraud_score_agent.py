@@ -39,11 +39,13 @@ class FraudScoreSignature(dspy.Signature):
 
     Respond ONLY with a valid JSON object in this exact format, no preamble, no markdown:
     {
-      "fraud_score":          <integer 1-100, 100 = confirmed fraud>,
-      "fraud_verdict":        "CLEAR|SUSPICIOUS|HIGH_RISK|CONFIRMED_FRAUD",
-      "contributing_factors": ["<factor that contributed to the score>", ...],
-      "recommended_action":   "PROCEED|MANUAL_REVIEW|REJECT|REPORT_TO_AUTHORITIES",
-      "fraud_summary":        "<3-4 sentence comprehensive summary of findings and recommendation>"
+      "fraud_score_assessment": {
+        "fraud_score":          <integer 1-100, 100 = confirmed fraud>,
+        "fraud_verdict":        "CLEAR|SUSPICIOUS|HIGH_RISK|CONFIRMED_FRAUD",
+        "contributing_factors": ["<factor that contributed to the score>", ...],
+        "recommended_action":   "PROCEED|MANUAL_REVIEW|REJECT|REPORT_TO_AUTHORITIES",
+        "fraud_summary":        "<3-4 sentence comprehensive summary of findings and recommendation>"
+      }
     }
     """
     initial_fraud_signals = dspy.InputField(desc="Initial fraud signals detected")
@@ -168,6 +170,7 @@ class FraudScoreAgent:
             
             extracted_raw = result.fraud_score_assessment
             parsed = extract_json(extracted_raw)
+            parsed = parsed.get("fraud_score_assessment", parsed)
             
             log.info("Task %s — fraud score complete | score=%s verdict=%s action=%s",
                      task.task_id,

@@ -55,9 +55,11 @@ class FraudSignalSignature(dspy.Signature):
 
     Respond ONLY with a valid JSON object in this exact format, no preamble, no markdown:
     {
-      "fraud_signals_detected": true | false,
-      "signals":  ["<signal 1>", "<signal 2>", ...],
-      "reasoning": "<1-2 sentence explanation>"
+      "fraud_signals_result": {
+        "fraud_signals_detected": true | false,
+        "signals":  ["<signal 1>", "<signal 2>", ...],
+        "reasoning": "<1-2 sentence explanation>"
+      }
     }
     """
     financial_data = dspy.InputField(desc="Financial profile of the applicant")
@@ -333,6 +335,7 @@ class RouterAgent:
             
             extracted_raw = result.fraud_signals_result
             parsed = extract_json(extracted_raw)
+            parsed = parsed.get("fraud_signals_result", parsed)
         except Exception as e:
             log.error("Task %s — LLM error during fraud signal detection: %s", task_id, e)
             # Fail safe: escalate to fraud investigation if LLM call fails

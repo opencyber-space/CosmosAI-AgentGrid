@@ -45,14 +45,16 @@ class LoanDecisionBaseSignature(dspy.Signature):
     No preamble, no markdown formatting.
 
     {
-      "decision":          "APPROVED|CONDITIONAL|REJECTED",
-      "loan_amount":       <approved float or 0 if rejected>,
-      "interest_rate":     <recommended float % or 0 if rejected>,
-      "conditions":        ["<condition if CONDITIONAL, empty list otherwise>"],
-      "rejection_reasons": ["<reason if REJECTED, empty list otherwise>"],
-      "risk_rating":       "A|B|C|D|F",
-      "decision_summary":  "<2-3 sentence summary of the decision>",
-      "next_steps":        "<what happens next for the applicant>"
+      "loan_decision_result": {
+        "decision":          "APPROVED|CONDITIONAL|REJECTED",
+        "loan_amount":       <approved float or 0 if rejected>,
+        "interest_rate":     <recommended float % or 0 if rejected>,
+        "conditions":        ["<condition if CONDITIONAL, empty list otherwise>"],
+        "rejection_reasons": ["<reason if REJECTED, empty list otherwise>"],
+        "risk_rating":       "A|B|C|D|F",
+        "decision_summary":  "<2-3 sentence summary of the decision>",
+        "next_steps":        "<what happens next for the applicant>"
+      }
     }
     """
     financial_profile_data = dspy.InputField(desc="The financial profile of the applicant")
@@ -77,14 +79,16 @@ class LoanDecisionWithFraudSignature(dspy.Signature):
     No preamble, no markdown formatting.
 
     {
-      "decision":          "APPROVED|CONDITIONAL|REJECTED",
-      "loan_amount":       <approved float or 0 if rejected>,
-      "interest_rate":     <recommended float % or 0 if rejected>,
-      "conditions":        ["<condition if CONDITIONAL, empty list otherwise>"],
-      "rejection_reasons": ["<reason if REJECTED, empty list otherwise>"],
-      "risk_rating":       "A|B|C|D|F",
-      "decision_summary":  "<2-3 sentence summary of the decision>",
-      "next_steps":        "<what happens next for the applicant>"
+      "loan_decision_result": {
+        "decision":          "APPROVED|CONDITIONAL|REJECTED",
+        "loan_amount":       <approved float or 0 if rejected>,
+        "interest_rate":     <recommended float % or 0 if rejected>,
+        "conditions":        ["<condition if CONDITIONAL, empty list otherwise>"],
+        "rejection_reasons": ["<reason if REJECTED, empty list otherwise>"],
+        "risk_rating":       "A|B|C|D|F",
+        "decision_summary":  "<2-3 sentence summary of the decision>",
+        "next_steps":        "<what happens next for the applicant>"
+      }
     }
     """
     financial_profile_data = dspy.InputField(desc="The financial profile of the applicant")
@@ -222,6 +226,7 @@ class LoanDecisionAgent:
             extracted_raw = result.loan_decision_result
             try:
                 parsed = extract_json(extracted_raw)
+                parsed = parsed.get("loan_decision_result", parsed)
             except Exception as e:
                 log.warning("Task %s — Failed to parse JSON, falling back. Raw output: %s", task.task_id, extracted_raw)
                 decision_status = "REJECTED"

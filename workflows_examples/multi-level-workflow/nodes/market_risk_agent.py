@@ -39,14 +39,16 @@ class MarketRiskSignature(dspy.Signature):
 
     Respond ONLY with a valid JSON object in this exact format, no preamble, no markdown:
     {
-      "sector":                  "<applicant's employment sector>",
-      "market_conditions":       "FAVOURABLE|NEUTRAL|UNFAVOURABLE",
-      "interest_rate_risk":      "LOW|MEDIUM|HIGH",
-      "sector_employment_trend": "GROWING|STABLE|DECLINING",
-      "macro_risk_score":        <1-10>,
-      "key_risk_factors":        ["<factor>", ...],
-      "market_summary":          "<2-3 sentence summary>",
-      "fraud_signals":           ["<any market-level inconsistencies, empty if none>"]
+      "market_risk_assessment": {
+        "sector":                  "<applicant's employment sector>",
+        "market_conditions":       "FAVOURABLE|NEUTRAL|UNFAVOURABLE",
+        "interest_rate_risk":      "LOW|MEDIUM|HIGH",
+        "sector_employment_trend": "GROWING|STABLE|DECLINING",
+        "macro_risk_score":        <1-10>,
+        "key_risk_factors":        ["<factor>", ...],
+        "market_summary":          "<2-3 sentence summary>",
+        "fraud_signals":           ["<any market-level inconsistencies, empty if none>"]
+      }
     }
     """
     application_text = dspy.InputField(desc="The loan application text")
@@ -158,6 +160,7 @@ class MarketRiskAgent:
             
             extracted_raw = result.market_risk_assessment
             parsed = extract_json(extracted_raw)
+            parsed = parsed.get("market_risk_assessment", parsed)
             
             log.info("Task %s — market risk complete | macro_risk_score=%s conditions=%s",
                      task.task_id, parsed.get("macro_risk_score"), parsed.get("market_conditions"))

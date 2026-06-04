@@ -39,15 +39,17 @@ class FinancialProfileSignature(dspy.Signature):
 
     Respond ONLY with a valid JSON object in this exact format, no preamble, no markdown:
     {
-      "applicant_name":    "<name>",
-      "annual_income":     <float>,
-      "total_debt":        <float>,
-      "credit_score":      <int>,
-      "dti_ratio":         <float>,
-      "employment_status": "<employed|self-employed|unemployed|retired>",
-      "creditworthiness":  "STRONG|MODERATE|WEAK",
-      "profile_summary":   "<2-3 sentence summary>",
-      "fraud_signals":     ["<any inconsistencies or red flags, empty list if none>"]
+      "financial_profile": {
+        "applicant_name":    "<name>",
+        "annual_income":     <float>,
+        "total_debt":        <float>,
+        "credit_score":      <int>,
+        "dti_ratio":         <float>,
+        "employment_status": "<employed|self-employed|unemployed|retired>",
+        "creditworthiness":  "STRONG|MODERATE|WEAK",
+        "profile_summary":   "<2-3 sentence summary>",
+        "fraud_signals":     ["<any inconsistencies or red flags, empty list if none>"]
+      }
     }
     """
     application_text = dspy.InputField(desc="The loan application text to analyse")
@@ -149,6 +151,7 @@ class FinancialProfileAgent:
             
             extracted_raw = result.financial_profile
             parsed = extract_json(extracted_raw)
+            parsed = parsed.get("financial_profile", parsed)
             
             log.info("Task %s — financial profile complete | creditworthiness=%s fraud_signals=%d",
                      task.task_id, parsed.get("creditworthiness"), len(parsed.get("fraud_signals", [])))
