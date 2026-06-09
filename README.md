@@ -31,9 +31,15 @@ Contains examples showing how multiple agents can be connected dynamically to fo
 | :--- | :--- | :--- | :--- |
 | 1 | Simple Agentic Workflow | [`/workflows_examples/simple-workflow`](workflows_examples/simple-workflow) | [Watch Video](https://youtu.be/Y5hNYNoVMDA) |
 | 2 | Multi Level Agentic Workflow | [`/workflows_examples/multi-level-workflow`](workflows_examples/multi-level-workflow) | [Watch Video](https://youtu.be/ploms98oH_8) |
+| 3 | Hierarchical Agentic Workflow | [`/workflows_examples/hierarchical-workflow`](workflows_examples/hierarchical-workflow) | [Watch Video](https://youtu.be/qoXMN0Ha7zI) |
+| 4 | Hybrid Agentic Workflow | [`/workflows_examples/simple-workflow2`](workflows_examples/simple-workflow2) | [Watch Video](https://youtu.be/rmW30iJPDRU) |
+| 5 | Behavioral Agentic Workflow | [`/workflows_examples/behavioral-workflow`](workflows_examples/behavioral-workflow) | |
 
 - **`/simple-workflow`**: Teaches how to build a simple sequential workflow.
 - **`/multi-level-workflow`**: Demonstrates how to achieve nestedness, allowing sub-workflows to be utilized within main workflow specifications.
+- **`/hierarchical-workflow`**: Demonstrates a multi-layered hierarchical workflow led by a CEO and Chief of Staff (COS) who coordinate budget estimations and task executions across multiple dedicated teams (Finance, Marketing, Architecture, Developer, Testing), each with their own team leads and specialized subordinate agents.
+- **`/simple-workflow2`**: Demonstrates a hybrid workflow combining static workflow with dynamic routing and finally a static sub-workflow (e.g., Risk Identifier -> Compliance Checker -> Negotiation Advisor -> Legal Memo).
+- **`/behavioral-workflow`**: Demonstrates a behavioral workflow using function calling execution, coordinating agents that run tasks against predefined multi-stage graphs which sets required behavior to the agent under consideration.
 
 ## Core Libraries & Architecture
 
