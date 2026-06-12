@@ -1,0 +1,3 @@
+#!/bin/bash
+TOOLS_URL="${TOOLS_URL:-http://x.x.x.x:30702}"
+curl -s -X DELETE "$TOOLS_URL/tools/agentspace.commit-scribe.v4" | jq

@@ -1,0 +1,29 @@
+{
+  "header": {
+    "workflow_id": {
+      "name": "simple-tool-usage-workflow",
+      "version": "1.0.0",
+      "release": "stable"
+    },
+    "metadata": {
+      "description": "Workflow to demonstrate simple tool usage workflow with single agent with geneeric Propmts",
+      "owner": "legal-ops-team",
+      "created_at": "2026-06-03"
+    }
+  },
+  "body": {
+    "nodes": [
+      {
+        "nodeID": "my-agent-tool-user-demo",
+        "type": "agent",
+        "id": "agent-tool-user-demo",
+        "settings": {
+          "model_name": "openai:gpt-5.4-mini"
+        }
+      }
+    ],
+    "graph": {
+      "my-agent-tool-user-demo": []
+    }
+  }
+}

@@ -1,0 +1,130 @@
+{
+  "function_name": "code-validator",
+  "function_version": "1.7.0",
+  "function_release_tag": "stable",
+  "function_metadata": {
+    "author": "admin",
+    "category": "code-analysis",
+    "language": "python",
+    "entry_module": "policy_rule",
+    "entry_class": "AIOSv1PolicyRule"
+  },
+  "function_search_description": "Validates Python code correctness and suggests optimizations using OpenAI.",
+  "function_tags": [
+    "code-analysis",
+    "openai",
+    "validation"
+  ],
+  "function_type": "policy",
+  "function_man_page_doc": "AIOSv1 policy that validates Python code for bugs and suggests optimizations. Enriches input_data with code_validation for downstream policies.",
+  "function_code": "",
+  "function_policy_rule_uri": "",
+  "function_settings": {
+    "log_level": "INFO"
+  },
+  "function_parameters": {
+    "openai_api_key": "",
+    "model": "gpt-4o-mini"
+  },
+  "function_settings_schema": {
+    "title": "Settings",
+    "type": "object",
+    "additionalProperties": true,
+    "properties": {
+      "log_level": {
+        "type": "string",
+        "enum": [
+          "DEBUG",
+          "INFO",
+          "WARNING",
+          "ERROR"
+        ],
+        "default": "INFO"
+      }
+    }
+  },
+  "function_parameters_schema": {
+    "title": "Parameters",
+    "type": "object",
+    "additionalProperties": true,
+    "properties": {
+      "openai_api_key": {
+        "type": "string"
+      },
+      "model": {
+        "type": "string"
+      }
+    }
+  },
+  "function_input_schema": {
+    "title": "Code Validator Input",
+    "type": "object",
+    "properties": {
+      "code": {
+        "type": "string",
+        "description": "Python source code to validate"
+      },
+      "function_name": {
+        "type": "string",
+        "description": "Name of the function being analysed"
+      },
+      "description": {
+        "type": "string",
+        "description": "Optional human-readable description"
+      }
+    },
+    "required": [
+      "code",
+      "function_name"
+    ],
+    "examples": [
+      {
+        "code": "def add(a, b):\n    return a + b",
+        "function_name": "add",
+        "description": "Adds two numbers"
+      }
+    ]
+  },
+  "function_output_schema": {
+    "title": "Code Validator Output",
+    "type": "object",
+    "properties": {
+      "code": {
+        "type": "string"
+      },
+      "function_name": {
+        "type": "string"
+      },
+      "description": {
+        "type": "string"
+      },
+      "code_validation": {
+        "type": "object",
+        "properties": {
+          "is_valid": {
+            "type": "boolean"
+          },
+          "issues": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "optimizations": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "optimized_code": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "function_api_spec": {},
+  "open_api_spec": {},
+  "api_parameters_to_cost_relation_data": {},
+  "is_system_action": false
+}

@@ -1,0 +1,368 @@
+{
+  "tool_id": "agentspace.log-detective.v4",
+  "tool_metadata": {
+    "version": "1.0.0",
+    "author": "admin",
+    "license": "Apache-2.0",
+    "defaults": {
+      "model": "gpt-4o-mini",
+      "max_lines": 300,
+      "persist_state": false,
+      "max_history": 50,
+      "autosave_every": 0,
+      "counter_start": 0
+    }
+  },
+  "tool_search_description": "Analyzes raw service logs with OpenAI to detect anomalies, cluster errors, score severity (0-10), generate ranked root-cause hypotheses, and recommend on-call actions.",
+  "tool_tags": [
+    "logs",
+    "observability",
+    "openai",
+    "sre",
+    "anomaly-detection",
+    "incident-response"
+  ],
+  "tool_type": "local-python-tool",
+  "tool_man_page_doc": "NAME\n    agentspace.log-detective.v3 - Analyze service logs for anomalies and incidents.\n\nSYNOPSIS\n    execute(input) -> result\n    execute_command(name, data) -> result\n\nDESCRIPTION\n    Sends raw log text to OpenAI and returns a structured diagnostic:\n    anomalies list, error clusters, severity score, root-cause hypotheses,\n    on-call recommendations, and a timeline summary.\n    Only the last max_lines lines are sent to the model.\n\nEXECUTE INPUT\n    logs         (str, required)  Raw newline-separated log text\n    service_name (str, optional)  Name of the service\n    time_window  (str, optional)  e.g. '2024-06-10 02:00-03:00 UTC'\n\nEXECUTE OUTPUT\n    log_analysis.anomalies[]                list of {timestamp, message, category}\n    log_analysis.error_clusters[]           list of {label, count, sample_lines, component}\n    log_analysis.severity_score             integer 0-10\n    log_analysis.root_cause_hypotheses[]    list of {rank, hypothesis, confidence, evidence}\n    log_analysis.recommendations[]          list of action strings\n    log_analysis.timeline_summary           one-sentence narrative\n\nCOMMANDS\n    set / get / reset / get_state / save / load\n\nEXAMPLES\n    execute({\"logs\": \"...\", \"service_name\": \"payments-api\"})\n    execute_command(\"get_state\", {})",
+  "tool_api_spec": {
+    "entrypoints": {
+      "execute": {
+        "description": "Analyze raw log text and return a diagnostic report.",
+        "input": {
+          "type": "object",
+          "properties": {
+            "logs": {
+              "type": "string"
+            },
+            "service_name": {
+              "type": "string"
+            },
+            "time_window": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "logs"
+          ]
+        },
+        "output": {
+          "type": "object",
+          "properties": {
+            "ok": {
+              "type": "boolean"
+            },
+            "tool_id": {
+              "type": "string"
+            },
+            "calls": {
+              "type": "integer"
+            },
+            "op": {
+              "type": "string"
+            },
+            "log_analysis": {
+              "type": "object",
+              "properties": {
+                "anomalies": {
+                  "type": "array"
+                },
+                "error_clusters": {
+                  "type": "array"
+                },
+                "severity_score": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 10
+                },
+                "root_cause_hypotheses": {
+                  "type": "array"
+                },
+                "recommendations": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "timeline_summary": {
+                  "type": "string"
+                }
+              }
+            },
+            "history_len": {
+              "type": "integer"
+            },
+            "persisted": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "ok",
+            "tool_id",
+            "calls",
+            "op",
+            "log_analysis"
+          ]
+        }
+      },
+      "execute_command": {
+        "description": "Manage tool state.",
+        "commands": {
+          "set": {
+            "input": {
+              "properties": {
+                "key": {
+                  "type": "string"
+                },
+                "value": {}
+              },
+              "required": [
+                "key"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "properties": {
+                "ok": {
+                  "type": "boolean"
+                },
+                "op": {
+                  "type": "string"
+                },
+                "key": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "ok",
+                "op",
+                "key"
+              ]
+            }
+          },
+          "get": {
+            "input": {
+              "properties": {
+                "key": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "key"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "properties": {
+                "ok": {
+                  "type": "boolean"
+                },
+                "op": {
+                  "type": "string"
+                },
+                "key": {
+                  "type": "string"
+                },
+                "value": {}
+              },
+              "required": [
+                "ok",
+                "op",
+                "key",
+                "value"
+              ]
+            }
+          },
+          "reset": {
+            "input": {
+              "type": "object"
+            },
+            "output": {
+              "type": "object",
+              "properties": {
+                "ok": {
+                  "type": "boolean"
+                },
+                "op": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "ok",
+                "op"
+              ]
+            }
+          },
+          "get_state": {
+            "input": {
+              "type": "object"
+            },
+            "output": {
+              "type": "object",
+              "properties": {
+                "ok": {
+                  "type": "boolean"
+                },
+                "tool_id": {
+                  "type": "string"
+                },
+                "calls": {
+                  "type": "integer"
+                },
+                "kv": {
+                  "type": "object"
+                },
+                "history_len": {
+                  "type": "integer"
+                },
+                "persisted": {
+                  "type": "boolean"
+                },
+                "state_dir": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "ok",
+                "tool_id",
+                "calls",
+                "kv",
+                "history_len",
+                "persisted"
+              ]
+            }
+          },
+          "save": {
+            "input": {
+              "type": "object"
+            },
+            "output": {
+              "type": "object",
+              "properties": {
+                "ok": {
+                  "type": "boolean"
+                },
+                "op": {
+                  "type": "string"
+                },
+                "path": {
+                  "type": "string"
+                },
+                "error": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "ok"
+              ]
+            }
+          },
+          "load": {
+            "input": {
+              "type": "object"
+            },
+            "output": {
+              "type": "object",
+              "properties": {
+                "ok": {
+                  "type": "boolean"
+                },
+                "op": {
+                  "type": "string"
+                },
+                "path": {
+                  "type": "string"
+                },
+                "error": {
+                  "type": "string"
+                },
+                "state": {
+                  "type": "object",
+                  "properties": {
+                    "ok": {
+                      "type": "boolean"
+                    },
+                    "tool_id": {
+                      "type": "string"
+                    },
+                    "calls": {
+                      "type": "integer"
+                    },
+                    "kv": {
+                      "type": "object"
+                    },
+                    "history_len": {
+                      "type": "integer"
+                    },
+                    "persisted": {
+                      "type": "boolean"
+                    },
+                    "state_dir": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "ok",
+                    "tool_id",
+                    "calls",
+                    "kv",
+                    "history_len",
+                    "persisted"
+                  ]
+                }
+              },
+              "required": [
+                "ok"
+              ]
+            }
+          }
+        }
+      }
+    }
+  },
+  "tool_custom_actions_dsl_map": {
+    "analyze_logs": {
+      "description": "Analyze raw log text for anomalies and incidents",
+      "call": "execute",
+      "args": {
+        "$ref": "$.input"
+      }
+    },
+    "set_kv": {
+      "description": "Set a KV pair",
+      "call": "execute_command",
+      "args": {
+        "command": "set",
+        "data": {
+          "key": "$.key",
+          "value": "$.value"
+        }
+      }
+    },
+    "get_kv": {
+      "description": "Get a KV value",
+      "call": "execute_command",
+      "args": {
+        "command": "get",
+        "data": {
+          "key": "$.key"
+        }
+      }
+    },
+    "reset_state": {
+      "description": "Reset history, KV, and call counter",
+      "call": "execute_command",
+      "args": {
+        "command": "reset",
+        "data": {}
+      }
+    }
+  },
+  "default_tool_usage_credentials": {
+    "openai_api_key": ""
+  },
+  "tool_execution_mode": "local_code",
+  "tool_policy_rule_uri": "policy://agentspace/log-detective@v3",
+  "tool_service_url": "",
+  "tool_system_function_rpc_id": "agentspace.log-detective.execute",
+  "tool_validation_mode": "none"
+}
