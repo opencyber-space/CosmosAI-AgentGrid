@@ -56,9 +56,9 @@ tools = AgentTools(tools_db_url=TOOLS_REGISTRY_URL, openai_api_key=None, gemini_
 
 
 # Register all tools upfront so their runtimes are ready before any search.
-tools.add("agentspace.commit-scribe.v3")
-tools.add("agentspace.log-detective.v3")
-tools.add("agentspace.schema-forge.v3")
+tools.add("agentspace.commit-scribe.v4")
+tools.add("agentspace.log-detective.v4")
+tools.add("agentspace.schema-forge.v4")
 
 
 # ──────────────────────────────────────────────────────────────────────────────

@@ -39,12 +39,33 @@ index 3a1f2b4..9c8d1e5 100644
      return user
 '
 
-curl -X POST "$WORKFLOW_URL/api/execute" -H "Content-Type: application/json" \
--d "$(jq -n --arg diff "$diff" '{user_request: $diff}')" | json_pp
+payload=$(jq -n --arg diff "$diff" '{user_request: $diff}')
+echo "$payload"
+
+# curl -X POST "$WORKFLOW_URL/api/execute" -H "Content-Type: application/json" \
+# -d "$payload" | json_pp
 
 echo "--------------------------------------------------------"
 
-echo "Running Example 2 (Anagram Check):"
+echo "Running Example 2 (Log Detective):"
+
+logs='2024-06-10T02:14:01Z INFO  payments-api: request received POST /charge
+2024-06-10T02:14:01Z ERROR db: connection timeout after 30s (attempt 1/3)
+2024-06-10T02:14:02Z WARN  payments-api: retrying db connection
+2024-06-10T02:14:32Z ERROR db: connection timeout after 30s (attempt 2/3)
+2024-06-10T02:14:33Z ERROR db: connection timeout after 30s (attempt 3/3)
+2024-06-10T02:14:33Z FATAL payments-api: circuit breaker OPEN — db unreachable
+2024-06-10T02:14:34Z ERROR payments-api: returning 503 to client
+'
+
+payload=$(jq -n --arg logs "$logs" '{user_request: $logs}')
+echo "$payload"
+
+curl -X POST "$WORKFLOW_URL/api/execute" -H "Content-Type: application/json" \
+-d "$payload" | json_pp
+
+echo "--------------------------------------------------------"
+
 # To run Example 2 instead, uncomment the lines below and comment out Example 1
 # curl -X POST "$WORKFLOW_URL/api/execute" -H "Content-Type: application/json" \
 # -d '{
