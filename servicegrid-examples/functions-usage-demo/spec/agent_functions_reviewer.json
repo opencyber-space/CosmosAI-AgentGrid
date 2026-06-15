@@ -47,7 +47,7 @@
                 },
                 "FUNCTIONS_CONFIG": {
                     "functions_registry_url": "${FUNCTION_REGISTRY_URL}",
-                    "unique_parameter": "b2",
+                    "unique_parameter": "ac3",
                     "executor_id": "executor-001",
                     "num_workers": 8
                 },

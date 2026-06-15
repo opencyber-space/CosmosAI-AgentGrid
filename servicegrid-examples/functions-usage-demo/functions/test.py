@@ -1,5 +1,6 @@
 import os
 import sys
+import json
 from dotenv import load_dotenv
 
 # Dynamically add the directory 2 folders behind the current folder to sys.path
@@ -37,14 +38,25 @@ FUNCTION_REGISTRY_URL = os.environ.get("FUNCTION_REGISTRY_URL", "")
 
 agent_function = AgentFunctions(
     functions_registry_url=FUNCTION_REGISTRY_URL,
-    unique_parameter="b14",
+    unique_parameter="ac21",
     executor_id="executor-001",
     num_workers=8,
 )
 
-agent_function.add("code-validator:1.7.0-stable")
-agent_function.add("test-generator:1.10.0-stable")
-agent_function.add("test-runner:1.0.0-stable")
+# Helper to load function ID from its relative function.json path
+def load_function_id(relative_path):
+    json_path = os.path.join(current_dir, relative_path)
+    with open(json_path, 'r') as f:
+        data = json.load(f)
+    return f"{data['function_name']}:{data['function_version']}-{data['function_release_tag']}"
+
+code_validator_id = load_function_id("functions/code-validator/function.json")
+test_generator_id = load_function_id("functions/test-case-generator/function.json")
+test_runner_id = load_function_id("functions/test-runner/function.json")
+
+agent_function.add(code_validator_id)
+agent_function.add(test_generator_id)
+agent_function.add(test_runner_id)
 
 # Sample code to analyse
 sample_input = {
@@ -57,7 +69,7 @@ sample_input = {
 # Step 1 — validate the code
 print('calling code validator')
 result1 = agent_function.call(
-    function_id="code-validator:1.7.0-stable",
+    function_id=code_validator_id,
     input_data={
         **sample_input
     },
@@ -70,12 +82,10 @@ print("=== code-validator result ===")
 print(result1)
 
 
-# agent_function.remove(function_id="test-case-generator:1.6.0-stable", remove_deployment=True)
 # Step 2 — generate test cases (uses sample_input directly, independent of step 1)
-
 print('calling test generator')
 result2 = agent_function.call(
-    function_id="test-generator:1.10.0-stable",
+    function_id=test_generator_id,
     input_data={
         **result1
     },
@@ -91,7 +101,7 @@ print(result2)
 # Step 3 — run the generated tests against the code
 print("calling test runner")
 result3 = agent_function.call(
-    function_id="test-runner:1.0.0-stable",
+    function_id=test_runner_id,
     input_data={
         **result2
     }
@@ -103,6 +113,6 @@ print(result3)
 # Step4 - Remove the add functions
 # Do this when  needed, If in case the functions are reasuable by other agents, then better not remove them
 print("removing function")
-agent_function.remove(function_id="code-validator:1.6.0-stable", remove_deployment=True)
-agent_function.remove(function_id="test-generator:1.9.0-stable", remove_deployment=True)
-agent_function.remove(function_id="test-runner:1.0.0-stable", remove_deployment=True)
+agent_function.remove(function_id=code_validator_id, remove_deployment=True)
+agent_function.remove(function_id=test_generator_id, remove_deployment=True)
+agent_function.remove(function_id=test_runner_id, remove_deployment=True)

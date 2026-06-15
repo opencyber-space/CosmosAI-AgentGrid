@@ -120,7 +120,7 @@ class BehavioralReviewerAgent:
             result2 = self.agent_function.call(
                 function_id="test-generator:1.5.0-stable",
                 input_data={
-                    **result1.get("job_output_data"),
+                    **result1,
                     "parameters": {
                         "openai_api_key": self.openai_api_key,
                         "model": "gpt-4o-mini",
@@ -133,15 +133,15 @@ class BehavioralReviewerAgent:
                 raise Exception(f"test-generator failed: {result2['error']}")
 
             # Step 3: run the generated tests against the code
-            # log.info("Calling test-runner:1.0.0-stable")
-            # result3 = self.agent_function.call(
-            #     function_id="test-runner:1.0.0-stable",
-            #     input_data=result2
-            # )
-            # if isinstance(result3, dict) and "error" in result3:
-            #     raise Exception(f"test-runner failed: {result3['error']}")
+            log.info("Calling test-runner:1.0.0-stable")
+            result3 = self.agent_function.call(
+                function_id="test-runner:1.0.0-stable",
+                input_data={**result2}
+            )
+            if isinstance(result3, dict) and "error" in result3:
+                raise Exception(f"test-runner failed: {result3['error']}")
 
-            job_output = result2
+            job_output = result3
 
             # Log outgoing result
             self._log_to_his(

@@ -18,6 +18,9 @@ fi
 FUNCTIONS_UPLOAD="${FUNCTION_UPLOAD_URL}/functions/upload"
 FUNCTIONS_DIR="$(cd "$(dirname "$0")/functions" && pwd)"
 
+echo "=== Deleting existing functions ==="
+bash delete.sh
+
 echo "=== Uploading code-validator ==="
 curl -sS -X POST "$FUNCTIONS_UPLOAD" \
   -F "file=@${FUNCTIONS_DIR}/code-validator/code-validator.zip;type=application/zip" | jq
