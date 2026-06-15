@@ -42,8 +42,8 @@ index 3a1f2b4..9c8d1e5 100644
 payload=$(jq -n --arg diff "$diff" '{user_request: $diff}')
 echo "$payload"
 
-# curl -X POST "$WORKFLOW_URL/api/execute" -H "Content-Type: application/json" \
-# -d "$payload" | json_pp
+curl -X POST "$WORKFLOW_URL/api/execute" -H "Content-Type: application/json" \
+-d "$payload" | json_pp
 
 echo "--------------------------------------------------------"
 
