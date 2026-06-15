@@ -26,14 +26,18 @@ class ToolUsageDemoAgent:
         config_params = getattr(self.subject.persona, 'config', {}).get("parameters", {}) if hasattr(self.subject, 'persona') else {}
         tools_config = config_params.get("TOOLS_CONFIG", {})
         tools_registry_url = tools_config.get("tools_registry_url")
-        llm_block_id = tools_config.get("llm_block_id")
+        self.llm_block_id = tools_config.get("llm_block_id")
 
         # Extract openai_api_key from models.llm_parameters
         self.api_key = ""
         integrations = getattr(self.subject, 'integrations', None)
         models = getattr(integrations, 'models', []) if integrations else []
+        self.selected_tool_model = {}
         for model in models:
-            if llm_block_id == model.llm_block_id:
+            if self.llm_block_id == model.llm_block_id:
+                self.selected_tool_model = model
+                if type(self.selected_tool_model) != dict:
+                    self.selected_tool_model = self.selected_tool_model.to_dict()
                 llm_params = getattr(model, 'llm_parameters', {}) if hasattr(model, 'llm_parameters') else (model.get('llm_parameters', {}) if isinstance(model, dict) else {})
                 if "api_key" in llm_params:
                     self.api_key = llm_params["api_key"]
@@ -43,14 +47,14 @@ class ToolUsageDemoAgent:
             raise Exception("API key not found")
         if not tools_registry_url:
             raise Exception("Tools registry URL not found")
-        if not llm_block_id:
+        if not self.llm_block_id:
             raise Exception("LLM block ID not found")
 
-        if "openai:" in llm_block_id:
-            model_name = llm_block_id.replace("openai:", "")
+        if "openai:" in self.llm_block_id:
+            model_name = self.llm_block_id.replace("openai:", "")
             self.tools = AgentTools(tools_db_url=tools_registry_url, openai_api_key=self.api_key, gemini_api_key=None, model_name=model_name)
-        elif "gemini:" in llm_block_id:
-            model_name = llm_block_id.replace("gemini:", "")
+        elif "gemini:" in self.llm_block_id:
+            model_name = self.llm_block_id.replace("gemini:", "")
             self.tools = AgentTools(tools_db_url=tools_registry_url, openai_api_key=None, gemini_api_key=self.api_key, model_name=model_name)
 
         # Register all tools upfront so their runtimes are ready before any search.
@@ -97,13 +101,34 @@ class ToolUsageDemoAgent:
                 job_data={"task_type": "INCOMING_TASK", "payload": job}
             )
 
+            provider_name = self.llm_block_id
+            if "openai:" in self.llm_block_id:
+                provider_name = self.llm_block_id.replace("openai:", "")
+            elif "gemini:" in self.llm_block_id:
+                provider_name = self.llm_block_id.replace("gemini:", "")
+
+            # Sending very generic prompt to LLM to choose an tool based in input_dict
             response = self.tools.search_and_execute_tool(
                 prompt="What tools can be used to analyse this data",
                 input_dict={
-                    "input": job
-                }
+                    "input": job,
+                    "tool_model": self.selected_tool_model
+                },
+                provider=provider_name
             )
             print(response)
+
+            # other functions in self.tools are as below
+            # 1. For Tool Search: 
+            # tool_id = tools.search_tool(
+            #     "Analyse application logs and identify the root cause of the failure"
+            # )
+
+            # 2. For Tool Execute by ID
+            # response = self.tools.execute_tool_by_id(
+            #     "agentspace.commit-scribe.v4",
+            #     input_data={"diff": diff, "branch_name": "fix/strict-token-validation", "repo_context": "SaaS backend","tool_model": self.selected_tool_model},
+            # )
 
             job_output = response
 

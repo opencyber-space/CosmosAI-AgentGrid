@@ -6,6 +6,7 @@ import logging
 from collections import deque
 from typing import Any, Dict, Optional
 from openai import OpenAI
+from google import genai
 
 logger = logging.getLogger(__name__)
 
@@ -37,7 +38,9 @@ class AgentSpaceV1Tool:
             or self.config.get("openai_api_key")
             or os.environ.get("OPENAI_API_KEY", "")
         )
-        self.client = OpenAI(api_key=api_key)
+        self.client = None
+        if api_key:
+            self.client = OpenAI(api_key=api_key)
         self.model = self.config.get("model", "gpt-4o-mini")
         self.convention = self.config.get("convention", "conventional-commits")
 
@@ -79,6 +82,10 @@ class AgentSpaceV1Tool:
             diff = input_data.get("diff", "")
             if not diff:
                 raise ValueError("'diff' is required and must be non-empty.")
+
+            if "tool_model" in input_data:
+                self._create_client(input_data["tool_model"])
+                logger.info(f"[log-detective] Created client for tool_model={input_data['tool_model']['llm_block_id']}")
 
             repo_context = input_data.get("repo_context", "")
             branch_name = input_data.get("branch_name", "")
@@ -160,6 +167,20 @@ class AgentSpaceV1Tool:
     # OpenAI call
     # ------------------------------------------------------------------
 
+    def _create_client(self, model_dict: dict):
+        model_type = model_dict["llm_type"]
+        model_name = model_dict["llm_block_id"]
+        api_key = model_dict["llm_parameters"]["api_key"]
+        llm_parameters = model_dict["llm_parameters"]
+        del llm_parameters["api_key"]
+        if "openai" in model_name:
+            self.model = model_name.split(":")[-1]
+            self.client = OpenAI(api_key=api_key)
+        elif "gemini" in model_name:
+            self.model = model_name.split(":")[-1]
+            self.client = genai.Client(api_key=api_key)
+
+
     def _generate_commit(self, diff: str, repo_context: str, branch_name: str) -> Dict[str, Any]:
         convention_hint = (
             "Follow the Conventional Commits spec: <type>(<scope>): <subject>\n"
@@ -193,13 +214,26 @@ class AgentSpaceV1Tool:
         if branch_name:
             prompt += f"Branch: {branch_name}\n\n"
         prompt += f"Git diff:\n```diff\n{diff}\n```"
+        if self.client is None:
+            raise ValueError("LLM client not initialized. Please provide an API key.")
 
-        response = self.client.chat.completions.create(
-            model=self.model,
-            messages=[{"role": "user", "content": prompt}],
-            response_format={"type": "json_object"},
-        )
-        return json.loads(response.choices[0].message.content)
+        if "gemini" in self.model:
+            from google.genai import types
+            response = self.client.models.generate_content(
+                model=self.model,
+                contents=prompt,
+                config=types.GenerateContentConfig(
+                    response_mime_type="application/json",
+                ),
+            )
+            return json.loads(response.text)
+        else:
+            response = self.client.chat.completions.create(
+                model=self.model,
+                messages=[{"role": "user", "content": prompt}],
+                response_format={"type": "json_object"},
+            )
+            return json.loads(response.choices[0].message.content)
 
     # ------------------------------------------------------------------
     # State / persistence (same pattern as sample tool)

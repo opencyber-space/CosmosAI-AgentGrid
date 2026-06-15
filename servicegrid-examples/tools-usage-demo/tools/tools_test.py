@@ -33,14 +33,46 @@ if _git_root:
 else:
     load_dotenv()
 
+### Unmment below for testing OPENAI LLMs
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "")
-model_name = "gpt-4o-mini"
+OPENAI_TOOL_MODEL = {
+    "llm_type": "openai",
+    "llm_block_id": "openai:gpt-5.4-mini",
+    "llm_selection_query": {
+        "task": "summarization"
+    },
+    "llm_parameters": {
+        "api_key": OPENAI_API_KEY,
+        "max_completion_tokens": 4096,
+        "top_k": 50,
+        "top_p": 0.95,
+        "temperature": 0.5
+    }
+}
+which_model_to_use_for_tool = OPENAI_TOOL_MODEL
+model_name = "gpt-4o-mini" # this is for search_tool and search_and_execute_tool
 
-GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
-model_name = "gemini-2.5-flash"
+### Unmment below for testing GEMINI LLMs
+# GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
+# GEMINI_TOOL_MODEL = {
+#     "llm_type": "gemini",
+#     "llm_block_id": "gemini:gemini-2.5-flash",
+#     "llm_selection_query": {
+#         "task": "summarization"
+#     },
+#     "llm_parameters": {
+#         "api_key": GEMINI_API_KEY,
+#         "max_completion_tokens": 4096,
+#         "top_k": 50,
+#         "top_p": 0.95,
+#         "temperature": 0.5
+#     }
+# }
+# which_model_to_use_for_tool = GEMINI_TOOL_MODEL
+# model_name = "gemini-2.5-flash" # this is for search_tool and search_and_execute_tool
 
 TOOLS_REGISTRY_URL = os.environ.get("TOOLS_REGISTRY_URL", "")
-tools = AgentTools(tools_db_url=TOOLS_REGISTRY_URL, openai_api_key=None, gemini_api_key=GEMINI_API_KEY, model_name="gemini-2.5-flash")
+tools = AgentTools(tools_db_url=TOOLS_REGISTRY_URL, openai_api_key=OPENAI_API_KEY, gemini_api_key=None, model_name=model_name)
 
 # ──────────────────────────────────────────────
 # 1. commit-scribe
@@ -65,7 +97,7 @@ index 3a1f2b4..9c8d1e5 100644
 
 response = tools.execute_tool_by_id(
     "agentspace.commit-scribe.v4",
-    input_data={"diff": diff, "branch_name": "fix/strict-token-validation", "repo_context": "SaaS backend"},
+    input_data={"diff": diff, "branch_name": "fix/strict-token-validation", "repo_context": "SaaS backend","tool_model": which_model_to_use_for_tool},
 )
 print(response)
 
@@ -99,7 +131,7 @@ print(tools.execute_command("agentspace.commit-scribe.v4", command="get_state", 
 
 # response = tools.execute_tool_by_id(
 #     "agentspace.log-detective.v4",
-#     input_data={"logs": logs, "service_name": "payments-api", "time_window": "2024-06-10 02:14 UTC"},
+#     input_data={"logs": logs, "service_name": "payments-api", "time_window": "2024-06-10 02:14 UTC","tool_model": which_model_to_use_for_tool},
 # )
 # print(response)
 
@@ -123,7 +155,7 @@ print(tools.execute_command("agentspace.commit-scribe.v4", command="get_state", 
 
 # response = tools.execute_tool_by_id(
 #     "agentspace.schema-forge.v4",
-#     input_data={"sample_data": sample_json, "format": "json", "purpose": "E-commerce order record"},
+#     input_data={"sample_data": sample_json, "format": "json", "purpose": "E-commerce order record", "tool_model": which_model_to_use_for_tool},
 # )
 # print(response)
 
@@ -135,7 +167,7 @@ print(tools.execute_command("agentspace.commit-scribe.v4", command="get_state", 
 
 # response = tools.execute_tool_by_id(
 #     "agentspace.schema-forge.v4",
-#     input_data={"sample_data": sample_csv, "format": "csv", "purpose": "Order export from reporting DB"},
+#     input_data={"sample_data": sample_csv, "format": "csv", "purpose": "Order export from reporting DB","tool_model": which_model_to_use_for_tool},
 # )
 # print(response)
 

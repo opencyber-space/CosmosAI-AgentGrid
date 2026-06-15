@@ -6,6 +6,7 @@ import logging
 from collections import deque
 from typing import Any, Dict
 from openai import OpenAI
+from google import genai
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +40,9 @@ class AgentSpaceV1Tool:
             or self.config.get("openai_api_key")
             or os.environ.get("OPENAI_API_KEY", "")
         )
-        self.client = OpenAI(api_key=api_key)
+        self.client = None
+        if api_key:
+            self.client = OpenAI(api_key=api_key)
         self.model = self.config.get("model", "gpt-4o-mini")
         self.strict_mode = bool(self.config.get("strict_mode", True))
 
@@ -81,6 +84,10 @@ class AgentSpaceV1Tool:
             sample_data = input_data.get("sample_data", "")
             if not sample_data:
                 raise ValueError("'sample_data' is required and must be non-empty.")
+
+            if "tool_model" in input_data:
+                self._create_client(input_data["tool_model"])
+                logger.info(f"[log-detective] Created client for tool_model={input_data['tool_model']['llm_block_id']}")
 
             data_format = input_data.get("format", "json").lower()
             purpose = input_data.get("purpose", "")
@@ -161,6 +168,19 @@ class AgentSpaceV1Tool:
     # OpenAI call
     # ------------------------------------------------------------------
 
+    def _create_client(self, model_dict: dict):
+        model_type = model_dict["llm_type"]
+        model_name = model_dict["llm_block_id"]
+        api_key = model_dict["llm_parameters"]["api_key"]
+        llm_parameters = model_dict["llm_parameters"]
+        del llm_parameters["api_key"]
+        if "openai" in model_name:
+            self.model = model_name.split(":")[-1]
+            self.client = OpenAI(api_key=api_key)
+        elif "gemini" in model_name:
+            self.model = model_name.split(":")[-1]
+            self.client = genai.Client(api_key=api_key)
+
     def _forge_schema(self, sample_data: str, data_format: str, purpose: str) -> Dict[str, Any]:
         format_hint = (
             "The sample is JSON. Infer a strict JSON Schema (draft-07) from it."
@@ -196,13 +216,25 @@ class AgentSpaceV1Tool:
         if purpose:
             prompt += f"Intended purpose: {purpose}\n\n"
         prompt += f"Sample data:\n```\n{sample_data}\n```"
-
-        response = self.client.chat.completions.create(
-            model=self.model,
-            messages=[{"role": "user", "content": prompt}],
-            response_format={"type": "json_object"},
-        )
-        return json.loads(response.choices[0].message.content)
+        if self.client is None:
+            raise ValueError("LLM client not initialized. Please provide an API key.")
+        if "gemini" in self.model:
+            from google.genai import types
+            response = self.client.models.generate_content(
+                model=self.model,
+                contents=prompt,
+                config=types.GenerateContentConfig(
+                    response_mime_type="application/json",
+                ),
+            )
+            return json.loads(response.text)
+        else:
+            response = self.client.chat.completions.create(
+                model=self.model,
+                messages=[{"role": "user", "content": prompt}],
+                response_format={"type": "json_object"},
+            )
+            return json.loads(response.choices[0].message.content)
 
     # ------------------------------------------------------------------
     # State / persistence

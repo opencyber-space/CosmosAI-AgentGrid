@@ -134,6 +134,8 @@ class AgentTools:
         pre-loaded with add() are reused without re-downloading).
         Tools must be added with add() before calling this."""
         loaded = self._loaded_tool_records()
+        tool_model = input_dict.pop("tool_model", None)
+        logger.info(f"Removed tool_model for search_and_execute_tool")
         if provider == "gemini" or (self._gemini_caller and not self._openai_caller):
             tool_id, formatted_args = self._require_gemini().resolve(prompt, input_dict, tools=loaded)
         else:
@@ -141,6 +143,9 @@ class AgentTools:
         instance_name = f"instance:{tool_id}"
         if instance_name not in self.executor.tool_instances:
             self.executor.register(instance_name, tool_id, {})
+        if tool_model:
+            formatted_args["tool_model"] = tool_model
+            logger.info(f"Reinserted tool_model for search_and_execute_tool")
         return self.executor.execute(instance_name, formatted_args)
 
     def execute_command(self, tool_id: str, command, data):

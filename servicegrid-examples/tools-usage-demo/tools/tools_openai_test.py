@@ -45,14 +45,46 @@ if _git_root:
 else:
     load_dotenv()
 
+### Unmment below for testing OPENAI LLMs
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "")
-model_name = "gpt-4o-mini"
+OPENAI_TOOL_MODEL = {
+    "llm_type": "openai",
+    "llm_block_id": "openai:gpt-5.4-mini",
+    "llm_selection_query": {
+        "task": "summarization"
+    },
+    "llm_parameters": {
+        "api_key": OPENAI_API_KEY,
+        "max_completion_tokens": 4096,
+        "top_k": 50,
+        "top_p": 0.95,
+        "temperature": 0.5
+    }
+}
+which_model_to_use_for_tool = OPENAI_TOOL_MODEL
+model_name = "gpt-4o-mini" # this is for search_tool and search_and_execute_tool
 
-GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
-model_name = "gemini-2.5-flash"
+### Unmment below for testing GEMINI LLMs
+# GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
+# GEMINI_TOOL_MODEL = {
+#     "llm_type": "gemini",
+#     "llm_block_id": "gemini:gemini-2.5-flash",
+#     "llm_selection_query": {
+#         "task": "summarization"
+#     },
+#     "llm_parameters": {
+#         "api_key": GEMINI_API_KEY,
+#         "max_completion_tokens": 4096,
+#         "top_k": 50,
+#         "top_p": 0.95,
+#         "temperature": 0.5
+#     }
+# }
+# which_model_to_use_for_tool = GEMINI_TOOL_MODEL
+# model_name = "gemini-2.5-flash" # this is for search_tool and search_and_execute_tool
 
 TOOLS_REGISTRY_URL = os.environ.get("TOOLS_REGISTRY_URL", "")
-tools = AgentTools(tools_db_url=TOOLS_REGISTRY_URL, openai_api_key=None, gemini_api_key=GEMINI_API_KEY, model_name="gemini-2.5-flash")
+tools = AgentTools(tools_db_url=TOOLS_REGISTRY_URL, openai_api_key=OPENAI_API_KEY, gemini_api_key=None, model_name=model_name)
 
 
 # Register all tools upfront so their runtimes are ready before any search.
@@ -112,6 +144,7 @@ tools.add("agentspace.schema-forge.v4")
 #         "diff": diff,
 #         "branch_name": "fix/strict-token-validation",
 #         "repo_context": "SaaS backend",
+#         "tool_model": which_model_to_use_for_tool
 #     },
 # )
 # print(response)
@@ -138,6 +171,7 @@ tools.add("agentspace.schema-forge.v4")
 #         "logs": logs,
 #         "service_name": "payments-api",
 #         "time_window": "2024-06-10 02:14 UTC",
+#         "tool_model": which_model_to_use_for_tool
 #     },
 # )
 # print(response)
@@ -159,6 +193,7 @@ tools.add("agentspace.schema-forge.v4")
 #         "sample_data": sample_json,
 #         "format": "json",
 #         "purpose": "E-commerce order record",
+#         "tool_model": which_model_to_use_for_tool
 #     },
 # )
 # print(response)
@@ -191,7 +226,8 @@ print("\n=== search_and_execute_tool: commit-scribe ===")
 response = tools.search_and_execute_tool(
     prompt="What can be done with this data",
     input_dict={
-        "input_data": diff
+        "input_data": diff,
+        "tool_model": which_model_to_use_for_tool
     },
 )
 print(response)
@@ -218,6 +254,7 @@ print(response)
 #         "logs": logs,
 #         "service_name": "payments-api",
 #         "time_window": "2024-06-10 02:14 UTC",
+#         "tool_model": which_model_to_use_for_tool 
 #     },
 # )
 # print(response)
@@ -239,6 +276,7 @@ print(response)
 #         "input": sample_json,
 #         "format": "json",
 #         "purpose": "E-commerce order record",
+#         "tool_model": which_model_to_use_for_tool
 #     },
 # )
 # print(response)
@@ -252,6 +290,7 @@ print(response)
 #     prompt="What can be done with this data",
 #     input_dict={
 #         "input": sample_json
+#         "tool_model": which_model_to_use_for_tool
 #     },
 # )
 # print(response)
