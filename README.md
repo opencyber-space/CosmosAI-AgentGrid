@@ -41,6 +41,17 @@ Contains examples showing how multiple agents can be connected dynamically to fo
 - **`/simple-workflow2`**: Demonstrates a hybrid workflow combining static workflow with dynamic routing and finally a static sub-workflow (e.g., Risk Identifier -> Compliance Checker -> Negotiation Advisor -> Legal Memo).
 - **`/behavioral-workflow`**: Demonstrates a behavioral workflow using function calling execution, coordinating agents that run tasks against predefined multi-stage graphs which sets required behavior to the agent under consideration.
 
+### Service-grid (Functions & Tools) Examples (`/servicegrid-examples`)
+Contains examples demonstrating how to use the Service-Grid stack to run functions and tools inside the agents.
+
+| SN No | Example Name | Folder Link | Video Link |
+| :--- | :--- | :--- | :--- |
+| 1 | Functions Usage Demo | [`/servicegrid-examples/functions-usage-demo`](servicegrid-examples/functions-usage-demo) | |
+| 2 | Tools Usage Demo | [`/servicegrid-examples/tools-usage-demo`](servicegrid-examples/tools-usage-demo) | |
+
+- **`/functions-usage-demo`**: Demonstrates how agents can access and call deployed functions. Functions run completely outside of the agent's code execution context, ensuring they do not consume any CPU cycles or RAM from the agent itself.
+- **`/tools-usage-demo`**: Demonstrates how agents utilize tools. Unlike functions, tools execute directly within the agent's code context, providing local execution capabilities.
+
 ## Core Libraries & Architecture
 
 Our agent sample codes rely on two primary libraries for interfacing and integration:
@@ -50,6 +61,13 @@ Our agent sample codes rely on two primary libraries for interfacing and integra
   - **Human-in-the-Loop (HITL)** service client interfacing.
   - **Agent Search** capabilities to discover other agents dynamically.
   - **Agent Communication** protocols, supporting Direct, Peer-to-Peer, and Delegate methods.
+- **`agents_search`**: A library used to search for registered agents dynamically by providing a natural language prompt.
+- **`agents_functions`** (`/servicegrid-examples/agents_functions`): Provides function integration primitives, helping in accessing deployed functions via Python code without having to perform manual curl calls.
+- **`agents_tools`** (`/servicegrid-examples/agents_tools`): Used for tools access. Similar to functions, this library abstracts tool usage within the agent.
+
+### Execution & Registration Model
+* **Execution Difference**: **Functions** run completely outside of the agent's code, meaning they do not consume any RAM or CPU clocks/cycles from the agents themselves as they run completely independent of them. In contrast, **Tools** run directly within the agent's execution code.
+* **Registration & Code Upload**: The registration of agents, functions, and tools happens outside of these libraries. APIs are provided separately to register and upload the code for both functions and tools.
 
 ## Installation Requirements
 ### *1.Docker* 
