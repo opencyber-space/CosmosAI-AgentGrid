@@ -52,6 +52,12 @@ Contains examples demonstrating how to use the Service-Grid stack to run functio
 - **`/functions-usage-demo`**: Demonstrates how agents can access and call deployed functions. Functions run completely outside of the agent's code execution context, ensuring they do not consume any CPU cycles or RAM from the agent itself.
 - **`/tools-usage-demo`**: Demonstrates how agents utilize tools. Unlike functions, tools execute directly within the agent's code context, providing local execution capabilities.
 
+> [!TIP]
+> **Quick Testing without Agent Registration**
+> You can quickly test functions and tools integration without writing agent code or registering agents. These test scripts allow for rapid integration testing:
+> - **Functions Quick Test**: Explore [`servicegrid-examples/functions-usage-demo/functions/test.py`](servicegrid-examples/functions-usage-demo/functions/test.py) to test function execution.
+> - **Tools Quick Test**: Explore [`servicegrid-examples/tools-usage-demo/tools/tools_openai_test.py`](servicegrid-examples/tools-usage-demo/tools/tools_openai_test.py) to test tool integration examples.
+
 ## Core Libraries & Architecture
 
 Our agent sample codes rely on two primary libraries for interfacing and integration:
