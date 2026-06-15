@@ -9,6 +9,10 @@ __pycache__/
 .venv/*
 venv/*
 
+# zip and tar
+*.zip
+*.tar
+
 # Distribution / packaging
 .Python
 build/
