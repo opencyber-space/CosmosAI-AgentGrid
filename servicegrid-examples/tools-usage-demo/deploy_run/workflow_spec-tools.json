@@ -6,7 +6,7 @@
       "release": "stable"
     },
     "metadata": {
-      "description": "Workflow to demonstrate simple tool usage workflow with single agent with geneeric Propmts",
+      "description": "Workflow to demonstrate simple tool usage workflow with single agent with geneeric Prompts",
       "owner": "legal-ops-team",
       "created_at": "2026-06-03"
     }
