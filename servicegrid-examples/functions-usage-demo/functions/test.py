@@ -33,12 +33,49 @@ if _git_root:
 else:
     load_dotenv()
 
+### Unmment below for testing OPENAI LLMs
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "")
+OPENAI_TOOL_MODEL = {
+    "llm_type": "openai",
+    "llm_block_id": "openai:gpt-5.4-mini",
+    "llm_selection_query": {
+        "task": "summarization"
+    },
+    "llm_parameters": {
+        "api_key": OPENAI_API_KEY,
+        "max_completion_tokens": 4096,
+        "top_k": 50,
+        "top_p": 0.95,
+        "temperature": 0.5
+    }
+}
+which_model_to_use_for_tool = OPENAI_TOOL_MODEL
+model_name = "gpt-4o-mini" # this is for search_tool and search_and_execute_tool
+
+### Unmment below for testing GEMINI LLMs
+# GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
+# GEMINI_TOOL_MODEL = {
+#     "llm_type": "gemini",
+#     "llm_block_id": "gemini:gemini-2.5-flash",
+#     "llm_selection_query": {
+#         "task": "summarization"
+#     },
+#     "llm_parameters": {
+#         "api_key": GEMINI_API_KEY,
+#         "max_completion_tokens": 4096,
+#         "top_k": 50,
+#         "top_p": 0.95,
+#         "temperature": 0.5
+#     }
+# }
+# which_model_to_use_for_tool = GEMINI_TOOL_MODEL
+# model_name = "gemini-2.5-flash" # this is for search_tool and search_and_execute_tool
+
 FUNCTION_REGISTRY_URL = os.environ.get("FUNCTION_REGISTRY_URL", "")
 
 agent_function = AgentFunctions(
     functions_registry_url=FUNCTION_REGISTRY_URL,
-    unique_parameter="ac21",
+    unique_parameter="ac23",
     executor_id="executor-001",
     num_workers=8,
 )
@@ -75,7 +112,8 @@ result1 = agent_function.call(
     },
     parameters={
             "openai_api_key": OPENAI_API_KEY,
-            "model": "gpt-5.4-mini"
+            "model": "gpt-5.4-mini",
+            "tool_model": which_model_to_use_for_tool
         }
 )
 print("=== code-validator result ===")
@@ -92,7 +130,8 @@ result2 = agent_function.call(
     parameters={
             "openai_api_key": OPENAI_API_KEY,
             "model": "gpt-5.4-mini",
-            "num_tests": 5
+            "num_tests": 5,
+            "tool_model": which_model_to_use_for_tool
         }
 )
 print("\n=== test-case-generator result ===")
@@ -104,6 +143,9 @@ result3 = agent_function.call(
     function_id=test_runner_id,
     input_data={
         **result2
+    },
+    parameters={
+        "tool_model": which_model_to_use_for_tool
     }
 )
 print("\n=== test-runner result ===")

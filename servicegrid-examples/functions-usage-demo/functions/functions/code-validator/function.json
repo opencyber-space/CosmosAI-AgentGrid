@@ -24,7 +24,8 @@
   },
   "function_parameters": {
     "openai_api_key": "",
-    "model": "gpt-4o-mini"
+    "model": "gpt-4o-mini",
+    "tool_model": {}
   },
   "function_settings_schema": {
     "title": "Settings",
@@ -53,6 +54,9 @@
       },
       "model": {
         "type": "string"
+      },
+      "tool_model": {
+        "type": "object"
       }
     }
   },

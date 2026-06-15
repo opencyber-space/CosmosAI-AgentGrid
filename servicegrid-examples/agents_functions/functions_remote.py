@@ -92,7 +92,7 @@ class FunctionCaller:
         function_id: str
     ) -> Dict[str, Any]:
 
-        url = self._url(f"/function/call_function/{function_id}")
+        url = self._url(f"/function/ping_function/{function_id}")
       
         resp = self.session.get(url)
         self._raise_for_status(resp)

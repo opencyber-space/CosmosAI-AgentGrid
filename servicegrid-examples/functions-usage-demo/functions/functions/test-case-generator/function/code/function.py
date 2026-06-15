@@ -1,6 +1,7 @@
 import json
 import logging
 from openai import OpenAI
+from google import genai
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -64,6 +65,10 @@ class AIOSv1PolicyRule:
 
         if "openai_api_key" in parameters:
             self.client = OpenAI(api_key=parameters.get("openai_api_key"))
+        elif "tool_model" in parameters:
+            self._create_client(parameters["tool_model"])
+            logger.info(f"[code-validator] Created client for tool_model={parameters['tool_model']['llm_block_id']}")
+
 
         if not code:
             return {"error": "No 'code' found in input_data (expected to be passed through from code-validator)"}
@@ -84,3 +89,16 @@ class AIOSv1PolicyRule:
             **input_data,
             "test_cases": result.get("test_cases", []),
         }
+
+    def _create_client(self, model_dict: dict):
+        model_type = model_dict["llm_type"]
+        model_name = model_dict["llm_block_id"]
+        api_key = model_dict["llm_parameters"]["api_key"]
+        llm_parameters = model_dict["llm_parameters"]
+        del llm_parameters["api_key"]
+        if "openai" in model_name:
+            self.model = model_name.split(":")[-1]
+            self.client = OpenAI(api_key=api_key)
+        elif "gemini" in model_name:
+            self.model = model_name.split(":")[-1]
+            self.client = genai.Client(api_key=api_key)

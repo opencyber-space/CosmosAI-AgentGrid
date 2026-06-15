@@ -47,9 +47,10 @@
                 },
                 "FUNCTIONS_CONFIG": {
                     "functions_registry_url": "${FUNCTION_REGISTRY_URL}",
-                    "unique_parameter": "ac3",
+                    "unique_parameter": "ac6",
                     "executor_id": "executor-001",
-                    "num_workers": 8
+                    "num_workers": 8,
+                    "llm_block_id": "openai:gpt-5.4-mini"
                 },
                 "api_key": "${OPENAI_API_KEY}"
             }

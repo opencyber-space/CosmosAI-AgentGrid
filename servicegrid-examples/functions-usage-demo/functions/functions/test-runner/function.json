@@ -22,7 +22,9 @@
   "function_settings": {
     "log_level": "INFO"
   },
-  "function_parameters": {},
+  "function_parameters": {
+    "tool_model": {}
+  },
   "function_settings_schema": {
     "title": "Settings",
     "type": "object",
@@ -44,7 +46,11 @@
     "title": "Parameters",
     "type": "object",
     "additionalProperties": true,
-    "properties": {}
+    "properties": {
+      "tool_model": {
+        "type": "object"
+      }
+    }
   },
   "function_input_schema": {
     "title": "Test Runner Input",

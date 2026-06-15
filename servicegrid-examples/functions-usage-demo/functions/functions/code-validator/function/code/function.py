@@ -1,6 +1,7 @@
 import json
 import logging
 from openai import OpenAI
+from google import genai
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -41,14 +42,25 @@ class AIOSv1PolicyRule:
         prompt += f"Code:\n```python\n{code}\n```"
 
         if self.client is None:
-            return {"error": "OpenAI client not initialized. Missing API key."}
+            raise ValueError("LLM client not initialized. Please provide an API key.")
 
-        response = self.client.chat.completions.create(
-            model=self.model,
-            messages=[{"role": "user", "content": prompt}],
-            response_format={"type": "json_object"},
-        )
-        return json.loads(response.choices[0].message.content)
+        if "gemini" in self.model:
+            from google.genai import types
+            response = self.client.models.generate_content(
+                model=self.model,
+                contents=prompt,
+                config=types.GenerateContentConfig(
+                    response_mime_type="application/json",
+                ),
+            )
+            return json.loads(response.text)
+        else:
+            response = self.client.chat.completions.create(
+                model=self.model,
+                messages=[{"role": "user", "content": prompt}],
+                response_format={"type": "json_object"},
+            )
+            return json.loads(response.choices[0].message.content)
 
     def eval(self, parameters, input_data, context):
         logger.info(f"[PolicyRule {self.rule_id}] Code validation started")
@@ -59,6 +71,10 @@ class AIOSv1PolicyRule:
         logger.info("parameters",parameters)
         if "openai_api_key" in parameters:
             self.client = OpenAI(api_key=parameters.get("openai_api_key"))
+        elif "tool_model" in parameters:
+            self._create_client(parameters["tool_model"])
+            logger.info(f"[code-validator] Created client for tool_model={parameters['tool_model']['llm_block_id']}")
+
 
         if not code:
             return {"error": "No 'code' provided in input_data"}
@@ -78,3 +94,16 @@ class AIOSv1PolicyRule:
             **input_data,
             "code_validation": validation,
         }
+
+    def _create_client(self, model_dict: dict):
+        model_type = model_dict["llm_type"]
+        model_name = model_dict["llm_block_id"]
+        api_key = model_dict["llm_parameters"]["api_key"]
+        llm_parameters = model_dict["llm_parameters"]
+        del llm_parameters["api_key"]
+        if "openai" in model_name:
+            self.model = model_name.split(":")[-1]
+            self.client = OpenAI(api_key=api_key)
+        elif "gemini" in model_name:
+            self.model = model_name.split(":")[-1]
+            self.client = genai.Client(api_key=api_key)

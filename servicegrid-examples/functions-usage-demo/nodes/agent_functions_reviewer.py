@@ -22,23 +22,26 @@ class BehavioralReviewerAgent:
         self.subject = subject
         self.context = context
         
-        # Extract openai_api_key from models.llm_parameters
-        self.openai_api_key = ""
-        integrations = getattr(self.subject, 'integrations', None)
-        models = getattr(integrations, 'models', []) if integrations else []
-        for model in models:
-            llm_params = getattr(model, 'llm_parameters', {}) if hasattr(model, 'llm_parameters') else (model.get('llm_parameters', {}) if isinstance(model, dict) else {})
-            if "api_key" in llm_params:
-                self.openai_api_key = llm_params["api_key"]
-                break
-        
-        # Fallback to config.parameters.api_key
-        if not self.openai_api_key:
-            self.openai_api_key = getattr(self.subject.persona, 'config', {}).get("parameters", {}).get("api_key", "")
-
         # Extract functions configuration from config.parameters.FUNCTIONS_CONFIG
         config_params = getattr(self.subject.persona, 'config', {}).get("parameters", {}) if hasattr(self.subject, 'persona') else {}
         functions_config = config_params.get("FUNCTIONS_CONFIG", {})
+
+        self.llm_block_id = functions_config.get("llm_block_id")
+
+        # Extract openai_api_key from models.llm_parameters
+        self.api_key = ""
+        integrations = getattr(self.subject, 'integrations', None)
+        models = getattr(integrations, 'models', []) if integrations else []
+        self.selected_tool_model = {}
+        for model in models:
+            if self.llm_block_id == model.llm_block_id:
+                self.selected_tool_model = model
+                if type(self.selected_tool_model) != dict:
+                    self.selected_tool_model = self.selected_tool_model.to_dict()
+                llm_params = getattr(model, 'llm_parameters', {}) if hasattr(model, 'llm_parameters') else (model.get('llm_parameters', {}) if isinstance(model, dict) else {})
+                if "api_key" in llm_params:
+                    self.api_key = llm_params["api_key"]
+                    break
         
         functions_registry_url = functions_config.get("functions_registry_url")
         unique_parameter = functions_config.get("unique_parameter")
@@ -106,8 +109,9 @@ class BehavioralReviewerAgent:
                 input_data={
                     **input_data,
                     "parameters": {
-                        "openai_api_key": self.openai_api_key,
-                        "model": "gpt-4o-mini"
+                        "openai_api_key": self.api_key,
+                        "model": "gpt-4o-mini",
+                        "tool_model": self.selected_tool_model
                     }
                 }
             )
@@ -122,9 +126,10 @@ class BehavioralReviewerAgent:
                 input_data={
                     **result1,
                     "parameters": {
-                        "openai_api_key": self.openai_api_key,
+                        "openai_api_key": self.api_key,
                         "model": "gpt-4o-mini",
-                        "num_tests": 5
+                        "num_tests": 5,
+                        "tool_model": self.selected_tool_model
                     }
                 }
             )

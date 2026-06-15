@@ -1,5 +1,6 @@
 import re
 import json
+import time
 import logging
 import threading
 from uuid import uuid4
@@ -169,16 +170,20 @@ class AgentFunctions:
                         extra_headers=extra_headers,
                     )
 
+                    logger.info("[deployed_function] {}".format(resp))
+
                     while True:
                         try:
-                            self._caller.ping_function(dep_id)
+                            resp = self._caller.ping_function(function_id=dep_id)
+                            if 'success' in resp and resp['success']:
+                                break
+                            logger.info(resp)
+                            break
                             
                         except Exception as e:
-                            logger.info("[PING], waiting for function to be live")
-                        finally:
-                            logger.info("[PING], function is live")
-                            break
-                        
+                            logger.info(f"[PING], waiting for function to be live: {e}")
+                            time.sleep(4)
+                                                  
 
                     logger.info(f"[SUCCESS] Function deployment success: {resp}")
 
