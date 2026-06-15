@@ -15,7 +15,7 @@ class AIOSv1PolicyRule:
         self.parameters = parameters or {}
         print(settings,parameters)
 
-        api_key = self.parameters.get("openai_api_key") or self.settings.get("openai_api_key")
+        api_key = self.parameters.get("openai_api_key",None) or self.settings.get("openai_api_key",None)
         self.client = None
         if api_key:
             self.client = OpenAI(api_key=api_key)
@@ -69,9 +69,7 @@ class AIOSv1PolicyRule:
         description = input_data.get("description", "")
 
         logger.info("parameters",parameters)
-        if "openai_api_key" in parameters:
-            self.client = OpenAI(api_key=parameters.get("openai_api_key"))
-        elif "tool_model" in parameters:
+        if "tool_model" in parameters:
             self._create_client(parameters["tool_model"])
             logger.info(f"[code-validator] Created client for tool_model={parameters['tool_model']['llm_block_id']}")
 

@@ -24,8 +24,6 @@
     "log_level": "INFO"
   },
   "function_parameters": {
-    "openai_api_key": "",
-    "model": "gpt-4o-mini",
     "num_tests": 5,
     "tool_model": {}
   },
@@ -51,12 +49,6 @@
     "type": "object",
     "additionalProperties": true,
     "properties": {
-      "openai_api_key": {
-        "type": "string"
-      },
-      "model": {
-        "type": "string"
-      },
       "num_tests": {
         "type": "integer",
         "default": 5
