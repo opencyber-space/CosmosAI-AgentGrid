@@ -1,0 +1,369 @@
+{
+  "tool_id": "agentspace.commit-scribe.v4",
+  "tool_metadata": {
+    "version": "1.0.1",
+    "author": "admin",
+    "license": "Apache-2.0",
+    "defaults": {
+      "model": "gpt-4o-mini",
+      "convention": "conventional-commits",
+      "persist_state": false,
+      "max_history": 50,
+      "autosave_every": 0,
+      "counter_start": 0
+    }
+  },
+  "tool_search_description": "Generates Conventional Commit messages from git diffs using OpenAI. Returns type, scope, subject, body, breaking changes, and suggested issue links.",
+  "tool_tags": [
+    "git",
+    "commits",
+    "openai",
+    "developer-productivity",
+    "conventional-commits"
+  ],
+  "tool_type": "local-python-tool",
+  "tool_man_page_doc": "NAME\n    agentspace.commit-scribe.v3 - Generate Conventional Commit messages from git diffs.\n\nSYNOPSIS\n    execute(input) -> result\n    execute_command(name, data) -> result\n\nDESCRIPTION\n    Calls OpenAI with a git diff and produces a complete commit message following\n    the Conventional Commits spec (or freeform). Maintains call history and KV state.\n\nEXECUTE INPUT\n    diff         (str, required)  Output of `git diff` or `git diff --cached`\n    repo_context (str, optional)  Brief description of the repo/domain\n    branch_name  (str, optional)  Current branch name (helps infer scope/issue)\n\nEXECUTE OUTPUT\n    commit_message.type              feat|fix|refactor|...\n    commit_message.scope             inferred from file paths\n    commit_message.subject           imperative summary <=72 chars\n    commit_message.body              WHY explanation\n    commit_message.breaking_changes  list of breaking changes\n    commit_message.suggested_issues  e.g. [\"closes #42\"]\n    commit_message.full_message      paste-ready complete message\n\nCOMMANDS\n    set         data={\"key\": str, \"value\": any}\n    get         data={\"key\": str}\n    reset       data={}\n    get_state   data={}\n    save        data={} (requires persist_state=true)\n    load        data={} (requires persist_state=true)\n\nEXAMPLES\n    execute({\"diff\": \"diff --git a/auth/login.py ...\", \"branch_name\": \"fix/token-validation\"})\n    execute_command(\"set\", {\"key\": \"last_pr\", \"value\": 99})\n    execute_command(\"get_state\", {})",
+  "tool_api_spec": {
+    "entrypoints": {
+      "execute": {
+        "description": "Generate a commit message from a git diff.",
+        "input": {
+          "type": "object",
+          "properties": {
+            "diff": {
+              "type": "string"
+            },
+            "repo_context": {
+              "type": "string"
+            },
+            "branch_name": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "diff"
+          ]
+        },
+        "output": {
+          "type": "object",
+          "properties": {
+            "ok": {
+              "type": "boolean"
+            },
+            "tool_id": {
+              "type": "string"
+            },
+            "calls": {
+              "type": "integer"
+            },
+            "op": {
+              "type": "string"
+            },
+            "commit_message": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string"
+                },
+                "scope": {
+                  "type": "string"
+                },
+                "subject": {
+                  "type": "string"
+                },
+                "body": {
+                  "type": "string"
+                },
+                "breaking_changes": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "suggested_issues": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "full_message": {
+                  "type": "string"
+                }
+              }
+            },
+            "history_len": {
+              "type": "integer"
+            },
+            "persisted": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "ok",
+            "tool_id",
+            "calls",
+            "op",
+            "commit_message"
+          ]
+        }
+      },
+      "execute_command": {
+        "description": "Manage tool state.",
+        "commands": {
+          "set": {
+            "input": {
+              "properties": {
+                "key": {
+                  "type": "string"
+                },
+                "value": {}
+              },
+              "required": [
+                "key"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "properties": {
+                "ok": {
+                  "type": "boolean"
+                },
+                "op": {
+                  "type": "string"
+                },
+                "key": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "ok",
+                "op",
+                "key"
+              ]
+            }
+          },
+          "get": {
+            "input": {
+              "properties": {
+                "key": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "key"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "properties": {
+                "ok": {
+                  "type": "boolean"
+                },
+                "op": {
+                  "type": "string"
+                },
+                "key": {
+                  "type": "string"
+                },
+                "value": {}
+              },
+              "required": [
+                "ok",
+                "op",
+                "key",
+                "value"
+              ]
+            }
+          },
+          "reset": {
+            "input": {
+              "type": "object"
+            },
+            "output": {
+              "type": "object",
+              "properties": {
+                "ok": {
+                  "type": "boolean"
+                },
+                "op": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "ok",
+                "op"
+              ]
+            }
+          },
+          "get_state": {
+            "input": {
+              "type": "object"
+            },
+            "output": {
+              "type": "object",
+              "properties": {
+                "ok": {
+                  "type": "boolean"
+                },
+                "tool_id": {
+                  "type": "string"
+                },
+                "calls": {
+                  "type": "integer"
+                },
+                "kv": {
+                  "type": "object"
+                },
+                "history_len": {
+                  "type": "integer"
+                },
+                "persisted": {
+                  "type": "boolean"
+                },
+                "state_dir": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "ok",
+                "tool_id",
+                "calls",
+                "kv",
+                "history_len",
+                "persisted"
+              ]
+            }
+          },
+          "save": {
+            "input": {
+              "type": "object"
+            },
+            "output": {
+              "type": "object",
+              "properties": {
+                "ok": {
+                  "type": "boolean"
+                },
+                "op": {
+                  "type": "string"
+                },
+                "path": {
+                  "type": "string"
+                },
+                "error": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "ok"
+              ]
+            }
+          },
+          "load": {
+            "input": {
+              "type": "object"
+            },
+            "output": {
+              "type": "object",
+              "properties": {
+                "ok": {
+                  "type": "boolean"
+                },
+                "op": {
+                  "type": "string"
+                },
+                "path": {
+                  "type": "string"
+                },
+                "error": {
+                  "type": "string"
+                },
+                "state": {
+                  "type": "object",
+                  "properties": {
+                    "ok": {
+                      "type": "boolean"
+                    },
+                    "tool_id": {
+                      "type": "string"
+                    },
+                    "calls": {
+                      "type": "integer"
+                    },
+                    "kv": {
+                      "type": "object"
+                    },
+                    "history_len": {
+                      "type": "integer"
+                    },
+                    "persisted": {
+                      "type": "boolean"
+                    },
+                    "state_dir": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "ok",
+                    "tool_id",
+                    "calls",
+                    "kv",
+                    "history_len",
+                    "persisted"
+                  ]
+                }
+              },
+              "required": [
+                "ok"
+              ]
+            }
+          }
+        }
+      }
+    }
+  },
+  "tool_custom_actions_dsl_map": {
+    "generate_commit": {
+      "description": "Generate a commit message from a git diff",
+      "call": "execute",
+      "args": {
+        "$ref": "$.input"
+      }
+    },
+    "set_kv": {
+      "description": "Set a KV pair",
+      "call": "execute_command",
+      "args": {
+        "command": "set",
+        "data": {
+          "key": "$.key",
+          "value": "$.value"
+        }
+      }
+    },
+    "get_kv": {
+      "description": "Get a KV value",
+      "call": "execute_command",
+      "args": {
+        "command": "get",
+        "data": {
+          "key": "$.key"
+        }
+      }
+    },
+    "reset_state": {
+      "description": "Reset history, KV, and call counter",
+      "call": "execute_command",
+      "args": {
+        "command": "reset",
+        "data": {}
+      }
+    }
+  },
+  "default_tool_usage_credentials": {},
+  "tool_execution_mode": "local_code",
+  "tool_policy_rule_uri": "policy://agentspace/commit-scribe@v3",
+  "tool_service_url": "",
+  "tool_system_function_rpc_id": "agentspace.commit-scribe.execute",
+  "tool_validation_mode": "none"
+}

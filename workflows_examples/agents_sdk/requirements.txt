@@ -1,4 +1,6 @@
 redis
 websockets
 requests
-nats-pypython-dotenv
+nats-py
+python-dotenv
+prometheus-client>=0.20.0

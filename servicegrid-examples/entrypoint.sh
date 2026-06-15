@@ -34,6 +34,11 @@ case "${AGENT}" in
     exec python3 tools-usage-demo/nodes/agent_tools_user.py
     ;;
 
+  #for Metrics Usage Demo using Tool Usage Demo Agent
+  agent-tool-metrics-demo)
+    echo "Starting agent-tool-metrics-demo agent (metrics-demo/nodes/agent_tool_metrics_demo.py)"
+    exec python3 metrics-demo/nodes/agent_tool_metrics_demo.py
+    ;;
     
   *)
     echo "Starting no agent for '${AGENT}' (unknown mapping)"

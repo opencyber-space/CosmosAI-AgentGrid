@@ -75,7 +75,7 @@ FUNCTION_REGISTRY_URL = os.environ.get("FUNCTION_REGISTRY_URL", "")
 
 agent_function = AgentFunctions(
     functions_registry_url=FUNCTION_REGISTRY_URL,
-    unique_parameter="ac23",
+    unique_parameter="ac24",
     executor_id="executor-001",
     num_workers=8,
 )

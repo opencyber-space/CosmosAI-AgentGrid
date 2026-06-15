@@ -1,0 +1,375 @@
+{
+  "tool_id": "agentspace.schema-forge.v4",
+  "tool_metadata": {
+    "version": "1.0.0",
+    "author": "admin",
+    "license": "Apache-2.0",
+    "defaults": {
+      "model": "gpt-4o-mini",
+      "strict_mode": true,
+      "persist_state": false,
+      "max_history": 50,
+      "autosave_every": 0,
+      "counter_start": 0
+    }
+  },
+  "tool_search_description": "Infers a strict JSON Schema (draft-07) from sample JSON or CSV using OpenAI. Returns field documentation, business-logic validation rules, and data quality issues found in the sample.",
+  "tool_tags": [
+    "schema",
+    "json-schema",
+    "data-engineering",
+    "openai",
+    "validation",
+    "csv"
+  ],
+  "tool_type": "local-python-tool",
+  "tool_man_page_doc": "NAME\n    agentspace.schema-forge.v3 - Infer JSON Schema and field docs from sample data.\n\nSYNOPSIS\n    execute(input) -> result\n    execute_command(name, data) -> result\n\nDESCRIPTION\n    Sends sample JSON or CSV to OpenAI and returns a draft-07 JSON Schema,\n    per-field documentation, business-logic validation rules beyond JSON Schema,\n    and data quality issues found in the sample.\n    Useful as the first stage in a data pipeline or contract design workflow.\n\nEXECUTE INPUT\n    sample_data (str, required)  Raw JSON object/array or CSV text\n    format      (str, optional)  'json' (default) or 'csv'\n    purpose     (str, optional)  Plain-English description of what the data represents\n\nEXECUTE OUTPUT\n    schema_result.json_schema        Draft-07 JSON Schema object\n    schema_result.field_docs         {\"field.path\": \"description\"}\n    schema_result.validation_rules   Business-logic constraints beyond JSON Schema\n    schema_result.quality_issues     Data quality problems spotted in the sample\n    schema_result.format_detected    'json' or 'csv'\n\nCOMMANDS\n    set / get / reset / get_state / save / load\n\nEXAMPLES\n    execute({\"sample_data\": \"{\\\"user_id\\\": 42, ...}\", \"format\": \"json\", \"purpose\": \"User profile\"})\n    execute({\"sample_data\": \"id,name,amount\\n1,Alice,99.9\", \"format\": \"csv\"})\n    execute_command(\"get_state\", {})",
+  "tool_api_spec": {
+    "entrypoints": {
+      "execute": {
+        "description": "Infer a JSON Schema and documentation from sample data.",
+        "input": {
+          "type": "object",
+          "properties": {
+            "sample_data": {
+              "type": "string"
+            },
+            "format": {
+              "type": "string",
+              "enum": [
+                "json",
+                "csv"
+              ],
+              "default": "json"
+            },
+            "purpose": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "sample_data"
+          ]
+        },
+        "output": {
+          "type": "object",
+          "properties": {
+            "ok": {
+              "type": "boolean"
+            },
+            "tool_id": {
+              "type": "string"
+            },
+            "calls": {
+              "type": "integer"
+            },
+            "op": {
+              "type": "string"
+            },
+            "schema_result": {
+              "type": "object",
+              "properties": {
+                "json_schema": {
+                  "type": "object"
+                },
+                "field_docs": {
+                  "type": "object"
+                },
+                "validation_rules": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "quality_issues": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "format_detected": {
+                  "type": "string",
+                  "enum": [
+                    "json",
+                    "csv"
+                  ]
+                }
+              }
+            },
+            "history_len": {
+              "type": "integer"
+            },
+            "persisted": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "ok",
+            "tool_id",
+            "calls",
+            "op",
+            "schema_result"
+          ]
+        }
+      },
+      "execute_command": {
+        "description": "Manage tool state.",
+        "commands": {
+          "set": {
+            "input": {
+              "properties": {
+                "key": {
+                  "type": "string"
+                },
+                "value": {}
+              },
+              "required": [
+                "key"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "properties": {
+                "ok": {
+                  "type": "boolean"
+                },
+                "op": {
+                  "type": "string"
+                },
+                "key": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "ok",
+                "op",
+                "key"
+              ]
+            }
+          },
+          "get": {
+            "input": {
+              "properties": {
+                "key": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "key"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "properties": {
+                "ok": {
+                  "type": "boolean"
+                },
+                "op": {
+                  "type": "string"
+                },
+                "key": {
+                  "type": "string"
+                },
+                "value": {}
+              },
+              "required": [
+                "ok",
+                "op",
+                "key",
+                "value"
+              ]
+            }
+          },
+          "reset": {
+            "input": {
+              "type": "object"
+            },
+            "output": {
+              "type": "object",
+              "properties": {
+                "ok": {
+                  "type": "boolean"
+                },
+                "op": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "ok",
+                "op"
+              ]
+            }
+          },
+          "get_state": {
+            "input": {
+              "type": "object"
+            },
+            "output": {
+              "type": "object",
+              "properties": {
+                "ok": {
+                  "type": "boolean"
+                },
+                "tool_id": {
+                  "type": "string"
+                },
+                "calls": {
+                  "type": "integer"
+                },
+                "kv": {
+                  "type": "object"
+                },
+                "history_len": {
+                  "type": "integer"
+                },
+                "persisted": {
+                  "type": "boolean"
+                },
+                "state_dir": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "ok",
+                "tool_id",
+                "calls",
+                "kv",
+                "history_len",
+                "persisted"
+              ]
+            }
+          },
+          "save": {
+            "input": {
+              "type": "object"
+            },
+            "output": {
+              "type": "object",
+              "properties": {
+                "ok": {
+                  "type": "boolean"
+                },
+                "op": {
+                  "type": "string"
+                },
+                "path": {
+                  "type": "string"
+                },
+                "error": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "ok"
+              ]
+            }
+          },
+          "load": {
+            "input": {
+              "type": "object"
+            },
+            "output": {
+              "type": "object",
+              "properties": {
+                "ok": {
+                  "type": "boolean"
+                },
+                "op": {
+                  "type": "string"
+                },
+                "path": {
+                  "type": "string"
+                },
+                "error": {
+                  "type": "string"
+                },
+                "state": {
+                  "type": "object",
+                  "properties": {
+                    "ok": {
+                      "type": "boolean"
+                    },
+                    "tool_id": {
+                      "type": "string"
+                    },
+                    "calls": {
+                      "type": "integer"
+                    },
+                    "kv": {
+                      "type": "object"
+                    },
+                    "history_len": {
+                      "type": "integer"
+                    },
+                    "persisted": {
+                      "type": "boolean"
+                    },
+                    "state_dir": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "ok",
+                    "tool_id",
+                    "calls",
+                    "kv",
+                    "history_len",
+                    "persisted"
+                  ]
+                }
+              },
+              "required": [
+                "ok"
+              ]
+            }
+          }
+        }
+      }
+    }
+  },
+  "tool_custom_actions_dsl_map": {
+    "forge_schema": {
+      "description": "Infer JSON Schema and docs from sample data",
+      "call": "execute",
+      "args": {
+        "$ref": "$.input"
+      }
+    },
+    "set_kv": {
+      "description": "Set a KV pair",
+      "call": "execute_command",
+      "args": {
+        "command": "set",
+        "data": {
+          "key": "$.key",
+          "value": "$.value"
+        }
+      }
+    },
+    "get_kv": {
+      "description": "Get a KV value",
+      "call": "execute_command",
+      "args": {
+        "command": "get",
+        "data": {
+          "key": "$.key"
+        }
+      }
+    },
+    "reset_state": {
+      "description": "Reset history, KV, and call counter",
+      "call": "execute_command",
+      "args": {
+        "command": "reset",
+        "data": {}
+      }
+    }
+  },
+  "default_tool_usage_credentials": {
+    "openai_api_key": ""
+  },
+  "tool_execution_mode": "local_code",
+  "tool_policy_rule_uri": "policy://agentspace/schema-forge@v3",
+  "tool_service_url": "",
+  "tool_system_function_rpc_id": "agentspace.schema-forge.execute",
+  "tool_validation_mode": "none"
+}

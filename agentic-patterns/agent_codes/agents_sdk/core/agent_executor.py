@@ -8,6 +8,7 @@ from .delegate import AgentDelegator
 from .direct import AgentDirect
 
 from .p2p import PeersManager
+from .metrics import start_metrics_server
 
 
 log = logging.getLogger(__name__)
@@ -76,6 +77,11 @@ class AgentExecutor:
         self.pre_processor = pre_processor
         self.post_processor = post_processor
         self.subject = subject
+
+        start_metrics_server(
+            port=int(os.getenv("METRICS_PORT", "9090")),
+            addr=os.getenv("METRICS_ADDR", "0.0.0.0"),
+        )
 
         # P2P + agent wiring
         self.p2p_manager = PeersManager(agent_data=self.subject)

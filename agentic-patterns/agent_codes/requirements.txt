@@ -11,3 +11,4 @@ google-genai
 pillow
 minio
 python-dotenv
+prometheus-client>=0.20.0
