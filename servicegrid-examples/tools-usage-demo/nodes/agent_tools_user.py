@@ -1,5 +1,5 @@
 import time
-import logging
+import logging,copy
 from typing import List, Optional
 
 from agents_sdk.core.agent_executor import AgentResult, AgentTask, Context
@@ -112,7 +112,7 @@ class ToolUsageDemoAgent:
                 prompt="What tools can be used to analyse this data",
                 input_dict={
                     "input": job,
-                    "tool_model": self.selected_tool_model
+                    "tool_model": copy.deepcopy(self.selected_tool_model)
                 },
                 provider=provider_name
             )

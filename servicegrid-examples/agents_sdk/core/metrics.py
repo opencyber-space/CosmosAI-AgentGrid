@@ -1,3 +1,4 @@
+import os
 import time
 import threading
 import logging
@@ -18,12 +19,18 @@ from prometheus_client import (
 
 logger = logging.getLogger(__name__)
 
+_DEFAULT_LABEL_NAMES: tuple = ("subject_id", "instance_id")
+
 # --- Registry wrapper ---
 
 class MetricsRegistry:
     """
     Central registry for all SDK metrics. Holds named metric instances so
     callers don't register the same metric twice.
+
+    Every metric automatically includes ``subject_id`` and ``instance_id``
+    as label dimensions (or info-dict keys for Info metrics) so records can
+    always be filtered by subject and deployment instance.
     """
 
     def __init__(self, namespace: str = "agent", registry: CollectorRegistry = REGISTRY):
@@ -41,12 +48,30 @@ class MetricsRegistry:
     def _fqn(self, name: str) -> str:
         return f"{self._ns}_{name}"
 
+    @property
+    def _default_labels(self) -> Dict[str, str]:
+        return {
+            "subject_id": os.environ.get("SUBJECT_ID", ""),
+            "instance_id": os.environ.get("INSTANCE_ID", ""),
+        }
+
+    def _merge_labels(self, labels: Dict[str, str]) -> Dict[str, str]:
+        """Merge caller-supplied labels with the registry-level defaults."""
+        return {**self._default_labels, **labels}
+
+    def _with_default_label_names(self, labels: List[str]) -> List[str]:
+        """Prepend subject_id / instance_id to a label-name list, skipping duplicates."""
+        extra = [n for n in _DEFAULT_LABEL_NAMES if n not in labels]
+        return extra + list(labels)
+
     # -- counter --
 
     def counter(self, name: str, doc: str, labels: List[str] = []) -> Counter:
         fqn = self._fqn(name)
         if fqn not in self._counters:
-            self._counters[fqn] = Counter(fqn, doc, labels, registry=self._registry)
+            self._counters[fqn] = Counter(
+                fqn, doc, self._with_default_label_names(labels), registry=self._registry
+            )
         return self._counters[fqn]
 
     def inc(self, name: str, amount: float = 1.0, labels: Dict[str, str] = {}):
@@ -54,45 +79,35 @@ class MetricsRegistry:
         c = self._counters.get(self._fqn(name))
         if c is None:
             raise KeyError(f"Counter '{name}' not registered")
-        if labels:
-            c.labels(**labels).inc(amount)
-        else:
-            c.inc(amount)
+        c.labels(**self._merge_labels(labels)).inc(amount)
 
     # -- gauge --
 
     def gauge(self, name: str, doc: str, labels: List[str] = []) -> Gauge:
         fqn = self._fqn(name)
         if fqn not in self._gauges:
-            self._gauges[fqn] = Gauge(fqn, doc, labels, registry=self._registry)
+            self._gauges[fqn] = Gauge(
+                fqn, doc, self._with_default_label_names(labels), registry=self._registry
+            )
         return self._gauges[fqn]
 
     def set_gauge(self, name: str, value: float, labels: Dict[str, str] = {}):
         g = self._gauges.get(self._fqn(name))
         if g is None:
             raise KeyError(f"Gauge '{name}' not registered")
-        if labels:
-            g.labels(**labels).set(value)
-        else:
-            g.set(value)
+        g.labels(**self._merge_labels(labels)).set(value)
 
     def inc_gauge(self, name: str, amount: float = 1.0, labels: Dict[str, str] = {}):
         g = self._gauges.get(self._fqn(name))
         if g is None:
             raise KeyError(f"Gauge '{name}' not registered")
-        if labels:
-            g.labels(**labels).inc(amount)
-        else:
-            g.inc(amount)
+        g.labels(**self._merge_labels(labels)).inc(amount)
 
     def dec_gauge(self, name: str, amount: float = 1.0, labels: Dict[str, str] = {}):
         g = self._gauges.get(self._fqn(name))
         if g is None:
             raise KeyError(f"Gauge '{name}' not registered")
-        if labels:
-            g.labels(**labels).dec(amount)
-        else:
-            g.dec(amount)
+        g.labels(**self._merge_labels(labels)).dec(amount)
 
     # -- histogram --
 
@@ -108,34 +123,32 @@ class MetricsRegistry:
             kwargs: Dict[str, Any] = {"registry": self._registry}
             if buckets is not None:
                 kwargs["buckets"] = buckets
-            self._histograms[fqn] = Histogram(fqn, doc, labels, **kwargs)
+            self._histograms[fqn] = Histogram(
+                fqn, doc, self._with_default_label_names(labels), **kwargs
+            )
         return self._histograms[fqn]
 
     def observe_histogram(self, name: str, value: float, labels: Dict[str, str] = {}):
         h = self._histograms.get(self._fqn(name))
         if h is None:
             raise KeyError(f"Histogram '{name}' not registered")
-        if labels:
-            h.labels(**labels).observe(value)
-        else:
-            h.observe(value)
+        h.labels(**self._merge_labels(labels)).observe(value)
 
     # -- summary --
 
     def summary(self, name: str, doc: str, labels: List[str] = []) -> Summary:
         fqn = self._fqn(name)
         if fqn not in self._summaries:
-            self._summaries[fqn] = Summary(fqn, doc, labels, registry=self._registry)
+            self._summaries[fqn] = Summary(
+                fqn, doc, self._with_default_label_names(labels), registry=self._registry
+            )
         return self._summaries[fqn]
 
     def observe_summary(self, name: str, value: float, labels: Dict[str, str] = {}):
         s = self._summaries.get(self._fqn(name))
         if s is None:
             raise KeyError(f"Summary '{name}' not registered")
-        if labels:
-            s.labels(**labels).observe(value)
-        else:
-            s.observe(value)
+        s.labels(**self._merge_labels(labels)).observe(value)
 
     # -- info --
 
@@ -149,24 +162,24 @@ class MetricsRegistry:
         i = self._infos.get(self._fqn(name))
         if i is None:
             raise KeyError(f"Info '{name}' not registered")
-        i.info(data)
+        i.info({**self._default_labels, **data})
 
     # -- enum --
 
     def enum(self, name: str, doc: str, states: List[str], labels: List[str] = []) -> Enum:
         fqn = self._fqn(name)
         if fqn not in self._enums:
-            self._enums[fqn] = Enum(fqn, doc, labels, states=states, registry=self._registry)
+            self._enums[fqn] = Enum(
+                fqn, doc, self._with_default_label_names(labels), states=states,
+                registry=self._registry,
+            )
         return self._enums[fqn]
 
     def set_enum(self, name: str, state: str, labels: Dict[str, str] = {}):
         e = self._enums.get(self._fqn(name))
         if e is None:
             raise KeyError(f"Enum '{name}' not registered")
-        if labels:
-            e.labels(**labels).state(state)
-        else:
-            e.state(state)
+        e.labels(**self._merge_labels(labels)).state(state)
 
     # -- timing context managers --
 

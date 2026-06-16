@@ -170,15 +170,60 @@ class AgentSpaceV1Tool:
     def _create_client(self, model_dict: dict):
         model_type = model_dict["llm_type"]
         model_name = model_dict["llm_block_id"]
-        api_key = model_dict["llm_parameters"]["api_key"]
-        llm_parameters = model_dict["llm_parameters"]
-        del llm_parameters["api_key"]
+        api_key = model_dict["llm_parameters"].get("api_key")
+        llm_parameters = dict(model_dict["llm_parameters"])
+        llm_parameters.pop("api_key", None)
+        
+        mapped_params = {}
         if "openai" in model_name:
             self.model = model_name.split(":")[-1]
             self.client = OpenAI(api_key=api_key)
+            
+            if "max_completion_tokens" in llm_parameters:
+                is_old = False
+                if "gpt-3.5" in self.model:
+                    is_old = True
+                elif "gpt-4" in self.model and "gpt-4o" not in self.model:
+                    is_old = True
+
+                if is_old:
+                    mapped_params["max_tokens"] = llm_parameters["max_completion_tokens"]
+                else:
+                    mapped_params["max_completion_tokens"] = llm_parameters["max_completion_tokens"]
+            elif "max_tokens" in llm_parameters:
+                is_old = False
+                if "gpt-3.5" in self.model:
+                    is_old = True
+                elif "gpt-4" in self.model and "gpt-4o" not in self.model:
+                    is_old = True
+
+                if is_old:
+                    mapped_params["max_tokens"] = llm_parameters["max_tokens"]
+                else:
+                    mapped_params["max_completion_tokens"] = llm_parameters["max_tokens"]
+
+            if "top_p" in llm_parameters:
+                mapped_params["top_p"] = llm_parameters["top_p"]
+            if "temperature" in llm_parameters:
+                mapped_params["temperature"] = llm_parameters["temperature"]
+
         elif "gemini" in model_name:
             self.model = model_name.split(":")[-1]
             self.client = genai.Client(api_key=api_key)
+
+            if "max_completion_tokens" in llm_parameters:
+                mapped_params["max_output_tokens"] = llm_parameters["max_completion_tokens"]
+            elif "max_tokens" in llm_parameters:
+                mapped_params["max_output_tokens"] = llm_parameters["max_tokens"]
+
+            if "top_k" in llm_parameters:
+                mapped_params["top_k"] = llm_parameters["top_k"]
+            if "top_p" in llm_parameters:
+                mapped_params["top_p"] = llm_parameters["top_p"]
+            if "temperature" in llm_parameters:
+                mapped_params["temperature"] = llm_parameters["temperature"]
+
+        self.llm_paramteres = mapped_params
 
     def _analyze_logs(self, logs: str, service_name: str, time_window: str) -> Dict[str, Any]:
         truncated = "\n".join(logs.splitlines()[-self.max_lines:])

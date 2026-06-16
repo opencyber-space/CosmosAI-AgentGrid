@@ -8,6 +8,30 @@ from typing import Any, Dict, Optional
 from openai import OpenAI
 from google import genai
 
+# Import AgentMetrics using a robust search for utils.metrics_util
+try:
+    from utils.metrics_util import AgentMetrics
+except ImportError:
+    import sys
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    temp_dir = current_dir
+    for _ in range(5):
+        if os.path.exists(os.path.join(temp_dir, "utils", "metrics_util.py")):
+            sys.path.insert(0, temp_dir)
+            break
+        temp_dir = os.path.dirname(temp_dir)
+    try:
+        from utils.metrics_util import AgentMetrics
+    except ImportError:
+        class AgentMetricsFallback:
+            def __init__(self, *args, **kwargs):
+                pass
+            def __getattr__(self, name):
+                def method(*args, **kwargs):
+                    pass
+                return method
+        AgentMetrics = AgentMetricsFallback
+
 logger = logging.getLogger(__name__)
 
 
@@ -43,6 +67,7 @@ class AgentSpaceV1Tool:
             self.client = OpenAI(api_key=api_key)
         self.model = self.config.get("model", "gpt-4o-mini")
         self.convention = self.config.get("convention", "conventional-commits")
+        self.llm_paramteres={}
 
         self._calls = int(self.config.get("counter_start", 0))
         self._kv: Dict[str, Any] = {}
@@ -65,6 +90,7 @@ class AgentSpaceV1Tool:
             except Exception as e:
                 logger.warning(f"[commit-scribe] Failed to load state: {e}")
 
+        self.metrics = AgentMetrics(namespace="commit_scribe")
         logger.info(f"[commit-scribe] Initialized tool_id={self.tool_id} model={self.model}")
 
     # ------------------------------------------------------------------
@@ -170,15 +196,60 @@ class AgentSpaceV1Tool:
     def _create_client(self, model_dict: dict):
         model_type = model_dict["llm_type"]
         model_name = model_dict["llm_block_id"]
-        api_key = model_dict["llm_parameters"]["api_key"]
-        llm_parameters = model_dict["llm_parameters"]
-        del llm_parameters["api_key"]
+        api_key = model_dict["llm_parameters"].get("api_key")
+        llm_parameters = dict(model_dict["llm_parameters"])
+        llm_parameters.pop("api_key", None)
+        
+        mapped_params = {}
         if "openai" in model_name:
             self.model = model_name.split(":")[-1]
             self.client = OpenAI(api_key=api_key)
+            
+            if "max_completion_tokens" in llm_parameters:
+                is_old = False
+                if "gpt-3.5" in self.model:
+                    is_old = True
+                elif "gpt-4" in self.model and "gpt-4o" not in self.model:
+                    is_old = True
+
+                if is_old:
+                    mapped_params["max_tokens"] = llm_parameters["max_completion_tokens"]
+                else:
+                    mapped_params["max_completion_tokens"] = llm_parameters["max_completion_tokens"]
+            elif "max_tokens" in llm_parameters:
+                is_old = False
+                if "gpt-3.5" in self.model:
+                    is_old = True
+                elif "gpt-4" in self.model and "gpt-4o" not in self.model:
+                    is_old = True
+
+                if is_old:
+                    mapped_params["max_tokens"] = llm_parameters["max_tokens"]
+                else:
+                    mapped_params["max_completion_tokens"] = llm_parameters["max_tokens"]
+
+            if "top_p" in llm_parameters:
+                mapped_params["top_p"] = llm_parameters["top_p"]
+            if "temperature" in llm_parameters:
+                mapped_params["temperature"] = llm_parameters["temperature"]
+
         elif "gemini" in model_name:
             self.model = model_name.split(":")[-1]
             self.client = genai.Client(api_key=api_key)
+
+            if "max_completion_tokens" in llm_parameters:
+                mapped_params["max_output_tokens"] = llm_parameters["max_completion_tokens"]
+            elif "max_tokens" in llm_parameters:
+                mapped_params["max_output_tokens"] = llm_parameters["max_tokens"]
+
+            if "top_k" in llm_parameters:
+                mapped_params["top_k"] = llm_parameters["top_k"]
+            if "top_p" in llm_parameters:
+                mapped_params["top_p"] = llm_parameters["top_p"]
+            if "temperature" in llm_parameters:
+                mapped_params["temperature"] = llm_parameters["temperature"]
+
+        self.llm_paramteres = mapped_params
 
 
     def _generate_commit(self, diff: str, repo_context: str, branch_name: str) -> Dict[str, Any]:
@@ -217,23 +288,62 @@ class AgentSpaceV1Tool:
         if self.client is None:
             raise ValueError("LLM client not initialized. Please provide an API key.")
 
-        if "gemini" in self.model:
-            from google.genai import types
-            response = self.client.models.generate_content(
-                model=self.model,
-                contents=prompt,
-                config=types.GenerateContentConfig(
-                    response_mime_type="application/json",
-                ),
-            )
-            return json.loads(response.text)
-        else:
-            response = self.client.chat.completions.create(
-                model=self.model,
-                messages=[{"role": "user", "content": prompt}],
-                response_format={"type": "json_object"},
-            )
-            return json.loads(response.choices[0].message.content)
+        prompt_tokens = 0
+        completion_tokens = 0
+        total_tokens = 0
+        start_time = time.time()
+
+        try:
+            if "gemini" in self.model:
+                from google.genai import types
+                config_args = {"response_mime_type": "application/json"}
+                config_args.update(self.llm_paramteres)
+                response = self.client.models.generate_content(
+                    model=self.model,
+                    contents=prompt,
+                    config=types.GenerateContentConfig(**config_args),
+                )
+                duration = time.time() - start_time
+                usage = getattr(response, "usage_metadata", None)
+                if usage:
+                    prompt_tokens = getattr(usage, "prompt_token_count", 0) or getattr(usage, "prompt_tokens", 0) or 0
+                    completion_tokens = getattr(usage, "candidates_token_count", 0) or getattr(usage, "completion_tokens", 0) or 0
+                    total_tokens = getattr(usage, "total_token_count", 0) or getattr(usage, "total_tokens", 0) or 0
+                result_dict = json.loads(response.text)
+            else:
+                call_args = {
+                    "model": self.model,
+                    "messages": [{"role": "user", "content": prompt}],
+                    "response_format": {"type": "json_object"},
+                }
+                call_args.update(self.llm_paramteres)
+                response = self.client.chat.completions.create(**call_args)
+                duration = time.time() - start_time
+                usage = getattr(response, "usage", None)
+                if usage:
+                    prompt_tokens = getattr(usage, "prompt_tokens", 0) or 0
+                    completion_tokens = getattr(usage, "completion_tokens", 0) or 0
+                    total_tokens = getattr(usage, "total_tokens", 0) or 0
+                result_dict = json.loads(response.choices[0].message.content)
+            
+            # Observe metrics for successful call
+            self.metrics.increment_llm_calls(self.model, "success")
+            self.metrics.observe_llm_call_duration(self.model, "success", duration)
+            if prompt_tokens > 0:
+                self.metrics.increment_llm_prompt_tokens(self.model, prompt_tokens)
+            if completion_tokens > 0:
+                self.metrics.increment_llm_completion_tokens(self.model, completion_tokens)
+            if total_tokens > 0:
+                self.metrics.increment_llm_total_tokens(self.model, total_tokens)
+                
+            return result_dict
+
+        except Exception as e:
+            duration = time.time() - start_time
+            self.metrics.increment_llm_calls(self.model, "failed")
+            self.metrics.increment_llm_errors(self.model, type(e).__name__)
+            self.metrics.observe_llm_call_duration(self.model, "failed", duration)
+            raise e
 
     # ------------------------------------------------------------------
     # State / persistence (same pattern as sample tool)

@@ -1,5 +1,6 @@
 import time
 import logging
+import copy
 from typing import List, Optional
 
 from agents_sdk.core.agent_executor import AgentResult, AgentTask, Context
@@ -168,7 +169,7 @@ class ToolUsageDemoAgent:
                 prompt="What tools can be used to analyse this data"
                 input_dict={
                         "input": job,
-                        "tool_model": self.selected_tool_model
+                        "tool_model": copy.deepcopy(self.selected_tool_model)
                     }
                 response = self._call_tool_using_search_and_execute_tool( task_id=task.task_id, 
                     parent_span_id= root_span.span_id, 
@@ -231,10 +232,11 @@ class ToolUsageDemoAgent:
                 )
             finally:
                 self.metrics.decrease_ondata_active_tasks()
+                self.metrics.increase_tasks_total(status=action)
                 self.metrics.set_agent_state("ready")
                 elapsed = time.perf_counter() - t0
-                self.metrics.observe_histogram_preprocess(duration=elapsed, action=action, exception=exception_name)
-
+                self.metrics.observe_histogram_ondata(duration=elapsed, action=action, exception=exception_name)
+                log.info(f"on_data finished. action={action} exception={exception_name} duration_seconds={elapsed:.6f}")
 
     def _call_tool_using_search_and_execute_tool(self, task_id: str, parent_span_id: str, prompt: str, input_data: dict, provider: str) -> dict:
         """Call an agent function, recording duration and status as metrics and a child trace span."""
