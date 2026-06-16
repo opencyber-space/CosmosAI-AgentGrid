@@ -1,6 +1,6 @@
 {
   "function_name": "test-generator",
-  "function_version": "1.10.0",
+  "function_version": "1.11.0",
   "function_release_tag": "stable",
   "is_stateful": true,
   "function_metadata": {

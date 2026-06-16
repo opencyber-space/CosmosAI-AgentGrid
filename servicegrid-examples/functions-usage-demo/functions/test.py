@@ -56,7 +56,7 @@ model_name = "gpt-4o-mini" # this is for search_tool and search_and_execute_tool
 # GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
 # GEMINI_TOOL_MODEL = {
 #     "llm_type": "gemini",
-#     "llm_block_id": "gemini:gemini-2.5-flash",
+#     "llm_block_id": "gemini:gemini-3.5-flash",
 #     "llm_selection_query": {
 #         "task": "summarization"
 #     },
@@ -69,7 +69,7 @@ model_name = "gpt-4o-mini" # this is for search_tool and search_and_execute_tool
 #     }
 # }
 # which_model_to_use_for_tool = GEMINI_TOOL_MODEL
-# model_name = "gemini-2.5-flash" # this is for search_tool and search_and_execute_tool
+# model_name = "gemini-3.5-flash" # this is for search_tool and search_and_execute_tool
 
 FUNCTION_REGISTRY_URL = os.environ.get("FUNCTION_REGISTRY_URL", "")
 
@@ -102,59 +102,64 @@ sample_input = {
     "description": "Adds two numbers and returns the result"
 }
 
+try:
+    # Step 1 — validate the code
+    print('calling code validator')
+    result1 = agent_function.call(
+        function_id=code_validator_id,
+        input_data={
+            **sample_input
+        },
+        parameters={
+                "openai_api_key": OPENAI_API_KEY,
+                "model": "gpt-5.4-mini",
+                "tool_model": which_model_to_use_for_tool
+            }
+    )
+    print("=== code-validator result ===")
+    print(result1)
+    if "error" in result1:
+        raise Exception(result1)
 
-# Step 1 — validate the code
-print('calling code validator')
-result1 = agent_function.call(
-    function_id=code_validator_id,
-    input_data={
-        **sample_input
-    },
-    parameters={
-            "openai_api_key": OPENAI_API_KEY,
-            "model": "gpt-5.4-mini",
+
+    # Step 2 — generate test cases (uses sample_input directly, independent of step 1)
+    print('calling test generator')
+    result2 = agent_function.call(
+        function_id=test_generator_id,
+        input_data={
+            **result1
+        },
+        parameters={
+                "openai_api_key": OPENAI_API_KEY,
+                "model": "gpt-5.4-mini",
+                "num_tests": 5,
+                "tool_model": which_model_to_use_for_tool
+            }
+    )
+    print("\n=== test-case-generator result ===")
+    print(result2)
+
+    # Step 3 — run the generated tests against the code
+    print("calling test runner")
+    result3 = agent_function.call(
+        function_id=test_runner_id,
+        input_data={
+            **result2
+        },
+        parameters={
             "tool_model": which_model_to_use_for_tool
         }
-)
-print("=== code-validator result ===")
-print(result1)
+    )
+    print("\n=== test-runner result ===")
+    print(result3)
 
+except Exception as e:
+    print(f"Error: {e}")
 
-# Step 2 — generate test cases (uses sample_input directly, independent of step 1)
-print('calling test generator')
-result2 = agent_function.call(
-    function_id=test_generator_id,
-    input_data={
-        **result1
-    },
-    parameters={
-            "openai_api_key": OPENAI_API_KEY,
-            "model": "gpt-5.4-mini",
-            "num_tests": 5,
-            "tool_model": which_model_to_use_for_tool
-        }
-)
-print("\n=== test-case-generator result ===")
-print(result2)
-
-# Step 3 — run the generated tests against the code
-print("calling test runner")
-result3 = agent_function.call(
-    function_id=test_runner_id,
-    input_data={
-        **result2
-    },
-    parameters={
-        "tool_model": which_model_to_use_for_tool
-    }
-)
-print("\n=== test-runner result ===")
-print(result3)
-
-
-# Step4 - Remove the add functions
-# Do this when  needed, If in case the functions are reasuable by other agents, then better not remove them
-print("removing function")
-agent_function.remove(function_id=code_validator_id, remove_deployment=True)
-agent_function.remove(function_id=test_generator_id, remove_deployment=True)
-agent_function.remove(function_id=test_runner_id, remove_deployment=True)
+finally:
+    # Step4 - Remove the add functions
+    # Do this when  needed, If in case the functions are reasuable by other agents, then better not remove them
+    print("removing function")
+    agent_function.remove(function_id=code_validator_id, remove_deployment=True)
+    agent_function.remove(function_id=test_generator_id, remove_deployment=True)
+    agent_function.remove(function_id=test_runner_id, remove_deployment=True)

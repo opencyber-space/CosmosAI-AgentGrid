@@ -61,7 +61,7 @@ class AIOSv1PolicyRule:
         code = input_data.get("code", "")
         function_name = input_data.get("function_name", "")
 
-        logger.info("parameters",parameters)
+        logger.info(f"parameters: {parameters}")
 
         if "tool_model" in parameters:
             self._create_client(parameters["tool_model"])

@@ -68,7 +68,7 @@ class AIOSv1PolicyRule:
         code = input_data.get("code", "")
         description = input_data.get("description", "")
 
-        logger.info("parameters",parameters)
+        logger.info(f"parameters: {parameters}")
         if "tool_model" in parameters:
             self._create_client(parameters["tool_model"])
             logger.info(f"[code-validator] Created client for tool_model={parameters['tool_model']['llm_block_id']}")
