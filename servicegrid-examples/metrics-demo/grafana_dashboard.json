@@ -67,7 +67,7 @@
       },
       "gridPos": {
         "h": 4,
-        "w": 6,
+        "w": 4,
         "x": 0,
         "y": 1
       },
@@ -118,8 +118,8 @@
       },
       "gridPos": {
         "h": 4,
-        "w": 6,
-        "x": 6,
+        "w": 5,
+        "x": 4,
         "y": 1
       },
       "id": 2,
@@ -169,8 +169,8 @@
       },
       "gridPos": {
         "h": 4,
-        "w": 6,
-        "x": 12,
+        "w": 5,
+        "x": 9,
         "y": 1
       },
       "id": 3,
@@ -233,8 +233,8 @@
       },
       "gridPos": {
         "h": 4,
-        "w": 6,
-        "x": 18,
+        "w": 5,
+        "x": 14,
         "y": 1
       },
       "id": 4,
@@ -269,6 +269,59 @@
       ]
     },
     {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "green"
+          },
+          "mappings": [],
+          "unit": "time:DD-MM-YYYY[T]HH:mm:ss-SSS"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 5,
+        "x": 19,
+        "y": 1
+      },
+      "id": 21,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value"
+      },
+      "title": "Pod Start Time",
+      "type": "stat",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "max(kube_pod_container_state_started{pod=~\"$pod\"}) * 1000",
+          "legendFormat": "Start Time",
+          "range": true,
+          "refId": "A"
+        }
+      ]
+    },
+    {
       "collapsed": false,
       "gridPos": {
         "h": 1,
@@ -289,7 +342,8 @@
         "defaults": {
           "custom": {
             "drawStyle": "line",
-            "lineInterpolation": "smooth"
+            "lineInterpolation": "smooth",
+            "spanNulls": true
           },
           "unit": "s"
         }
@@ -305,17 +359,17 @@
       "type": "timeseries",
       "targets": [
         {
-          "expr": "histogram_quantile(0.95, sum(rate(${agent_prefix}agent_preprocess_duration_seconds_bucket[5m])) by (le))",
+          "expr": "histogram_quantile(0.95, sum(rate(${agent_prefix}agent_preprocess_duration_seconds_bucket[$__rate_interval])) by (le))",
           "legendFormat": "p95 Latency",
           "refId": "A"
         },
         {
-          "expr": "histogram_quantile(0.90, sum(rate(${agent_prefix}agent_preprocess_duration_seconds_bucket[5m])) by (le))",
+          "expr": "histogram_quantile(0.90, sum(rate(${agent_prefix}agent_preprocess_duration_seconds_bucket[$__rate_interval])) by (le))",
           "legendFormat": "p90 Latency",
           "refId": "B"
         },
         {
-          "expr": "histogram_quantile(0.50, sum(rate(${agent_prefix}agent_preprocess_duration_seconds_bucket[5m])) by (le))",
+          "expr": "histogram_quantile(0.50, sum(rate(${agent_prefix}agent_preprocess_duration_seconds_bucket[$__rate_interval])) by (le))",
           "legendFormat": "p50 Latency",
           "refId": "C"
         }
@@ -441,7 +495,8 @@
         "defaults": {
           "custom": {
             "drawStyle": "line",
-            "lineInterpolation": "smooth"
+            "lineInterpolation": "smooth",
+            "spanNulls": true
           },
           "unit": "s"
         }
@@ -457,17 +512,17 @@
       "type": "timeseries",
       "targets": [
         {
-          "expr": "histogram_quantile(0.95, sum(rate(${agent_prefix}agent_ondata_duration_seconds_bucket[5m])) by (le))",
+          "expr": "histogram_quantile(0.95, sum(rate(${agent_prefix}agent_ondata_duration_seconds_bucket[$__rate_interval])) by (le))",
           "legendFormat": "p95 Latency",
           "refId": "A"
         },
         {
-          "expr": "histogram_quantile(0.90, sum(rate(${agent_prefix}agent_ondata_duration_seconds_bucket[5m])) by (le))",
+          "expr": "histogram_quantile(0.90, sum(rate(${agent_prefix}agent_ondata_duration_seconds_bucket[$__rate_interval])) by (le))",
           "legendFormat": "p90 Latency",
           "refId": "B"
         },
         {
-          "expr": "histogram_quantile(0.50, sum(rate(${agent_prefix}agent_ondata_duration_seconds_bucket[5m])) by (le))",
+          "expr": "histogram_quantile(0.50, sum(rate(${agent_prefix}agent_ondata_duration_seconds_bucket[$__rate_interval])) by (le))",
           "legendFormat": "p50 Latency",
           "refId": "C"
         }
@@ -552,7 +607,8 @@
         "defaults": {
           "custom": {
             "drawStyle": "line",
-            "lineInterpolation": "smooth"
+            "lineInterpolation": "smooth",
+            "spanNulls": true
           },
           "unit": "s"
         }
@@ -568,17 +624,17 @@
       "type": "timeseries",
       "targets": [
         {
-          "expr": "histogram_quantile(0.95, sum(rate(${agent_prefix}agent_tool_call_duration_seconds_bucket[5m])) by (tool_id, le))",
+          "expr": "histogram_quantile(0.95, sum(rate(${agent_prefix}agent_tool_call_duration_seconds_bucket[$__rate_interval])) by (tool_id, le))",
           "legendFormat": "Tool: {{tool_id}} (p95)",
           "refId": "A"
         },
         {
-          "expr": "histogram_quantile(0.90, sum(rate(${agent_prefix}agent_tool_call_duration_seconds_bucket[5m])) by (tool_id, le))",
+          "expr": "histogram_quantile(0.90, sum(rate(${agent_prefix}agent_tool_call_duration_seconds_bucket[$__rate_interval])) by (tool_id, le))",
           "legendFormat": "Tool: {{tool_id}} (p90)",
           "refId": "B"
         },
         {
-          "expr": "histogram_quantile(0.50, sum(rate(${agent_prefix}agent_tool_call_duration_seconds_bucket[5m])) by (tool_id, le))",
+          "expr": "histogram_quantile(0.50, sum(rate(${agent_prefix}agent_tool_call_duration_seconds_bucket[$__rate_interval])) by (tool_id, le))",
           "legendFormat": "Tool: {{tool_id}} (p50)",
           "refId": "C"
         }
@@ -634,7 +690,8 @@
         "defaults": {
           "custom": {
             "drawStyle": "line",
-            "lineInterpolation": "smooth"
+            "lineInterpolation": "smooth",
+            "spanNulls": true
           },
           "unit": "s"
         }
@@ -650,17 +707,17 @@
       "type": "timeseries",
       "targets": [
         {
-          "expr": "histogram_quantile(0.95, sum(rate(${agent_prefix}agent_function_call_duration_seconds_bucket[5m])) by (function_id, le))",
+          "expr": "histogram_quantile(0.95, sum(rate(${agent_prefix}agent_function_call_duration_seconds_bucket[$__rate_interval])) by (function_id, le))",
           "legendFormat": "Function: {{function_id}} (p95)",
           "refId": "A"
         },
         {
-          "expr": "histogram_quantile(0.90, sum(rate(${agent_prefix}agent_function_call_duration_seconds_bucket[5m])) by (function_id, le))",
+          "expr": "histogram_quantile(0.90, sum(rate(${agent_prefix}agent_function_call_duration_seconds_bucket[$__rate_interval])) by (function_id, le))",
           "legendFormat": "Function: {{function_id}} (p90)",
           "refId": "B"
         },
         {
-          "expr": "histogram_quantile(0.50, sum(rate(${agent_prefix}agent_function_call_duration_seconds_bucket[5m])) by (function_id, le))",
+          "expr": "histogram_quantile(0.50, sum(rate(${agent_prefix}agent_function_call_duration_seconds_bucket[$__rate_interval])) by (function_id, le))",
           "legendFormat": "Function: {{function_id}} (p50)",
           "refId": "C"
         }
@@ -783,7 +840,8 @@
         "defaults": {
           "custom": {
             "drawStyle": "line",
-            "lineInterpolation": "smooth"
+            "lineInterpolation": "smooth",
+            "spanNulls": true
           },
           "unit": "s"
         }
@@ -799,17 +857,17 @@
       "type": "timeseries",
       "targets": [
         {
-          "expr": "histogram_quantile(0.95, sum(rate(${agent_prefix}agent_llm_call_duration_seconds_bucket{who=~\"$who\"}[5m])) by (model, who, le))",
+          "expr": "histogram_quantile(0.95, sum(rate(${agent_prefix}agent_llm_call_duration_seconds_bucket{who=~\"$who\"}[$__rate_interval])) by (model, who, le))",
           "legendFormat": "p95 Latency: {{model}} ({{who}})",
           "refId": "A"
         },
         {
-          "expr": "histogram_quantile(0.90, sum(rate(${agent_prefix}agent_llm_call_duration_seconds_bucket{who=~\"$who\"}[5m])) by (model, who, le))",
+          "expr": "histogram_quantile(0.90, sum(rate(${agent_prefix}agent_llm_call_duration_seconds_bucket{who=~\"$who\"}[$__rate_interval])) by (model, who, le))",
           "legendFormat": "p90 Latency: {{model}} ({{who}})",
           "refId": "B"
         },
         {
-          "expr": "histogram_quantile(0.50, sum(rate(${agent_prefix}agent_llm_call_duration_seconds_bucket{who=~\"$who\"}[5m])) by (model, who, le))",
+          "expr": "histogram_quantile(0.50, sum(rate(${agent_prefix}agent_llm_call_duration_seconds_bucket{who=~\"$who\"}[$__rate_interval])) by (model, who, le))",
           "legendFormat": "p50 Latency: {{model}} ({{who}})",
           "refId": "C"
         }
@@ -851,6 +909,79 @@
           "expr": "sum(increase(${agent_prefix}agent_llm_total_tokens_total{who=~\"$who\"}[10y])) by (model, who)",
           "legendFormat": "Total Tokens: {{model}} ({{who}})",
           "refId": "C"
+        }
+      ]
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 84
+      },
+      "id": 107,
+      "title": "Pod System Metrics",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth"
+          }
+        }
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 85
+      },
+      "id": 19,
+      "title": "CPU Load Average (10s)",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "container_cpu_load_average_10s{pod=~\"$pod\", container!=\"\"}",
+          "legendFormat": "{{pod}} ({{container}})",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth"
+          },
+          "unit": "bytes"
+        }
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 85
+      },
+      "id": 20,
+      "title": "Memory Usage",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "container_memory_usage_bytes{pod=~\"$pod\", container!=\"\"}",
+          "legendFormat": "{{pod}} ({{container}})",
+          "refId": "A"
         }
       ]
     }
@@ -966,6 +1097,33 @@
         "options": [],
         "query": {
           "query": "label_values(${agent_prefix}agent_llm_calls_total, who)",
+          "refId": "StandardVariableQuery"
+        },
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 1,
+        "type": "query"
+      },
+      {
+        "current": {
+          "selected": true,
+          "value": [
+            "$__all"
+          ]
+        },
+        "datasource": {
+          "type": "prometheus",
+          "uid": "${datasource}"
+        },
+        "definition": "label_values(container_memory_usage_bytes, pod)",
+        "hide": 0,
+        "includeAll": true,
+        "multi": true,
+        "name": "pod",
+        "options": [],
+        "query": {
+          "query": "label_values(container_memory_usage_bytes, pod)",
           "refId": "StandardVariableQuery"
         },
         "refresh": 1,
