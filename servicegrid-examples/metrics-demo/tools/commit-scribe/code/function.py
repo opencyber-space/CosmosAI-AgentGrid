@@ -23,14 +23,7 @@ except ImportError:
     try:
         from utils.metrics_util import AgentMetrics
     except ImportError:
-        class AgentMetricsFallback:
-            def __init__(self, *args, **kwargs):
-                pass
-            def __getattr__(self, name):
-                def method(*args, **kwargs):
-                    pass
-                return method
-        AgentMetrics = AgentMetricsFallback
+        raise ImportError("Could not import AgentMetrics from utils.metrics_util. Please ensure the utils module is in the Python path.")
 
 logger = logging.getLogger(__name__)
 
@@ -327,22 +320,22 @@ class AgentSpaceV1Tool:
                 result_dict = json.loads(response.choices[0].message.content)
             
             # Observe metrics for successful call
-            self.metrics.increment_llm_calls(self.model, "success")
-            self.metrics.observe_llm_call_duration(self.model, "success", duration)
+            self.metrics.increment_llm_calls(self.model, "success", self.tool_id)
+            self.metrics.observe_llm_call_duration(self.model, "success", duration, self.tool_id)
             if prompt_tokens > 0:
-                self.metrics.increment_llm_prompt_tokens(self.model, prompt_tokens)
+                self.metrics.increment_llm_prompt_tokens(self.model, prompt_tokens, self.tool_id)
             if completion_tokens > 0:
-                self.metrics.increment_llm_completion_tokens(self.model, completion_tokens)
+                self.metrics.increment_llm_completion_tokens(self.model, completion_tokens, self.tool_id)
             if total_tokens > 0:
-                self.metrics.increment_llm_total_tokens(self.model, total_tokens)
+                self.metrics.increment_llm_total_tokens(self.model, total_tokens, self.tool_id)
                 
             return result_dict
 
         except Exception as e:
             duration = time.time() - start_time
-            self.metrics.increment_llm_calls(self.model, "failed")
-            self.metrics.increment_llm_errors(self.model, type(e).__name__)
-            self.metrics.observe_llm_call_duration(self.model, "failed", duration)
+            self.metrics.increment_llm_calls(self.model, "failed", self.tool_id)
+            self.metrics.increment_llm_errors(self.model, type(e).__name__, self.tool_id)
+            self.metrics.observe_llm_call_duration(self.model, "failed", duration, self.tool_id)
             raise e
 
     # ------------------------------------------------------------------

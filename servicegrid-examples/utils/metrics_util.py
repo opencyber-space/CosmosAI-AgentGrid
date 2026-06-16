@@ -66,18 +66,18 @@ class AgentMetrics:
     
     def _register_llmcall_metrics(self):
         # LLM Call Counters, Histograms
-        self.reg.counter("agent_llm_calls_total", "Total LLM calls", labels=["model", "status"])
-        self.reg.counter("agent_llm_errors_total", "Total LLM call errors", labels=["model", "error_type"])
-        self.reg.counter("agent_llm_prompt_tokens_total", "Total prompt input tokens", labels=["model"])
-        self.reg.counter("agent_llm_completion_tokens_total", "Total completion output tokens", labels=["model"])
-        self.reg.counter("agent_llm_total_tokens_total", "Total tokens used", labels=["model"])
+        self.reg.counter("agent_llm_calls_total", "Total LLM calls", labels=["model", "status", "who"])
+        self.reg.counter("agent_llm_errors_total", "Total LLM call errors", labels=["model", "error_type", "who"])
+        self.reg.counter("agent_llm_prompt_tokens_total", "Total prompt input tokens", labels=["model", "who"])
+        self.reg.counter("agent_llm_completion_tokens_total", "Total completion output tokens", labels=["model", "who"])
+        self.reg.counter("agent_llm_total_tokens_total", "Total tokens used", labels=["model", "who"])
         
         custom_buckets = [0.001, 0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0, 30.0, 60.0, 120.0, 300.0, 600.0]
         
         self.reg.histogram(
             "agent_llm_call_duration_seconds",
             "Duration of LLM calls in seconds",
-            labels=["model", "status"],
+            labels=["model", "status", "who"],
             buckets=custom_buckets
         )
 
@@ -176,26 +176,26 @@ class AgentMetrics:
 
 
     #-----LLM metrics-----   
-    def increment_llm_calls(self, model: str, status: str):
-        self.reg.inc("agent_llm_calls_total", labels={"model": model, "status": status})
+    def increment_llm_calls(self, model: str, status: str, who: str):
+        self.reg.inc("agent_llm_calls_total", labels={"model": model, "status": status, "who": who})
 
-    def increment_llm_errors(self, model: str, error_type: str):
-        self.reg.inc("agent_llm_errors_total", labels={"model": model, "error_type": error_type})
+    def increment_llm_errors(self, model: str, error_type: str, who: str):
+        self.reg.inc("agent_llm_errors_total", labels={"model": model, "error_type": error_type, "who": who})
 
-    def increment_llm_prompt_tokens(self, model: str, count: int):
-        self.reg.inc("agent_llm_prompt_tokens_total", amount=count, labels={"model": model})
+    def increment_llm_prompt_tokens(self, model: str, count: int, who: str):
+        self.reg.inc("agent_llm_prompt_tokens_total", amount=count, labels={"model": model, "who": who})
 
-    def increment_llm_completion_tokens(self, model: str, count: int):
-        self.reg.inc("agent_llm_completion_tokens_total", amount=count, labels={"model": model})
+    def increment_llm_completion_tokens(self, model: str, count: int, who: str):
+        self.reg.inc("agent_llm_completion_tokens_total", amount=count, labels={"model": model, "who": who})
 
-    def increment_llm_total_tokens(self, model: str, count: int):
-        self.reg.inc("agent_llm_total_tokens_total", amount=count, labels={"model": model})
+    def increment_llm_total_tokens(self, model: str, count: int, who: str):
+        self.reg.inc("agent_llm_total_tokens_total", amount=count, labels={"model": model, "who": who})
 
-    def observe_llm_call_duration(self, model: str, status: str, duration: float):
+    def observe_llm_call_duration(self, model: str, status: str, duration: float, who: str):
         self.reg.observe_histogram(
             "agent_llm_call_duration_seconds",
             duration,
-            labels={"model": model, "status": status}
+            labels={"model": model, "status": status, "who": who}
         )
 
 

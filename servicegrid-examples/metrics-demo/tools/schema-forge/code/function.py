@@ -8,6 +8,23 @@ from typing import Any, Dict
 from openai import OpenAI
 from google import genai
 
+# Import AgentMetrics using a robust search for utils.metrics_util
+try:
+    from utils.metrics_util import AgentMetrics
+except ImportError:
+    import sys
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    temp_dir = current_dir
+    for _ in range(5):
+        if os.path.exists(os.path.join(temp_dir, "utils", "metrics_util.py")):
+            sys.path.insert(0, temp_dir)
+            break
+        temp_dir = os.path.dirname(temp_dir)
+    try:
+        from utils.metrics_util import AgentMetrics
+    except ImportError:
+        raise ImportError("Could not import AgentMetrics from utils.metrics_util. Please ensure the utils module is in the Python path.")
+
 logger = logging.getLogger(__name__)
 
 
@@ -67,6 +84,7 @@ class AgentSpaceV1Tool:
             except Exception as e:
                 logger.warning(f"[schema-forge] Failed to load state: {e}")
 
+        self.metrics = AgentMetrics(namespace="schema_forge")
         logger.info(f"[schema-forge] Initialized tool_id={self.tool_id} model={self.model}")
 
     # ------------------------------------------------------------------
@@ -263,23 +281,63 @@ class AgentSpaceV1Tool:
         prompt += f"Sample data:\n```\n{sample_data}\n```"
         if self.client is None:
             raise ValueError("LLM client not initialized. Please provide an API key.")
-        if "gemini" in self.model:
-            from google.genai import types
-            response = self.client.models.generate_content(
-                model=self.model,
-                contents=prompt,
-                config=types.GenerateContentConfig(
-                    response_mime_type="application/json",
-                ),
-            )
-            return json.loads(response.text)
-        else:
-            response = self.client.chat.completions.create(
-                model=self.model,
-                messages=[{"role": "user", "content": prompt}],
-                response_format={"type": "json_object"},
-            )
-            return json.loads(response.choices[0].message.content)
+
+        prompt_tokens = 0
+        completion_tokens = 0
+        total_tokens = 0
+        start_time = time.time()
+
+        try:
+            if "gemini" in self.model:
+                from google.genai import types
+                config_args = {"response_mime_type": "application/json"}
+                config_args.update(self.llm_paramteres)
+                response = self.client.models.generate_content(
+                    model=self.model,
+                    contents=prompt,
+                    config=types.GenerateContentConfig(**config_args),
+                )
+                duration = time.time() - start_time
+                usage = getattr(response, "usage_metadata", None)
+                if usage:
+                    prompt_tokens = getattr(usage, "prompt_token_count", 0) or getattr(usage, "prompt_tokens", 0) or 0
+                    completion_tokens = getattr(usage, "candidates_token_count", 0) or getattr(usage, "completion_tokens", 0) or 0
+                    total_tokens = getattr(usage, "total_token_count", 0) or getattr(usage, "total_tokens", 0) or 0
+                result_dict = json.loads(response.text)
+            else:
+                call_args = {
+                    "model": self.model,
+                    "messages": [{"role": "user", "content": prompt}],
+                    "response_format": {"type": "json_object"},
+                }
+                call_args.update(self.llm_paramteres)
+                response = self.client.chat.completions.create(**call_args)
+                duration = time.time() - start_time
+                usage = getattr(response, "usage", None)
+                if usage:
+                    prompt_tokens = getattr(usage, "prompt_tokens", 0) or 0
+                    completion_tokens = getattr(usage, "completion_tokens", 0) or 0
+                    total_tokens = getattr(usage, "total_tokens", 0) or 0
+                result_dict = json.loads(response.choices[0].message.content)
+            
+            # Observe metrics for successful call
+            self.metrics.increment_llm_calls(self.model, "success", self.tool_id)
+            self.metrics.observe_llm_call_duration(self.model, "success", duration, self.tool_id)
+            if prompt_tokens > 0:
+                self.metrics.increment_llm_prompt_tokens(self.model, prompt_tokens, self.tool_id)
+            if completion_tokens > 0:
+                self.metrics.increment_llm_completion_tokens(self.model, completion_tokens, self.tool_id)
+            if total_tokens > 0:
+                self.metrics.increment_llm_total_tokens(self.model, total_tokens, self.tool_id)
+                
+            return result_dict
+
+        except Exception as e:
+            duration = time.time() - start_time
+            self.metrics.increment_llm_calls(self.model, "failed", self.tool_id)
+            self.metrics.increment_llm_errors(self.model, type(e).__name__, self.tool_id)
+            self.metrics.observe_llm_call_duration(self.model, "failed", duration, self.tool_id)
+            raise e
 
     # ------------------------------------------------------------------
     # State / persistence

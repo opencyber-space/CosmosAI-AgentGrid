@@ -672,7 +672,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 49
+        "y": 75
       },
       "id": 105,
       "title": "Trace Spans Metrics",
@@ -694,7 +694,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 50
+        "y": 76
       },
       "id": 13,
       "options": {
@@ -725,6 +725,132 @@
           "legendFormat": "{{span}}",
           "range": true,
           "refId": "A"
+        }
+      ]
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 58
+      },
+      "id": 106,
+      "title": "LLM Calls Metrics",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "line"
+          }
+        }
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 59
+      },
+      "id": 16,
+      "title": "LLM Calls & Errors (Cumulative)",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "sum(increase(${agent_prefix}agent_llm_calls_total{who=~\"$who\"}[10y])) by (model, status, who)",
+          "legendFormat": "Calls: {{model}} ({{status}}) by {{who}}",
+          "refId": "A"
+        },
+        {
+          "expr": "sum(increase(${agent_prefix}agent_llm_errors_total{who=~\"$who\"}[10y])) by (model, error_type, who)",
+          "legendFormat": "Errors: {{model}} ({{error_type}}) by {{who}}",
+          "refId": "B"
+        }
+      ]
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth"
+          },
+          "unit": "s"
+        }
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 59
+      },
+      "id": 17,
+      "title": "LLM Call Latency (Percentiles)",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(${agent_prefix}agent_llm_call_duration_seconds_bucket{who=~\"$who\"}[5m])) by (model, who, le))",
+          "legendFormat": "p95 Latency: {{model}} ({{who}})",
+          "refId": "A"
+        },
+        {
+          "expr": "histogram_quantile(0.90, sum(rate(${agent_prefix}agent_llm_call_duration_seconds_bucket{who=~\"$who\"}[5m])) by (model, who, le))",
+          "legendFormat": "p90 Latency: {{model}} ({{who}})",
+          "refId": "B"
+        },
+        {
+          "expr": "histogram_quantile(0.50, sum(rate(${agent_prefix}agent_llm_call_duration_seconds_bucket{who=~\"$who\"}[5m])) by (model, who, le))",
+          "legendFormat": "p50 Latency: {{model}} ({{who}})",
+          "refId": "C"
+        }
+      ]
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "line"
+          }
+        }
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 67
+      },
+      "id": 18,
+      "title": "LLM Tokens (Cumulative)",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "sum(increase(${agent_prefix}agent_llm_prompt_tokens_total{who=~\"$who\"}[10y])) by (model, who)",
+          "legendFormat": "Prompt Tokens: {{model}} ({{who}})",
+          "refId": "A"
+        },
+        {
+          "expr": "sum(increase(${agent_prefix}agent_llm_completion_tokens_total{who=~\"$who\"}[10y])) by (model, who)",
+          "legendFormat": "Completion Tokens: {{model}} ({{who}})",
+          "refId": "B"
+        },
+        {
+          "expr": "sum(increase(${agent_prefix}agent_llm_total_tokens_total{who=~\"$who\"}[10y])) by (model, who)",
+          "legendFormat": "Total Tokens: {{model}} ({{who}})",
+          "refId": "C"
         }
       ]
     }
@@ -813,6 +939,33 @@
         "options": [],
         "query": {
           "query": "label_values(${agent_prefix}trace_span_total{trace_id=~\"$trace_id\"}, span)",
+          "refId": "StandardVariableQuery"
+        },
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 1,
+        "type": "query"
+      },
+      {
+        "current": {
+          "selected": true,
+          "value": [
+            "$__all"
+          ]
+        },
+        "datasource": {
+          "type": "prometheus",
+          "uid": "${datasource}"
+        },
+        "definition": "label_values(${agent_prefix}agent_llm_calls_total, who)",
+        "hide": 0,
+        "includeAll": true,
+        "multi": true,
+        "name": "who",
+        "options": [],
+        "query": {
+          "query": "label_values(${agent_prefix}agent_llm_calls_total, who)",
           "refId": "StandardVariableQuery"
         },
         "refresh": 1,

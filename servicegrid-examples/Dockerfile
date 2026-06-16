@@ -11,6 +11,8 @@ RUN python3 --version
 RUN pip3 install gepa==0.0.24
 RUN pip3 install -r requirements.txt
 
+# Set PYTHONPATH to include the /app directory
+ENV PYTHONPATH="/app:${PYTHONPATH}"
 
 COPY . /app/
 
