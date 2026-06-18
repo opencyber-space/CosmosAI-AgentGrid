@@ -100,47 +100,51 @@ class ToolUsageDemoAgent:
     def on_preprocess(self, task: AgentTask) -> Optional[List[AgentTask]]:
         start_time = time.perf_counter()
         _tracer = self.metrics.get_tracer()
+        user_task_id = task.job_data.get("user_task_id") or task.task_id
 
-        with _tracer.span(task.task_id, "on_preprocess") as span:
-            try:
-                log.info(f"Preprocessing task {task.task_id} {task.job_data}")
-                job = task.job_data
-                
-                # Check for required fields (code, final_project_outcome, or user_request)
-                if not job.get("user_request"):
-                    log.warning("Task %s missing user_request required keys in job_data — skipping.", task.task_id)
-                    self.metrics.increment_preprocess_skipped(reason="missing_required_keys")
+        self.metrics.record_task_mapping(user_task_id=user_task_id, task_id=task.task_id)
+        subject_id = getattr(self.subject.identity, 'subject_id', 'unknown')
+
+        with _tracer.span(user_task_id, subject_id) as agent_span:
+            with _tracer.span(task.task_id, "on_preprocess", parent_span_id=agent_span.span_id) as span:
+                try:
+                    log.info(f"Preprocessing task {task.task_id} {task.job_data}")
+                    job = task.job_data
+                    
+                    # Check for required fields (code, final_project_outcome, or user_request)
+                    if not job.get("user_request"):
+                        log.warning("Task %s missing user_request required keys in job_data — skipping.", task.task_id)
+                        self.metrics.increment_preprocess_skipped(reason="missing_required_keys", user_task_id=user_task_id, task_id=task.task_id)
+                        duration = time.perf_counter() - start_time
+                        self.metrics.observe_histogram_preprocess(duration=duration, action="skipped", exception="", user_task_id=user_task_id, task_id=task.task_id)
+                        log.info(f"Early Exit: Preprocess finished. action=skipped duration_seconds={duration:.6f}")
+                        return None
+                    
+                    # Success path
+                    self.metrics.increment_preprocess_total(user_task_id=user_task_id, task_id=task.task_id)
                     duration = time.perf_counter() - start_time
-                    self.metrics.observe_histogram_preprocess(duration=duration, action="skipped", exception="")
-                    log.info(f"Early Exit: Preprocess finished. action=skipped duration_seconds={duration:.6f}")
-                    return None
-                
-                # Success path
-                self.metrics.increment_preprocess_total()
-                duration = time.perf_counter() - start_time
-                self.metrics.observe_histogram_preprocess(duration=duration, action="success", exception="")
-                log.info(f"Success: Preprocess finished. action=success duration_seconds={duration:.6f}")
-                return [task]
+                    self.metrics.observe_histogram_preprocess(duration=duration, action="success", exception="", user_task_id=user_task_id, task_id=task.task_id)
+                    log.info(f"Success: Preprocess finished. action=success duration_seconds={duration:.6f}")
+                    return [task]
 
-            except Exception as e:
-                duration = time.perf_counter() - start_time
-                exception_name = type(e).__name__ #(e.g., KeyError, ValueError, ConnectionError)
-                
-                # Track the error in Prometheus
-                self.metrics.increment_preprocess_errors(exception=exception_name)
-                self.metrics.observe_histogram_preprocess(duration=duration, action="failed", exception=exception_name)
-                
-                # Mark the trace span as failed and attach the stack trace
-                if hasattr(span, "record_exception"):  # OpenTelemetry style
-                    span.record_exception(e) #Instead of just knowing that it failed, the trace will now embed the exact Python traceback inside the timeline. You won't even need to open your centralized logging system to see what line blew up.
-                    span.set_status("ERROR", str(e)) #This flags the specific span in your tracing UI as a failure. It usually turns the bar bright red, making it instantly visible when hunting for bad requests.
-                elif hasattr(span, "set_tag"):         # Jaeger/OpenTracing style
-                    span.set_tag("error", True)
-                    span.log_kv({"event": "error", "error.object": e, "message": str(e)})
-            
-
-                log.info(f"Failure: Preprocess finished. action=failed exception={exception_name} duration_seconds={duration:.6f}")
-                raise
+                except Exception as e:
+                    duration = time.perf_counter() - start_time
+                    exception_name = type(e).__name__ #(e.g., KeyError, ValueError, ConnectionError)
+                    
+                    # Track the error in Prometheus
+                    self.metrics.increment_preprocess_errors(exception=exception_name, user_task_id=user_task_id, task_id=task.task_id)
+                    self.metrics.observe_histogram_preprocess(duration=duration, action="failed", exception=exception_name, user_task_id=user_task_id, task_id=task.task_id)
+                    
+                    # Mark the trace span as failed and attach the stack trace
+                    if hasattr(span, "record_exception"):  # OpenTelemetry style
+                        span.record_exception(e) #Instead of just knowing that it failed, the trace will now embed the exact Python traceback inside the timeline. You won't even need to open your centralized logging system to see what line blew up.
+                        span.set_status("ERROR", str(e)) #This flags the specific span in your tracing UI as a failure. It usually turns the bar bright red, making it instantly visible when hunting for bad requests.
+                    elif hasattr(span, "set_tag"):         # Jaeger/OpenTracing style
+                        span.set_tag("error", True)
+                        span.log_kv({"event": "error", "error.object": e, "message": str(e)})
+                    
+                    log.info(f"Failure: Preprocess finished. action=failed exception={exception_name} duration_seconds={duration:.6f}")
+                    raise
 
     def on_data(self, task: AgentTask) -> AgentResult:
         self.metrics.increase_ondata_active_tasks()
@@ -150,100 +154,116 @@ class ToolUsageDemoAgent:
         _tracer = self.metrics.get_tracer()
         exception_name = ""
         action = "success"
-        with _tracer.span(task.task_id, "on_data") as root_span:
-            try:
-                job = task.job_data
-                # Log incoming request
-                self._log_to_his(
-                    target_id=NODE_TOOL_DEMO, # Self is target of incoming
-                    job_data={"task_type": "INCOMING_TASK", "payload": job}
-                )
+        user_task_id = task.job_data.get("user_task_id") or task.task_id
 
-                provider_name = self.llm_block_id
-                if "openai:" in self.llm_block_id:
-                    provider_name = self.llm_block_id.replace("openai:", "")
-                elif "gemini:" in self.llm_block_id:
-                    provider_name = self.llm_block_id.replace("gemini:", "")
+        subject_id = getattr(self.subject.identity, 'subject_id', 'unknown')
 
-                # Sending very generic prompt to LLM to choose an tool based in input_dict
-                prompt="What tools can be used to analyse this data"
-                input_dict={
-                        "input": job,
-                        "tool_model": copy.deepcopy(self.selected_tool_model)
-                    }
-                response = self._call_tool_using_search_and_execute_tool( task_id=task.task_id, 
-                    parent_span_id= root_span.span_id, 
-                    prompt=prompt, 
-                    input_data=input_dict,
-                    provider= provider_name)
-                print(response)
+        with _tracer.span(user_task_id, subject_id) as agent_span:
+            with _tracer.span(task.task_id, "on_data", parent_span_id=agent_span.span_id) as root_span:
+                try:
+                    job = task.job_data
+                    # Log incoming request
+                    self._log_to_his(
+                        target_id=NODE_TOOL_DEMO, # Self is target of incoming
+                        job_data={"task_type": "INCOMING_TASK", "payload": job}
+                    )
 
-                # other functions in self.tools are as below
-                # 1. For Tool Search: 
-                # tool_id = tools.search_tool(
-                #     "Analyse application logs and identify the root cause of the failure"
-                # )
-                # response = self._search_tool_using_tool_search_api( task_id=task.task_id, 
-                #     parent_span_id= root_span.span_id, 
-                #     prompt=prompt, 
-                #     provider= provider_name)
+                    provider_name = self.llm_block_id
+                    if "openai:" in self.llm_block_id:
+                        provider_name = self.llm_block_id.replace("openai:", "")
+                    elif "gemini:" in self.llm_block_id:
+                        provider_name = self.llm_block_id.replace("gemini:", "")
 
-                # 2. For Tool Execute by ID
-                # response = self.tools.execute_tool_by_id(
-                #     "agentspace.commit-scribe.v4",
-                #     input_data={"diff": diff, "branch_name": "fix/strict-token-validation", "repo_context": "SaaS backend","tool_model": self.selected_tool_model},
-                # )
-                # response = self._call_tool_using_execute_tool_by_id( task_id=task.task_id, 
-                #     parent_span_id= root_span.span_id, 
-                #     tool_id="agentspace.commit-scribe.v4",
-                #     input_data=input_dict)
-                    
-                job_output = response
+                    # Sending very generic prompt to LLM to choose an tool based in input_dict
+                    prompt="What tools can be used to analyse this data"
+                    input_dict={
+                            "input": job,
+                            "tool_model": copy.deepcopy(self.selected_tool_model)
+                        }
+                    response = self._call_tool_using_search_and_execute_tool(
+                        user_task_id=user_task_id,
+                        task_id=task.task_id, 
+                        parent_span_id=root_span.span_id, 
+                        prompt=prompt, 
+                        input_data=input_dict,
+                        provider=provider_name
+                    )
+                    print(response)
 
-                # Log outgoing result
-                self._log_to_his(
-                    target_id="USER", # Terminal node
-                    job_data={"task_type": "OUTGOING_RESULT", "payload": job_output}
-                )
+                    # other functions in self.tools are as below
+                    # 1. For Tool Search: 
+                    # tool_id = tools.search_tool(
+                    #     "Analyse application logs and identify the root cause of the failure"
+                    # )
+                    # response = self._search_tool_using_tool_search_api(
+                    #     user_task_id=user_task_id,
+                    #     task_id=task.task_id, 
+                    #     parent_span_id=root_span.span_id, 
+                    #     prompt=prompt, 
+                    #     provider=provider_name
+                    # )
 
-                return AgentResult(
-                    task_id=task.task_id,
-                    job_output=job_output,
-                    job_output_metadata={},
-                    is_error=False,
-                )
+                    # 2. For Tool Execute by ID
+                    # response = self._call_tool_using_execute_tool_by_id(
+                    #     user_task_id=user_task_id,
+                    #     task_id=task.task_id, 
+                    #     parent_span_id=root_span.span_id, 
+                    #     tool_id="agentspace.commit-scribe.v4",
+                    #     input_data=input_dict
+                    # )
+                        
+                    job_output = response
+                    if isinstance(job_output, dict):
+                        job_output["user_task_id"] = user_task_id
 
-            except Exception as e:
-                log.exception("Task %s — unexpected error in on_data: %s", task.task_id, e)
-                action = "failed"
-                exception_name = type(e).__name__ #(e.g., KeyError, ValueError, ConnectionError)
-                # Mark the trace span as failed and attach the stack trace
-                if hasattr(root_span, "record_exception"):  # OpenTelemetry style
-                    root_span.record_exception(e) #Instead of just knowing that it failed, the trace will now embed the exact Python traceback inside the timeline. You won't even need to open your centralized logging system to see what line blew up.
-                    root_span.set_status("ERROR", str(e)) #This flags the specific span in your tracing UI as a failure. It usually turns the bar bright red, making it instantly visible when hunting for bad requests.
-                elif hasattr(root_span, "set_tag"):         # Jaeger/OpenTracing style
-                    root_span.set_tag("error", True)
-                    root_span.log_kv({"event": "error", "error.object": e, "message": str(e)})
+                    # Log outgoing result
+                    self._log_to_his(
+                        target_id="USER", # Terminal node
+                        job_data={"task_type": "OUTGOING_RESULT", "payload": job_output}
+                    )
 
-                return AgentResult(
-                    task_id=task.task_id,
-                    is_error=True,
-                    error_data={"stage": "on_data", "message": str(e)},
-                )
-            finally:
-                self.metrics.decrease_ondata_active_tasks()
-                self.metrics.increase_tasks_total(status=action)
-                self.metrics.set_agent_state("ready")
-                elapsed = time.perf_counter() - t0
-                self.metrics.observe_histogram_ondata(duration=elapsed, action=action, exception=exception_name)
-                log.info(f"on_data finished. action={action} exception={exception_name} duration_seconds={elapsed:.6f}")
+                    return AgentResult(
+                        task_id=task.task_id,
+                        job_output=job_output,
+                        job_output_metadata={},
+                        is_error=False,
+                    )
 
-    def _call_tool_using_search_and_execute_tool(self, task_id: str, parent_span_id: str, prompt: str, input_data: dict, provider: str) -> dict:
+                except Exception as e:
+                    log.exception("Task %s — unexpected error in on_data: %s", task.task_id, e)
+                    action = "failed"
+                    exception_name = type(e).__name__ #(e.g., KeyError, ValueError, ConnectionError)
+                    # Mark the trace span as failed and attach the stack trace
+                    if hasattr(root_span, "record_exception"):  # OpenTelemetry style
+                        root_span.record_exception(e) #Instead of just knowing that it failed, the trace will now embed the exact Python traceback inside the timeline. You won't even need to open your centralized logging system to see what line blew up.
+                        root_span.set_status("ERROR", str(e)) #This flags the specific span in your tracing UI as a failure. It usually turns the bar bright red, making it instantly visible when hunting for bad requests.
+                    elif hasattr(root_span, "set_tag"):         # Jaeger/OpenTracing style
+                        root_span.set_tag("error", True)
+                        root_span.log_kv({"event": "error", "error.object": e, "message": str(e)})
+
+                    return AgentResult(
+                        task_id=task.task_id,
+                        is_error=True,
+                        error_data={"stage": "on_data", "message": str(e)},
+                    )
+                finally:
+                    self.metrics.decrease_ondata_active_tasks()
+                    self.metrics.increase_tasks_total(status=action, user_task_id=user_task_id, task_id=task.task_id)
+                    self.metrics.set_agent_state("ready")
+                    elapsed = time.perf_counter() - t0
+                    self.metrics.observe_histogram_ondata(duration=elapsed, action=action, exception=exception_name, user_task_id=user_task_id, task_id=task.task_id)
+                    log.info(f"on_data finished. action={action} exception={exception_name} duration_seconds={elapsed:.6f}")
+
+    def _call_tool_using_search_and_execute_tool(self, user_task_id: str, task_id: str, parent_span_id: str, prompt: str, input_data: dict, provider: str) -> dict:
         """Call an agent function, recording duration and status as metrics and a child trace span."""
         log.info("Calling %s", "search_and_execute_tool")
         fn_status = "success"
         t0 = time.perf_counter()
         _tracer = self.metrics.get_tracer()
+
+        # Inject user_task_id and task_id to input_data for propagation
+        input_data.setdefault("user_task_id", user_task_id)
+        input_data.setdefault("task_id", task_id)
 
         with _tracer.span(task_id, "search_and_execute_tool", parent_span_id=parent_span_id):
             try:
@@ -260,17 +280,17 @@ class ToolUsageDemoAgent:
             except Exception as e:
                 fn_status = "failed"
                 exception_name = type(e).__name__ #(e.g., KeyError, ValueError, ConnectionError)
-                self.metrics.increase_tool_error_total(tool_id="search_and_execute_tool", exception=exception_name)
+                self.metrics.increase_tool_error_total(tool_id="search_and_execute_tool", exception=exception_name, user_task_id=user_task_id, task_id=task_id)
                 raise
             finally:
                 elapsed = time.perf_counter() - t0
                 self.metrics.observe_histogram_toolcall_duration(
                     tool_id="search_and_execute_tool", duration=elapsed,
-                    status=fn_status
+                    status=fn_status, user_task_id=user_task_id, task_id=task_id
                 )
-                self.metrics.increase_toolcall_total(tool_id="search_and_execute_tool", status=fn_status)
+                self.metrics.increase_toolcall_total(tool_id="search_and_execute_tool", status=fn_status, user_task_id=user_task_id, task_id=task_id)
 
-    def _search_tool_using_tool_search_api(self, task_id: str, parent_span_id: str, prompt: str, provider: str) -> dict:
+    def _search_tool_using_tool_search_api(self, user_task_id: str, task_id: str, parent_span_id: str, prompt: str, provider: str) -> dict:
         """Call an agent function, recording duration and status as metrics and a child trace span."""
         log.info("Calling %s", "tool_search_api")
         fn_status = "success"
@@ -291,22 +311,26 @@ class ToolUsageDemoAgent:
             except Exception as e:
                 fn_status = "failed"
                 exception_name = type(e).__name__ #(e.g., KeyError, ValueError, ConnectionError)
-                self.metrics.increase_tool_error_total(tool_id="tool_search_api", exception=exception_name)
+                self.metrics.increase_tool_error_total(tool_id="tool_search_api", exception=exception_name, user_task_id=user_task_id, task_id=task_id)
                 raise
             finally:
                 elapsed = time.perf_counter() - t0
                 self.metrics.observe_histogram_toolcall_duration(
                     tool_id="tool_search_api", duration=elapsed,
-                    status=fn_status
+                    status=fn_status, user_task_id=user_task_id, task_id=task_id
                 )
-                self.metrics.increase_toolcall_total(tool_id="tool_search_api", status=fn_status)
+                self.metrics.increase_toolcall_total(tool_id="tool_search_api", status=fn_status, user_task_id=user_task_id, task_id=task_id)
 
-    def _call_tool_using_execute_tool_by_id(self, task_id: str, parent_span_id: str, tool_id: str, input_data: dict) -> dict:
+    def _call_tool_using_execute_tool_by_id(self, user_task_id: str, task_id: str, parent_span_id: str, tool_id: str, input_data: dict) -> dict:
         """Call an agent function, recording duration and status as metrics and a child trace span."""
         log.info("Calling %s", tool_id)
         fn_status = "success"
         t0 = time.perf_counter()
         _tracer = self.metrics.get_tracer()
+
+        # Inject user_task_id and task_id to input_data for propagation
+        input_data.setdefault("user_task_id", user_task_id)
+        input_data.setdefault("task_id", task_id)
 
         with _tracer.span(task_id, tool_id, parent_span_id=parent_span_id):
             try:
@@ -319,15 +343,15 @@ class ToolUsageDemoAgent:
             except Exception as e:
                 fn_status = "failed"
                 exception_name = type(e).__name__ #(e.g., KeyError, ValueError, ConnectionError)
-                self.metrics.increase_tool_error_total(tool_id=tool_id, exception=exception_name)
+                self.metrics.increase_tool_error_total(tool_id=tool_id, exception=exception_name, user_task_id=user_task_id, task_id=task_id)
                 raise
             finally:
                 elapsed = time.perf_counter() - t0
                 self.metrics.observe_histogram_toolcall_duration(
                     tool_id=tool_id, duration=elapsed,
-                    status=fn_status
+                    status=fn_status, user_task_id=user_task_id, task_id=task_id
                 )
-                self.metrics.increase_toolcall_total(tool_id=tool_id, status=fn_status)
+                self.metrics.increase_toolcall_total(tool_id=tool_id, status=fn_status, user_task_id=user_task_id, task_id=task_id)
             
 
 if __name__ == "__main__":

@@ -39,6 +39,17 @@ case "${AGENT}" in
     echo "Starting agent-tool-metrics-demo agent (metrics-demo/nodes/agent_tool_metrics_demo.py)"
     exec python3 metrics-demo/nodes/agent_tool_metrics_demo.py
     ;;
+
+  #for Metrics Usage Demo with Functions
+  agent-code-creator-metrics-in-functions)
+    echo "Starting agent-code-creator-metrics-in-functions agent (metrics-demo-with-functions/nodes/agent_functions_code_creator.py)"
+    exec python3 metrics-demo-with-functions/nodes/agent_functions_code_creator.py
+    ;;
+
+  agent-code-reviewer-metrics-in-functions)
+    echo "Starting agent-code-reviewer-metrics-in-functions agent (metrics-demo-with-functions/nodes/agent_functions_reviewer.py)"
+    exec python3 metrics-demo-with-functions/nodes/agent_functions_reviewer.py
+    ;;
     
   *)
     echo "Starting no agent for '${AGENT}' (unknown mapping)"

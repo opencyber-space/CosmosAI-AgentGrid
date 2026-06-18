@@ -21,7 +21,10 @@ if [ -z "$WORKFLOW_URL" ]; then
     exit 1
 fi
 
+USER_TASK_ID="task-mgr-$(printf "%05d" $((RANDOM % 100000)))"
+
 echo "Executing workflow at $WORKFLOW_URL"
+echo "user_task_id: $USER_TASK_ID"
 
 echo "Running Example 1 (Commit Scribe):"
 
@@ -39,7 +42,7 @@ index 3a1f2b4..9c8d1e5 100644
      return user
 '
 
-payload=$(jq -n --arg diff "$diff" '{user_request: $diff}')
+payload=$(jq -n --arg diff "$diff" --arg utid "$USER_TASK_ID" '{user_request: $diff, user_task_id: $utid}')
 echo "$payload"
 
 curl -X POST "$WORKFLOW_URL/api/execute" -H "Content-Type: application/json" \
@@ -48,6 +51,10 @@ curl -X POST "$WORKFLOW_URL/api/execute" -H "Content-Type: application/json" \
 echo "--------------------------------------------------------"
 
 echo "Running Example 2 (Log Detective):"
+USER_TASK_ID="task-mgr-$(printf "%05d" $((RANDOM % 100000)))"
+
+echo "Executing workflow at $WORKFLOW_URL"
+echo "user_task_id: $USER_TASK_ID"
 
 logs='2024-06-10T02:14:01Z INFO  payments-api: request received POST /charge
 2024-06-10T02:14:01Z ERROR db: connection timeout after 30s (attempt 1/3)
@@ -58,16 +65,10 @@ logs='2024-06-10T02:14:01Z INFO  payments-api: request received POST /charge
 2024-06-10T02:14:34Z ERROR payments-api: returning 503 to client
 '
 
-payload=$(jq -n --arg logs "$logs" '{user_request: $logs}')
+payload=$(jq -n --arg logs "$logs" --arg utid "$USER_TASK_ID" '{user_request: $logs, user_task_id: $utid}')
 echo "$payload"
 
 curl -X POST "$WORKFLOW_URL/api/execute" -H "Content-Type: application/json" \
 -d "$payload" | json_pp
 
 echo "--------------------------------------------------------"
-
-# To run Example 2 instead, uncomment the lines below and comment out Example 1
-# curl -X POST "$WORKFLOW_URL/api/execute" -H "Content-Type: application/json" \
-# -d '{
-#   "user_request": "Create a function that checks if a string is an anagram of another string. It should ignore capitalization and spaces. Make sure all code generated gets over in a single function only."
-# }' | json_pp

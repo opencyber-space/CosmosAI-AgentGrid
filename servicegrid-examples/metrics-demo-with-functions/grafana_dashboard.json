@@ -769,7 +769,7 @@
         "showUnfilled": true,
         "valueMode": "color"
       },
-      "title": "Trace Spans Durations (Trace: $user_task_id / $trace_id)",
+      "title": "Trace Spans Durations (user_task_id: $user_task_id, trace_id: $trace_id)",
       "type": "bargauge",
       "targets": [
         {
@@ -828,7 +828,7 @@
           "sort": "none"
         }
       },
-      "title": "Cumulative Agent Duration (Trace: $user_task_id)",
+      "title": "Cumulative Agent Duration (user_task_id: $user_task_id)",
       "type": "barchart",
       "targets": [
         {
@@ -1081,14 +1081,14 @@
           "type": "prometheus",
           "uid": "${datasource}"
         },
-        "definition": "label_values({__name__=~\".*trace_span_total\", span=~\"agent-tool-.*|agent_tool_.*\"}, trace_id)",
+        "definition": "label_values({__name__=~\".*trace_span_total\", span=~\"agent-code-.*|agent_code_.*\"}, trace_id)",
         "hide": 0,
         "includeAll": true,
         "multi": true,
         "name": "user_task_id",
         "options": [],
         "query": {
-          "query": "label_values({__name__=~\".*trace_span_total\", span=~\"agent-tool-.*|agent_tool_.*\"}, trace_id)",
+          "query": "label_values({__name__=~\".*trace_span_total\", span=~\"agent-code-.*|agent_code_.*\"}, trace_id)",
           "refId": "StandardVariableQuery"
         },
         "refresh": 1,
@@ -1112,11 +1112,16 @@
         "options": [
           {
             "selected": true,
-            "value": "agent_tool_metrics_demo:1_0_0_stable_",
-            "text": "agent_tool_metrics_demo:1_0_0_stable_"
+            "value": "agent_code_creator_metrics_in_functions:1_0_0_stable_",
+            "text": "agent_code_creator_metrics_in_functions:1_0_0_stable_"
+          },
+          {
+            "selected": false,
+            "value": "agent_code_reviewer_metrics_in_functions:1_0_0_stable_",
+            "text": "agent_code_reviewer_metrics_in_functions:1_0_0_stable_"
           }
         ],
-        "query": "agent_tool_metrics_demo:1_0_0_stable_",
+        "query": "agent_code_creator_metrics_in_functions:1_0_0_stable_,agent_code_reviewer_metrics_in_functions:1_0_0_stable_",
         "skipUrlSync": false,
         "type": "custom"
       },
@@ -1250,6 +1255,6 @@
     ]
   },
   "timezone": "",
-  "title": "CosmosAI AgentGrid Metrics Dashboard (agent_tool_metrics_demo:1_0_0_stable_)",
+  "title": "CosmosAI AgentGrid Metrics Dashboard (simple-metrics-in-functions-workflow:1_0_0_stable_)",
   "version": 1
 }

@@ -96,6 +96,9 @@ class AgentSpaceV1Tool:
             self._calls += 1
             ts = time.time()
 
+            self.user_task_id = input_data.get("user_task_id", "")
+            self.task_id = input_data.get("task_id", "")
+
             if not isinstance(input_data, dict):
                 raise ValueError("input_data must be a dict with at least 'sample_data' key.")
 
@@ -321,22 +324,22 @@ class AgentSpaceV1Tool:
                 result_dict = json.loads(response.choices[0].message.content)
             
             # Observe metrics for successful call
-            self.metrics.increment_llm_calls(self.model, "success", self.tool_id)
-            self.metrics.observe_llm_call_duration(self.model, "success", duration, self.tool_id)
+            self.metrics.increment_llm_calls(self.model, "success", self.tool_id, user_task_id=self.user_task_id, task_id=self.task_id)
+            self.metrics.observe_llm_call_duration(self.model, "success", duration, self.tool_id, user_task_id=self.user_task_id, task_id=self.task_id)
             if prompt_tokens > 0:
-                self.metrics.increment_llm_prompt_tokens(self.model, prompt_tokens, self.tool_id)
+                self.metrics.increment_llm_prompt_tokens(self.model, prompt_tokens, self.tool_id, user_task_id=self.user_task_id, task_id=self.task_id)
             if completion_tokens > 0:
-                self.metrics.increment_llm_completion_tokens(self.model, completion_tokens, self.tool_id)
+                self.metrics.increment_llm_completion_tokens(self.model, completion_tokens, self.tool_id, user_task_id=self.user_task_id, task_id=self.task_id)
             if total_tokens > 0:
-                self.metrics.increment_llm_total_tokens(self.model, total_tokens, self.tool_id)
+                self.metrics.increment_llm_total_tokens(self.model, total_tokens, self.tool_id, user_task_id=self.user_task_id, task_id=self.task_id)
                 
             return result_dict
 
         except Exception as e:
             duration = time.time() - start_time
-            self.metrics.increment_llm_calls(self.model, "failed", self.tool_id)
-            self.metrics.increment_llm_errors(self.model, type(e).__name__, self.tool_id)
-            self.metrics.observe_llm_call_duration(self.model, "failed", duration, self.tool_id)
+            self.metrics.increment_llm_calls(self.model, "failed", self.tool_id, user_task_id=self.user_task_id, task_id=self.task_id)
+            self.metrics.increment_llm_errors(self.model, type(e).__name__, self.tool_id, user_task_id=self.user_task_id, task_id=self.task_id)
+            self.metrics.observe_llm_call_duration(self.model, "failed", duration, self.tool_id, user_task_id=self.user_task_id, task_id=self.task_id)
             raise e
 
     # ------------------------------------------------------------------

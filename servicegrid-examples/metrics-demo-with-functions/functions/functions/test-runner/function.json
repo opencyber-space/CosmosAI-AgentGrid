@@ -1,0 +1,184 @@
+{
+  "function_name": "test-runner",
+  "function_version": "1.22.0",
+  "function_release_tag": "stable",
+  "function_metadata": {
+    "author": "admin",
+    "category": "code-analysis",
+    "language": "python",
+    "entry_module": "policy_rule",
+    "entry_class": "AIOSv1PolicyRule"
+  },
+  "function_search_description": "Executes generated test cases against Python code and returns pass/fail results.",
+  "function_tags": [
+    "code-analysis",
+    "testing",
+    "executor"
+  ],
+  "function_type": "policy",
+  "function_man_page_doc": "AIOSv1 policy that executes test cases against submitted code using exec(). Reads code_validation from code-validator and test_cases from test-case-generator and returns combined results with a pass/fail summary.",
+  "function_code": "",
+  "function_policy_rule_uri": "",
+  "function_settings": {
+    "log_level": "INFO"
+  },
+  "function_parameters": {
+    "tool_model": {},
+    "user_task_id": "",
+    "task_id": ""
+  },
+  "function_settings_schema": {
+    "title": "Settings",
+    "type": "object",
+    "additionalProperties": true,
+    "properties": {
+      "log_level": {
+        "type": "string",
+        "enum": [
+          "DEBUG",
+          "INFO",
+          "WARNING",
+          "ERROR"
+        ],
+        "default": "INFO"
+      }
+    }
+  },
+  "function_parameters_schema": {
+    "title": "Parameters",
+    "type": "object",
+    "additionalProperties": true,
+    "properties": {
+      "tool_model": {
+        "type": "object"
+      },
+      "user_task_id": {
+        "type": "string",
+        "description": "Unique identifier for the user task"
+      },
+      "task_id": {
+        "type": "string",
+        "description": "Unique identifier for the task"
+      }
+    }
+  },
+  "function_input_schema": {
+    "title": "Test Runner Input",
+    "type": "object",
+    "properties": {
+      "code": {
+        "type": "string"
+      },
+      "function_name": {
+        "type": "string"
+      },
+      "code_validation": {
+        "type": "object"
+      },
+      "test_cases": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "description": {
+              "type": "string"
+            },
+            "inputs": {
+              "type": "object"
+            },
+            "expected_output": {
+              "type": "float"
+            }
+          }
+        }
+      }
+    },
+    "required": [
+      "code",
+      "function_name",
+      "test_cases"
+    ],
+    "examples": [
+      {
+        "code": "def add(a, b):\n    return a + b",
+        "function_name": "add",
+        "test_cases": [
+          {
+            "description": "basic add",
+            "inputs": {
+              "a": 1,
+              "b": 2
+            },
+            "expected_output": 3
+          }
+        ]
+      }
+    ]
+  },
+  "function_output_schema": {
+    "title": "Test Runner Output",
+    "type": "object",
+    "properties": {
+      "code_validation": {
+        "type": "object"
+      },
+      "test_inputs": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "description": {
+              "type": "string"
+            },
+            "inputs": {
+              "type": "object"
+            }
+          }
+        }
+      },
+      "test_results": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "status": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string"
+            },
+            "inputs": {
+              "type": "object"
+            },
+            "expected_output": {},
+            "actual_output": {},
+            "passed": {
+              "type": "boolean"
+            },
+            "error": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "summary": {
+        "type": "object",
+        "properties": {
+          "total": {
+            "type": "integer"
+          },
+          "passed": {
+            "type": "integer"
+          },
+          "failed": {
+            "type": "integer"
+          }
+        }
+      }
+    }
+  },
+  "function_api_spec": {},
+  "open_api_spec": {},
+  "api_parameters_to_cost_relation_data": {},
+  "is_system_action": false
+}
