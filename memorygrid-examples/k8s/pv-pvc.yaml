@@ -1,0 +1,136 @@
+# Explicit PersistentVolumes and PersistentVolumeClaims for all agentic-memory databases.
+#
+# Storage backend: hostPath (suitable for single-node dev clusters — minikube, kind, k3s).
+# For production replace the hostPath sections with your preferred CSI driver or StorageClass.
+#
+# Host directories used (create them before applying):
+#   mkdir -p /data/agentic-memory/{postgres,arango,weaviate}
+#
+# Apply before the StatefulSets:
+#   kubectl apply -f k8s/pv-pvc.yaml
+#   kubectl apply -f k8s/postgres.yaml
+#   kubectl apply -f k8s/arango.yaml
+#   kubectl apply -f k8s/weaviate.yaml
+#
+# storageClassName: ""  — empty string bypasses StorageClass matching entirely.
+# Binding is guaranteed by the claimRef on each PV; no StorageClass needs to exist.
+
+
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: postgres-pv
+  labels:
+    app: postgres
+    component: agentic-memory
+spec:
+  storageClassName: ""
+  capacity:
+    storage: 10Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  hostPath:
+    path: /data/agentic-memory/postgres
+    type: DirectoryOrCreate
+  claimRef:
+    namespace: agentic-memory
+    name: postgres-pvc
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-pvc
+  namespace: agentic-memory
+  labels:
+    app: postgres
+    component: agentic-memory
+spec:
+  storageClassName: ""
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+
+# ══════════════════════════════════════════════════════════════
+# ArangoDB  (10 Gi)
+# ══════════════════════════════════════════════════════════════
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: arango-pv
+  labels:
+    app: arangodb
+    component: agentic-memory
+spec:
+  storageClassName: ""
+  capacity:
+    storage: 10Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  hostPath:
+    path: /data/agentic-memory/arango
+    type: DirectoryOrCreate
+  claimRef:
+    namespace: agentic-memory
+    name: arango-pvc
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: arango-pvc
+  namespace: agentic-memory
+  labels:
+    app: arangodb
+    component: agentic-memory
+spec:
+  storageClassName: ""
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+
+# ══════════════════════════════════════════════════════════════
+# Weaviate  (10 Gi)
+# ══════════════════════════════════════════════════════════════
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: weaviate-pv
+  labels:
+    app: weaviate
+    component: agentic-memory
+spec:
+  storageClassName: ""
+  capacity:
+    storage: 10Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  hostPath:
+    path: /data/agentic-memory/weaviate
+    type: DirectoryOrCreate
+  claimRef:
+    namespace: agentic-memory
+    name: weaviate-pvc
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: weaviate-pvc
+  namespace: agentic-memory
+  labels:
+    app: weaviate
+    component: agentic-memory
+spec:
+  storageClassName: ""
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
