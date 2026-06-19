@@ -48,7 +48,7 @@ class AgentFunctions:
         default_stateful_replicas: int = 1,
         default_stateful_autoscaling: bool = False,
         default_headers: Optional[Dict[str, str]] = None,
-        timeout: Tuple[int, int] = (5, 60),
+        timeout: Tuple[int, int] = (600, 600),
     ):
        
         self._executor_id = executor_id
@@ -178,7 +178,8 @@ class AgentFunctions:
                             if 'success' in resp and resp['success']:
                                 break
                             logger.info(resp)
-                            break
+                            #break
+                            time.sleep(4)
                             
                         except Exception as e:
                             logger.info(f"[PING], waiting for function to be live: {e}")
