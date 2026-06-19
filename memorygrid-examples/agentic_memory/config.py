@@ -28,9 +28,18 @@ class PostgresConfig:
 
 
 @dataclass
+class RedisConfig:
+    host: str = "localhost"
+    port: int = 6379
+    password: str = ""
+    db: int = 0
+
+
+@dataclass
 class MemoryConfig:
     weaviate: WeaviateConfig = field(default_factory=WeaviateConfig)
     arango: ArangoConfig = field(default_factory=ArangoConfig)
     postgres: PostgresConfig = field(default_factory=PostgresConfig)
+    redis: RedisConfig = field(default_factory=RedisConfig)
     embedding_model: str = "text-embedding-3-small"
     top_k: int = 5

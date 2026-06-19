@@ -30,7 +30,7 @@ else:
 lib_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
 if lib_dir not in sys.path:
     sys.path.insert(0, lib_dir)
-from agentic_memory.config import ArangoConfig, MemoryConfig, WeaviateConfig, PostgresConfig
+from agentic_memory.config import ArangoConfig, MemoryConfig, WeaviateConfig, PostgresConfig, RedisConfig
 
 
 def make_config(embedding_dim: int = 1536) -> MemoryConfig:
@@ -53,6 +53,12 @@ def make_config(embedding_dim: int = 1536) -> MemoryConfig:
             port=int(os.environ.get("WEAVIATE_PORT")),
             grpc_port=int(os.environ.get("WEAVIATE_GRPC_PORT")),
             embedding_dim=embedding_dim,
+        ),
+        redis=RedisConfig(
+            host=os.environ.get("REDIS_HOST"),
+            port=int(os.environ.get("REDIS_PORT")),
+            password=os.environ.get("REDIS_PASSWORD"),
+            db=int(os.environ.get("REDIS_DB")),
         ),
         embedding_model=os.environ.get("EMBEDDING_MODEL"),
     )

@@ -1,5 +1,6 @@
 from .agent_memory import AgentMemory
-from .config import ArangoConfig, MemoryConfig, WeaviateConfig, PostgresConfig
+from .config import ArangoConfig, MemoryConfig, WeaviateConfig, PostgresConfig, RedisConfig
+from .memory_types.context_kv import ContextKVMemory
 from .models import (
     EpisodicMemory,
     MemoryType,
@@ -17,6 +18,8 @@ __all__ = [
     "WeaviateConfig",
     "ArangoConfig",
     "PostgresConfig",
+    "RedisConfig",
+    "ContextKVMemory",
     "EpisodicMemory",
     "SemanticMemory",
     "ProceduralMemory",

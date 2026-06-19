@@ -3,8 +3,10 @@ from typing import Any, Dict, List, Optional, Tuple
 from .backends.arango_client import ArangoBackend
 from .backends.weaviate_client import WeaviateClient
 from .backends.postgres_client import PostgresClient
+from .backends.redis_client import RedisClient
 from .config import MemoryConfig
 from .embeddings import EmbeddingProvider
+from .memory_types.context_kv import ContextKVMemory
 from .memory_types.episodic import EpisodicMemoryStore
 from .memory_types.procedural import ProceduralMemoryStore
 from .memory_types.reflective import ReflectiveMemoryStore
@@ -62,6 +64,7 @@ class AgentMemory:
         self._weaviate = WeaviateClient(self.config.weaviate)
         self._arango = ArangoBackend(self.config.arango)
         self._postgres = PostgresClient(self.config.postgres)
+        self._redis = RedisClient(self.config.redis)
 
         _kw = dict(
             weaviate=self._weaviate,
@@ -75,6 +78,7 @@ class AgentMemory:
         self.procedural: ProceduralMemoryStore = ProceduralMemoryStore(**_kw)
         self.reflective: ReflectiveMemoryStore = ReflectiveMemoryStore(**_kw)
         self.reward: RewardMemoryStore = RewardMemoryStore(**_kw)
+        self.context_kv: ContextKVMemory = ContextKVMemory(self._redis)
 
     # ------------------------------------------------------------------
     # Convenience write helpers
@@ -220,6 +224,7 @@ class AgentMemory:
     def close(self):
         self._postgres.close()
         self._weaviate.disconnect()
+        self._redis.close()
 
     def __enter__(self):
         return self

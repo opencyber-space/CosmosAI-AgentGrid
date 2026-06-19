@@ -206,7 +206,49 @@ behavioral objectives).
 
 ---
 
-## How the five types relate
+## 6. Context KV Memory — "What is the current state of this session?"
+
+### What it is
+
+A scoped, schema-free key-value store backed by Redis. Each entry is identified by a
+composite key `{agent_id}__{session_id}__{key}` and holds an arbitrary dict serialised
+as JSON. Unlike the five cognitive memory types, `ContextKVMemory` is not about learning
+or long-term retention — it is an **active scratchpad** for in-flight agent state.
+
+### Key fields (composite key)
+
+| Component | Meaning |
+|---|---|
+| `agent_id` | Which agent owns this entry |
+| `session_id` | Which conversation or task run |
+| `key` | Logical name for the piece of state |
+| `data` | Arbitrary `dict` — serialised as JSON in Redis |
+
+### Human analogy
+
+Post-it notes stuck to the desk during a work session. They capture the current step,
+temporary decisions, and scratchpad notes — not memories of past events, not learned facts,
+just live working state that the agent needs to access repeatedly within a session.
+
+### Why agents need it
+
+The five cognitive memory types are write-once, persist forever, and go through an
+embedding pipeline. `ContextKVMemory` is the opposite: cheap O(1) reads and writes,
+no embeddings, and naturally scoped to a session. It is the right store for:
+
+- Active task state (`current_step`, `retry_count`, `last_tool_called`)
+- Per-session user preferences or decisions
+- Cross-call scratch data that does not belong in long-term memory
+
+### What it enables
+
+- `set(agent_id, session_id, key, data)` — store or overwrite any dict
+- `get(agent_id, session_id, key)` — retrieve it; returns `None` if absent
+- Namespace isolation: two agents in the same session or the same agent in different sessions never collide
+
+---
+
+## How the types relate
 
 ```
 Raw experience
@@ -224,12 +266,16 @@ Raw experience
       │
       ▼
  [Semantic]  ──world-model facts that ground all reasoning──►  stable knowledge
+
+
+[ContextKV]  ──live scratchpad scoped to agent + session──►  ephemeral working state
 ```
 
-| Type | Decays? | Self-updates? | Measures influence? |
-|---|---|---|---|
-| Episodic | By importance | No | No |
-| Semantic | No | On `update()` | No |
-| Procedural | No | `success_rate` rolling avg | Via `use_count` |
-| Reflective | No | On `update()` | Yes — `applied_count` |
-| Reward | No | Accumulates samples | Via `reward` signal |
+| Type | Backend | Decays? | Self-updates? | Measures influence? |
+|---|---|---|---|---|
+| Episodic | Postgres / Weaviate / Arango | By importance | No | No |
+| Semantic | Postgres / Weaviate / Arango | No | On `update()` | No |
+| Procedural | Postgres / Weaviate / Arango | No | `success_rate` rolling avg | Via `use_count` |
+| Reflective | Postgres / Weaviate / Arango | No | On `update()` | Yes — `applied_count` |
+| Reward | Postgres / Weaviate / Arango | No | Accumulates samples | Via `reward` signal |
+| ContextKV | Redis only | No (TTL optional) | On each `set()` | No |

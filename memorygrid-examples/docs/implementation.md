@@ -5,10 +5,15 @@ PostgreSQL, Weaviate, and ArangoDB — including schema, data flow, and per-type
 
 ---
 
-## The three-backend pattern
+## Backend overview
 
-Every `store()` call writes to all three backends. This is not redundancy — each backend
-serves a distinct retrieval role.
+`agentic-memory` uses four backends. The five cognitive memory types follow the three-backend
+pattern below. `ContextKVMemory` is an exception — it writes only to Redis.
+
+### The three-backend pattern
+
+Every `store()` call on the five cognitive types writes to all three backends. This is not
+redundancy — each backend serves a distinct retrieval role.
 
 ```
 store(memory)
@@ -68,6 +73,54 @@ mem.remember_episode("User asked about Paris weather", session_id="s1", importan
 All three writes are synchronous and independent — there is no distributed transaction
 spanning them. If ArangoDB fails after Postgres succeeds, the record exists in Postgres
 and Weaviate but not in ArangoDB.
+
+### The single-backend pattern — `ContextKVMemory`
+
+`ContextKVMemory` bypasses the three-backend pattern entirely.
+
+```
+set(agent_id, session_id, key, data)
+     │
+     └──► Redis   JSON-serialised dict at composite key "{agent_id}__{session_id}__{key}"
+
+get(agent_id, session_id, key)
+     │
+     └──► Redis GET → json.loads() → dict   (None if key absent)
+```
+
+There is no embedding, no Postgres row, no ArangoDB node. The design is intentional:
+`ContextKVMemory` is a session scratchpad, not a memory substrate — it trades durability
+and searchability for constant-time access and zero schema overhead.
+
+---
+
+## Redis backend
+
+**File:** [`backends/redis_client.py`](../agentic_memory/backends/redis_client.py)
+
+A thin wrapper over `redis.Redis` with `decode_responses=True` so all values are
+returned as Python strings (not bytes).
+
+```python
+class RedisClient:
+    def get(self, key: str) -> Optional[str]: ...
+    def set(self, key: str, value: str) -> None: ...
+    def close(self) -> None: ...
+```
+
+`ContextKVMemory` sits on top and owns the JSON encoding/decoding and key composition:
+
+```python
+def _key(self, agent_id, session_id, key):
+    return f"{agent_id}__{session_id}__{key}"
+
+def set(self, agent_id, session_id, key, data):
+    self._redis.set(self._key(...), json.dumps(data))
+
+def get(self, agent_id, session_id, key):
+    raw = self._redis.get(self._key(...))
+    return json.loads(raw) if raw is not None else None
+```
 
 ---
 

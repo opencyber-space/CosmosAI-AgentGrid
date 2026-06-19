@@ -1,14 +1,15 @@
 # Deployment Guide
 
-`agentic-memory` requires three databases: **PostgreSQL**, **ArangoDB**, and **Weaviate**.
+`agentic-memory` requires four databases: **PostgreSQL**, **ArangoDB**, **Weaviate**, and **Redis**.
 This guide covers Kubernetes deployment using the manifests in [`k8s/`](../k8s/).
 
 ---
 
 ## Kubernetes deployment
 
-All three databases run as `StatefulSet` workloads in the `agentic-memory` namespace,
-exposed via `NodePort` services for development access from outside the cluster.
+PostgreSQL, ArangoDB, and Weaviate run as `StatefulSet` workloads in the `agentic-memory`
+namespace. Redis runs as a `Deployment` (stateless — no persistent volume). All are exposed
+via `NodePort` services for development access from outside the cluster.
 
 ### Prerequisites
 
@@ -34,6 +35,7 @@ kubectl apply -f k8s/pv-pvc.yaml
 kubectl apply -f k8s/postgres.yaml
 kubectl apply -f k8s/arango.yaml
 kubectl apply -f k8s/weaviate.yaml
+kubectl apply -f k8s/redis.yaml
 ```
 
 Wait for all pods to reach `Running` state before connecting:
@@ -197,6 +199,47 @@ WeaviateConfig(host="<node-ip>", port=30880, grpc_port=30851)
 
 ---
 
+## Redis — `redis.yaml`
+
+**File:** [`k8s/redis.yaml`](../k8s/redis.yaml)
+
+| Property | Value |
+|---|---|
+| Image | `redis:7` |
+| Password | from `redis-secret` |
+| Port | `6379` (NodePort `30637`) |
+| Storage | None — in-memory only, no PVC |
+| Readiness probe | `redis-cli -a $REDIS_PASSWORD ping` every 5s, initial 5s delay |
+
+Redis is deployed as a `Deployment` (not a `StatefulSet`) because `ContextKVMemory` is
+a session scratchpad — its data does not need to survive a pod restart.
+
+### Secret
+
+```yaml
+kind: Secret
+metadata:
+  name: redis-secret
+stringData:
+  REDIS_PASSWORD: [PASSWORD]   # change this for production
+```
+
+### Connect from outside the cluster
+
+```bash
+redis-cli -h <node-ip> -p 30637 -a [PASSWORD] ping
+```
+
+### Connect from Python (NodePort)
+
+```python
+from agentic_memory.config import RedisConfig
+
+RedisConfig(host="<node-ip>", port=30637, password="[PASSWORD]")
+```
+
+---
+
 ## Verifying the deployment
 
 ```bash
@@ -211,6 +254,9 @@ curl http://<node-ip>:30529/_api/version
 
 # Weaviate
 curl http://<node-ip>:30880/v1/.well-known/ready
+
+# Redis
+redis-cli -h <node-ip> -p 30637 -a [PASSWORD] ping
 ```
 
 ---
@@ -219,7 +265,7 @@ curl http://<node-ip>:30880/v1/.well-known/ready
 
 ```python
 from agentic_memory import AgentMemory
-from agentic_memory.config import MemoryConfig, WeaviateConfig, ArangoConfig, PostgresConfig
+from agentic_memory.config import MemoryConfig, WeaviateConfig, ArangoConfig, PostgresConfig, RedisConfig
 
 NODE_IP = "<your-node-ip>"
 
@@ -227,10 +273,12 @@ config = MemoryConfig(
     postgres=PostgresConfig(host=NODE_IP, port=30432, password="postgres"),
     arango=ArangoConfig(url=f"http://{NODE_IP}:30529", password="password"),
     weaviate=WeaviateConfig(host=NODE_IP, port=30880, grpc_port=30851),
+    redis=RedisConfig(host=NODE_IP, port=30637, password="[PASSWORD]"),
 )
 
 with AgentMemory(config) as mem:
     mem.remember_episode("Connected successfully", session_id="test")
+    mem.context_kv.set("my-agent", "test", "status", {"connected": True})
 ```
 
 ---
@@ -259,4 +307,5 @@ rm -rf /data/agentic-memory
 | Weaviate | For large-scale deployments replace standalone with Weaviate cluster mode |
 | ArangoDB | Use ArangoDB Enterprise with active-failover or cluster mode |
 | PostgreSQL | Use a managed service (RDS, Cloud SQL) or a Postgres Operator (Zalando, CNPG) |
+| Redis | For persistence or HA, use Redis Sentinel or Redis Cluster; add `appendonly yes` to the server args |
 | Networking | Replace `NodePort` with `ClusterIP` + Ingress or internal `Service` for production |

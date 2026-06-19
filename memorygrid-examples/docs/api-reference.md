@@ -34,6 +34,7 @@ mem.semantic    # SemanticMemoryStore
 mem.procedural  # ProceduralMemoryStore
 mem.reflective  # ReflectiveMemoryStore
 mem.reward      # RewardMemoryStore
+mem.context_kv  # ContextKVMemory
 ```
 
 ### Write helpers
@@ -147,9 +148,64 @@ Each returned object has a `.score` attribute (cosine similarity, 0–1).
 ### Lifecycle
 
 ```python
-mem.close()          # disconnect Postgres and Weaviate
+mem.close()          # disconnect Postgres, Weaviate, and Redis
 mem.__enter__()      # returns self
 mem.__exit__(...)    # calls close()
+```
+
+---
+
+## `ContextKVMemory`
+
+**File:** [`agentic_memory/memory_types/context_kv.py`](../agentic_memory/memory_types/context_kv.py)
+
+A schema-free key-value store backed by Redis. Entries are scoped to an `(agent_id, session_id)`
+pair and stored under the composite key `{agent_id}__{session_id}__{key}`. Values are dicts
+serialised as JSON. This is the right store for active session state — not for long-term
+learning or semantic retrieval.
+
+Accessed via `mem.context_kv` or instantiated directly with a `RedisClient`.
+
+### `set`
+
+```python
+kv.set(agent_id: str, session_id: str, key: str, data: Dict[str, Any]) -> None
+```
+
+Serialise `data` as JSON and write it to Redis. Overwrites any existing value for the same
+composite key.
+
+### `get`
+
+```python
+kv.get(agent_id: str, session_id: str, key: str) -> Optional[Dict[str, Any]]
+```
+
+Retrieve and deserialise the stored dict. Returns `None` if the key does not exist.
+
+### Key format
+
+```
+{agent_id}__{session_id}__{key}
+```
+
+Two underscores are used as the separator so that single-underscore agent or session IDs
+never collide across the three components.
+
+### Example
+
+```python
+mem.context_kv.set("planner-agent", "session-99", "task_state", {
+    "current_step": 2,
+    "total_steps": 5,
+    "last_action": "fetch_data",
+})
+
+state = mem.context_kv.get("planner-agent", "session-99", "task_state")
+# {"current_step": 2, "total_steps": 5, "last_action": "fetch_data"}
+
+missing = mem.context_kv.get("planner-agent", "session-99", "nonexistent")
+# None
 ```
 
 ---
@@ -542,10 +598,18 @@ class PostgresConfig:
     password: str = ""
 
 @dataclass
+class RedisConfig:
+    host: str = "localhost"
+    port: int = 6379
+    password: str = ""
+    db: int = 0
+
+@dataclass
 class MemoryConfig:
     weaviate: WeaviateConfig = WeaviateConfig()
     arango: ArangoConfig = ArangoConfig()
     postgres: PostgresConfig = PostgresConfig()
-    embedding_model: str = "all-MiniLM-L6-v2"
+    redis: RedisConfig = RedisConfig()
+    embedding_model: str = "text-embedding-3-small"
     top_k: int = 5
 ```
