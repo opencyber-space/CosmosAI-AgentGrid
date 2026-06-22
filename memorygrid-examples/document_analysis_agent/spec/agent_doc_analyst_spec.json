@@ -69,6 +69,12 @@
             "username": "${POSTGRES_USER}",
             "password": "${POSTGRES_PASSWORD}"
           },
+          "redis": {
+            "host": "${REDIS_HOST}",
+            "port": "${REDIS_PORT}",
+            "db": "${REDIS_DB}",
+            "password": "${REDIS_PASSWORD}"
+          },
           "embedding_model_type": "embedding_model",
           "embedding_block_id": "openai:text-embedding-3-small",
           "top_k": 5

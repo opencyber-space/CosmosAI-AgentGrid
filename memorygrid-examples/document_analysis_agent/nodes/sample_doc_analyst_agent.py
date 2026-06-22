@@ -44,8 +44,11 @@ from agents_sdk.core.main import main
 from agent_fs import AgentFS
 
 from agentic_memory import AgentMemory
-from agentic_memory.config import ArangoConfig, MemoryConfig, PostgresConfig, WeaviateConfig
+from agentic_memory.config import ArangoConfig, MemoryConfig, PostgresConfig, WeaviateConfig, RedisConfig
 from agentic_memory.models import Outcome
+from agentic_memory.backends.redis_client import RedisClient
+# ContextKVMemory can also be accessed via AgentMemory.context_kv
+from agentic_memory.memory_types.context_kv import ContextKVMemory
 
 log = logging.getLogger(__name__)
 
@@ -103,6 +106,7 @@ class DocumentAnalystAgent:
             weaviate=WeaviateConfig(**mem_cfg_raw.get("weaviate", {})),
             arango=ArangoConfig(**mem_cfg_raw.get("arango", {})),
             postgres=PostgresConfig(**mem_cfg_raw.get("postgres", {})),
+            redis=RedisConfig(**mem_cfg_raw.get("redis", {})),
             embedding_model=self.embedding_model_name,
             top_k=int(mem_cfg_raw.get("top_k", 5)),
         )
@@ -111,6 +115,14 @@ class DocumentAnalystAgent:
             config=mem_config,
             openai_api_key=self.embedding_model_api_key,
         )
+
+        # to access individual memory systems
+        # episodic = self.memory.episodic
+        # semantic = self.memory.semantic
+        # procedural = self.memory.procedural
+        # reflective = self.memory.reflective
+        # reward = self.memory.reward
+        # context_kv = self.memory.context_kv
 
         log.info("[DocumentAnalystAgent] initialized  agent_id=%s  fs_root=%s",
                  self._agent_id, self.fs.root)
