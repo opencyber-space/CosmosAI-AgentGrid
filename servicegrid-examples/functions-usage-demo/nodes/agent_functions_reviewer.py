@@ -54,9 +54,30 @@ class BehavioralReviewerAgent:
             executor_id=executor_id,
             num_workers=int(num_workers)
         )
-        self.agent_function.add("code-validator:1.4.0-stable")
-        self.agent_function.add("test-generator:1.5.0-stable")
-        self.agent_function.add("test-runner:1.0.0-stable")
+
+        subject_functions = getattr(integrations, 'subject_functions', []) if integrations else []
+        self.code_validator = ""
+        self.test_generator = ""
+        self.test_runner = ""
+        self.code_validator_params = {}
+        self.test_generator_params = {}
+        self.test_runner_params = {}
+        for function_ in subject_functions:
+            if type(function_) != dict:
+                function_ = function_.to_dict()
+            self.agent_function.add(function_["function_id"])
+            if "code-validator" in function_["function_id"]:
+                self.code_validator = function_["function_id"]
+                self.code_validator_params = function_["function_custom_parameters"]
+            elif "test-generator" in function_["function_id"]:
+                self.test_generator = function_["function_id"]
+                self.test_generator_params = function_["function_custom_parameters"]
+            elif "test-runner" in function_["function_id"]:
+                self.test_runner = function_["function_id"]
+                self.test_runner_params = function_["function_custom_parameters"]
+
+        if not self.code_validator or not self.test_generator or not self.test_runner:
+            raise ValueError("Code validator, test generator, or test runner not found")
         
         # Initialize HIS Client
         his_config = getattr(self.subject.persona, 'config', {}).get("parameters", {}).get("HIS_CONFIG", {}) if hasattr(self.subject, 'persona') else {}
@@ -103,16 +124,15 @@ class BehavioralReviewerAgent:
             }
 
             # Step 1: validate the code
-            log.info("Calling code-validator:1.4.0-stable")
+            log.info(f"Calling {self.code_validator}")
             result1 = self.agent_function.call(
-                function_id="code-validator:1.4.0-stable",
+                function_id=self.code_validator,
                 input_data={
-                    **input_data,
-                    "parameters": {
-                        "openai_api_key": self.api_key,
-                        "model": "gpt-4o-mini",
-                        "tool_model": self.selected_tool_model
-                    }
+                    **input_data
+                },
+                parameters={
+                    "tool_model": self.selected_tool_model,
+                    **self.code_validator_params
                 }
             )
             log.info("Code validator result: %s", result1)
@@ -120,17 +140,16 @@ class BehavioralReviewerAgent:
                 raise Exception(f"code-validator failed: {result1['error']}")
 
             # Step 2: generate test cases
-            log.info("Calling test-generator:1.5.0-stable")
+            log.info(f"Calling {self.test_generator}")
             result2 = self.agent_function.call(
-                function_id="test-generator:1.5.0-stable",
+                function_id=self.test_generator,
                 input_data={
-                    **result1,
-                    "parameters": {
-                        "openai_api_key": self.api_key,
-                        "model": "gpt-4o-mini",
-                        "num_tests": 5,
-                        "tool_model": self.selected_tool_model
-                    }
+                    **result1
+                },
+                parameters={
+                    "num_tests": 5,
+                    "tool_model": self.selected_tool_model,
+                    **self.test_generator_params
                 }
             )
             log.info("Test generator result: %s", result2)
@@ -138,10 +157,15 @@ class BehavioralReviewerAgent:
                 raise Exception(f"test-generator failed: {result2['error']}")
 
             # Step 3: run the generated tests against the code
-            log.info("Calling test-runner:1.0.0-stable")
+            log.info(f"Calling {self.test_runner}")
             result3 = self.agent_function.call(
-                function_id="test-runner:1.0.0-stable",
-                input_data={**result2}
+                function_id=self.test_runner,
+                input_data={
+                    **result2
+                },
+                parameters={
+                    **self.test_runner_params
+                }
             )
             if isinstance(result3, dict) and "error" in result3:
                 raise Exception(f"test-runner failed: {result3['error']}")
