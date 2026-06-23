@@ -64,9 +64,30 @@ class BehavioralReviewerAgent:
             executor_id=executor_id,
             num_workers=int(num_workers)
         )
-        self.agent_function.add("code-validator:1.22.0-stable")
-        self.agent_function.add("test-generator:1.22.0-stable")
-        self.agent_function.add("test-runner:1.22.0-stable")
+
+        subject_functions = getattr(integrations, 'subject_functions', []) if integrations else []
+        self.code_validator = ""
+        self.test_generator = ""
+        self.test_runner = ""
+        self.code_validator_params = {}
+        self.test_generator_params = {}
+        self.test_runner_params = {}
+        for function_ in subject_functions:
+            if type(function_) != dict:
+                function_ = function_.to_dict()
+            self.agent_function.add(function_["function_id"])
+            if "code-validator" in function_["function_id"]:
+                self.code_validator = function_["function_id"]
+                self.code_validator_params = function_["function_custom_parameters"]
+            elif "test-generator" in function_["function_id"]:
+                self.test_generator = function_["function_id"]
+                self.test_generator_params = function_["function_custom_parameters"]
+            elif "test-runner" in function_["function_id"]:
+                self.test_runner = function_["function_id"]
+                self.test_runner_params = function_["function_custom_parameters"]
+
+        if not self.code_validator or not self.test_generator or not self.test_runner:
+            raise ValueError("Code validator, test generator, or test runner not found")
         
         # Initialize HIS Client
         his_config = getattr(self.subject.persona, 'config', {}).get("parameters", {}).get("HIS_CONFIG", {}) if hasattr(self.subject, 'persona') else {}
@@ -174,14 +195,13 @@ class BehavioralReviewerAgent:
                         user_task_id=user_task_id,
                         task_id=task.task_id,
                         parent_span_id=root_span.span_id,
-                        function_id="code-validator:1.22.0-stable",
+                        function_id=self.code_validator,
                         input_data={
                             **input_data
                         },
                         parameters={
-                            "openai_api_key": self.api_key,
-                            "model": "gpt-4o-mini",
-                            "tool_model": self.selected_tool_model
+                            "tool_model": self.selected_tool_model,
+                            **self.code_validator_params
                         }
                     )
 
@@ -190,14 +210,13 @@ class BehavioralReviewerAgent:
                         user_task_id=user_task_id,
                         task_id=task.task_id,
                         parent_span_id=root_span.span_id,
-                        function_id="test-generator:1.22.0-stable",
+                        function_id=self.test_generator,
                         input_data={
                             **result1
                         },
                         parameters={
-                            "openai_api_key": self.api_key,
-                            "model": "gpt-4o-mini",
-                            "tool_model": self.selected_tool_model
+                            "tool_model": self.selected_tool_model,
+                            **self.test_generator_params
                         }
                     )
 
@@ -206,8 +225,11 @@ class BehavioralReviewerAgent:
                         user_task_id=user_task_id,
                         task_id=task.task_id,
                         parent_span_id=root_span.span_id,
-                        function_id="test-runner:1.22.0-stable",
-                        input_data={**result2}
+                        function_id=self.test_runner,
+                        input_data={**result2},
+                        parameters={
+                            **self.test_runner_params
+                        }
                     )
 
                     job_output = result3
