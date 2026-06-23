@@ -67,9 +67,20 @@ class ToolUsageDemoAgent:
             self.tools = AgentTools(tools_db_url=tools_registry_url, openai_api_key=None, gemini_api_key=self.api_key, model_name=model_name)
 
         # Register all tools upfront so their runtimes are ready before any search.
-        self.tools.add("agentspace.commit-scribe.v4")
-        self.tools.add("agentspace.log-detective.v4")
-        self.tools.add("agentspace.schema-forge.v4")
+        subject_tools = getattr(integrations, 'subject_tools', []) if integrations else []
+        self.tool_commit_scribe = ""
+        self.tool_log_detective = ""
+        self.tool_schema_forge = ""
+        for tool_ in subject_tools:
+            if type(tool_) != dict:
+                tool_ = tool_.to_dict()
+            self.tools.add(tool_["tool_id"])
+            if "commit-scribe" in tool_["tool_id"]:
+                self.tool_commit_scribe = tool_["tool_id"]
+            elif "log-detective" in tool_["tool_id"]:
+                self.tool_log_detective = tool_["tool_id"]
+            elif "schema-forge" in tool_["tool_id"]:
+                self.tool_schema_forge = tool_["tool_id"]
 
         # Initialize HIS Client
         his_config = getattr(self.subject.persona, 'config', {}).get("parameters", {}).get("HIS_CONFIG", {}) if hasattr(self.subject, 'persona') else {}

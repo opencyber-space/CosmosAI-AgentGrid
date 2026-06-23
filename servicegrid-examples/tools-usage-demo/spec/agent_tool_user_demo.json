@@ -136,15 +136,25 @@
         ],
         "subject_tools": [
             {
-                "tool_id": "doc-search",
-                "tool_description": "Searches documents via semantic embeddings",
+                "tool_id": "agentspace.commit-scribe.v4",
+                "tool_description": "Generates Conventional Commit messages from git diffs using OpenAI. Returns type, scope, subject, body, breaking changes, and suggested issue links.",
                 "tool_execution_mode": "remote",
-                "tool_custom_config": {
-                    "embedding_dim": 768
-                },
-                "tool_calling_config": {
-                    "endpoint": "http://tools.svc.local/search"
-                }
+                "tool_custom_config": {},
+                "tool_calling_config": {}
+            },
+            {
+                "tool_id": "agentspace.log-detective.v4",
+                "tool_description": "Analyzes raw service logs with OpenAI to detect anomalies, cluster errors, score severity (0-10), generate ranked root-cause hypotheses, and recommend on-call actions.",
+                "tool_execution_mode": "remote",
+                "tool_custom_config": {},
+                "tool_calling_config": {}
+            },
+            {
+                "tool_id": "agentspace.schema-forge.v4",
+                "tool_description": "Infers a strict JSON Schema (draft-07) from sample JSON or CSV using OpenAI. Returns field documentation, business-logic validation rules, and data quality issues found in the sample.",
+                "tool_execution_mode": "remote",
+                "tool_custom_config": {},
+                "tool_calling_config": {}
             }
         ],
         "subject_functions": [
