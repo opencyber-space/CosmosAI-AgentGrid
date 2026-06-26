@@ -18,7 +18,7 @@
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
   "id": null,
-  "uid": "c66900e3-d749-4a9d-95e1-b0ea1273d143",
+  "uid": "c66900e3-d749-4a9d-95e1-b0ea1273d146",
   "links": [],
   "liveNow": false,
   "panels": [
@@ -796,7 +796,7 @@
             "mode": "palette-classic"
           },
           "custom": {
-            "axisPlacement": "hidden",
+            "axisPlacement": "auto",
             "stacking": "normal"
           },
           "mappings": [],
@@ -837,10 +837,29 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "sum(max_over_time({__name__=~\".*trace_span_duration_seconds_sum\", trace_id=~\"$user_task_id|$trace_id\", span=~\"agent-.*|agent_.*\"}[10y])) by (subject_id)",
-          "legendFormat": "{{subject_id}}",
-          "range": true,
-          "refId": "A"
+          "expr": "label_replace(sum((sum(max_over_time({__name__=~\".*trace_span_duration_seconds_sum\", span=~\"agent-.*|agent_.*\"}[10y])) by (trace_id, subject_id) * on(trace_id) group_left(user_task_id) label_replace(sum(max_over_time({__name__=~\".*agent_tasks_total\", user_task_id=~\"$user_task_id\", task_id!=\"\"}[10y])) by (user_task_id, task_id), \"trace_id\", \"$1\", \"task_id\", \"(.*)\")) or label_replace(sum(max_over_time({__name__=~\".*trace_span_duration_seconds_sum\", trace_id=~\"$user_task_id\", span=~\"agent-.*|agent_.*\"}[10y])) by (trace_id, subject_id), \"user_task_id\", \"$1\", \"trace_id\", \"(.*)\")) by (user_task_id, subject_id), \"trace_id\", \"$1\", \"user_task_id\", \"(.*)\")",
+          "legendFormat": "",
+          "range": false,
+          "refId": "A",
+          "instant": true
+        }
+      ],
+      "transformations": [
+        {
+          "id": "labelsToFields",
+          "options": {}
+        },
+        {
+          "id": "merge",
+          "options": {}
+        },
+        {
+          "id": "groupingToMatrix",
+          "options": {
+            "columnField": "subject_id",
+            "rowField": "trace_id",
+            "valueField": "Value"
+          }
         }
       ]
     },
