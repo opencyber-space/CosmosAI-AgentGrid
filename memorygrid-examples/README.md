@@ -1,4 +1,24 @@
-# agentic-memory
+# Memory-Grid
+
+Memory-Grid provides comprehensive storage services and agentic memory capabilities, spanning low-level, high-throughput infrastructure storage to high-level cognitive memory systems.
+
+## 1. MemoryGrid access at Infra Level
+
+- **Context KV Memory**: A scoped, active scratchpad backed by Redis. Each entry can be to stored as key-value pairs of arbitrary JSON-serialized dictionaries. It provides fast, low-latency O(1) reads and writes for ephemeral, in-flight agent state during a session without requiring a vector embedding pipeline.
+    - Code Example: [`KV-Memory-Examples`](examples/example_context_kv.py)
+- **Via FrameDB Memory**: The persistent and shared-memory subsystem of the [AGI Grid](https://www.AGIGr.id) ecosystem. It gives AI agents and agent societies a distributed, multi-modal memory grid that can store, route, and retrieve arbitrary objects (documents, video, sensor data, model snapshots, AI inputs/outputs, etc.) across **in-memory** (queues/caching via Redis), **persistent** (TiDB or MySQL-compatible DBs with optional S3 backup), and **streaming** (Redis streams) backends through a single, unified API.
+    - Github: [MemoryGr.id](https://github.com/opencyber-space/MemoryGr.id/tree/master/docs)
+
+## 2. MemoryGrid's Higher-Level Abstraction (agentic-memory)
+
+Memory-Grid offers a five-type cognitive memory abstraction library that gives AI agents a structured, queryable, and semantically-searchable memory system:
+- **Episodic Memory**: Time-bound events and session logs ("What happened?").
+- **Semantic Memory**: Knowledge graph facts stored as subject-predicate-object triples ("What is true?").
+- **Procedural Memory**: Reusable skills with ordered steps ("How do I do this?").
+- **Reflective Memory**: Distilled insights and lessons from past experience ("What did I learn?").
+- **Reward Memory**: Reinforcement-learning state-action-reward feedback ("What works best?").
+
+## agentic-memory
 
 Five-type agentic memory library backed by **Weaviate**, **ArangoDB**, and **PostgreSQL**.
 
@@ -7,7 +27,7 @@ five cognitively-distinct memory types — episodic, semantic, procedural, refle
 
 ---
 
-## Memory types at a glance
+### Memory types at a glance
 
 | Type | Question answered | Primary use |
 |---|---|---|
@@ -19,7 +39,7 @@ five cognitively-distinct memory types — episodic, semantic, procedural, refle
 
 ---
 
-## Architecture
+### Architecture
 
 Every memory record is written to all three backends simultaneously:
 
@@ -39,7 +59,7 @@ Reads use the most appropriate backend per query type:
 
 ---
 
-## Requirements
+### Requirements
 
 - Python ≥ 3.8
 - PostgreSQL 14+
@@ -48,7 +68,7 @@ Reads use the most appropriate backend per query type:
 
 ---
 
-## Installation
+### Installation
 
 ```bash
 pip install -e ".[dev]"
@@ -58,7 +78,7 @@ Dependencies: `weaviate-client>=4.0`, `python-arango>=8.0`, `psycopg2>=2.9`, `se
 
 ---
 
-## Quick start
+### Quick start
 
 ```python
 from agentic_memory import AgentMemory
@@ -111,7 +131,7 @@ with AgentMemory() as mem:
 
 ---
 
-## Configuration
+### Configuration
 
 ```python
 from agentic_memory.config import MemoryConfig, WeaviateConfig, ArangoConfig, PostgresConfig
@@ -131,7 +151,7 @@ connects to localhost on default ports.
 
 ---
 
-## Documentation
+### Documentation
 
 | File | Contents |
 |---|---|
@@ -142,7 +162,7 @@ connects to localhost on default ports.
 
 ---
 
-## Project layout
+### Project layout
 
 ```
 agentic_memory/
@@ -180,7 +200,7 @@ tests/
 
 ---
 
-## To Run Examples(Standalone Sample codes)
+### To Run Examples(Standalone Sample codes)
 - Install the requirements.txt 
 ```bash
 pip3 -m venv venv
@@ -191,7 +211,7 @@ python3 example_episodic.py
 
 ```
 
-## Running tests
+### Running tests
 
 ```bash
 pytest

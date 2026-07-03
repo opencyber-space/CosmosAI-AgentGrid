@@ -58,6 +58,19 @@ Contains examples demonstrating how to use the Service-Grid stack to run functio
 > - **Functions Quick Test**: Explore [`servicegrid-examples/functions-usage-demo/functions/test.py`](servicegrid-examples/functions-usage-demo/functions/test.py) to test function execution.
 > - **Tools Quick Test**: Explore [`servicegrid-examples/tools-usage-demo/tools/tools_openai_test.py`](servicegrid-examples/tools-usage-demo/tools/tools_openai_test.py) to test tool integration examples.
 
+### Observability (Promethius and Grafana Loki with Grafana Dashboard) Examples (`/servicegrid-examples`)
+Contains examples demonstrating how to use the Service-Grid stack with observability tools like Prometheus and Grafana Loki, along with pre-built Grafana Dashboards.
+
+| SN No | Example Name | Folder Link | Video Link |
+| :--- | :--- | :--- | :--- |
+| 1 | Metrics Demo (Tools) | [`/servicegrid-examples/metrics-demo`](servicegrid-examples/metrics-demo) | |
+| 2 | Metrics Demo with Functions | [`/servicegrid-examples/metrics-demo-with-functions`](servicegrid-examples/metrics-demo-with-functions) | |
+
+- **[`metrics-demo`](servicegrid-examples/metrics-demo)**: Tool example code available in [`tools-usage-demo`](servicegrid-examples/tools-usage-demo) with added metrics integration code for both the agent code and the tool's Python code.
+- **[`metrics-demo-with-functions`](servicegrid-examples/metrics-demo-with-functions)**: Function example code available in [`functions-usage-demo`](servicegrid-examples/functions-usage-demo) with added metrics to the agent code and the function's Python code.
+- **[`metrics_util.py`](servicegrid-examples/utils/metrics_util.py)**: Helper library containing user-defined sample metrics.
+- **Grafana Dashboards**: Dashboard configurations at [`servicegrid-examples/metrics-demo/grafana_dashboard.json`](servicegrid-examples/metrics-demo/grafana_dashboard.json) and [`servicegrid-examples/metrics-demo-with-functions/grafana_dashboard.json`](servicegrid-examples/metrics-demo-with-functions/grafana_dashboard.json) that can be imported to view agent and service metrics as graphs in Grafana.
+
 ## Core Libraries & Architecture
 
 Our agent sample codes rely on two primary libraries for interfacing and integration:
@@ -67,9 +80,11 @@ Our agent sample codes rely on two primary libraries for interfacing and integra
   - **Human-in-the-Loop (HITL)** service client interfacing.
   - **Agent Search** capabilities to discover other agents dynamically.
   - **Agent Communication** protocols, supporting Direct, Peer-to-Peer, and Delegate methods.
+  - **Observability Metrics**: [`metrics.py`](servicegrid-examples/agents_sdk/core/metrics.py) provides metrics primitives of Prometheus such that we can create a higher level of custom metrics as in [`metrics_util.py`](servicegrid-examples/utils/metrics_util.py).
 - **`agents_search`**: A library used to search for registered agents dynamically by providing a natural language prompt.
 - **`agents_functions`** (`/servicegrid-examples/agents_functions`): Provides function integration primitives, helping in accessing deployed functions via Python code without having to perform manual curl calls.
 - **`agents_tools`** (`/servicegrid-examples/agents_tools`): Used for tools access. Similar to functions, this library abstracts tool usage within the agent.
+- **`framedb_sdk`** ([`/memorygrid-examples/framedb_sdk`](memorygrid-examples/framedb_sdk)): This SDK is used to interact with FrameDB (supporting in-memory, storage, and stream operations).
 
 ### Execution & Registration Model
 * **Execution Difference**: **Functions** run completely outside of the agent's code, meaning they do not consume any RAM or CPU clocks/cycles from the agents themselves as they run completely independent of them. In contrast, **Tools** run directly within the agent's execution code.

@@ -1,0 +1,10 @@
+grpcio
+grpcio-tools
+protobuf
+redis
+pymysql
+sqlalchemy
+requests
+urllib3
+python-dotenv
+cachetools
