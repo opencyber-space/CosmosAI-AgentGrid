@@ -33,7 +33,7 @@ Contains examples showing how multiple agents can be connected dynamically to fo
 | 2 | Multi Level Agentic Workflow | [`/workflows_examples/multi-level-workflow`](workflows_examples/multi-level-workflow) | [Watch Video](https://youtu.be/ploms98oH_8) |
 | 3 | Hierarchical Agentic Workflow | [`/workflows_examples/hierarchical-workflow`](workflows_examples/hierarchical-workflow) | [Watch Video](https://youtu.be/qoXMN0Ha7zI) |
 | 4 | Hybrid Agentic Workflow | [`/workflows_examples/simple-workflow2`](workflows_examples/simple-workflow2) | [Watch Video](https://youtu.be/rmW30iJPDRU) |
-| 5 | Behavioral Agentic Workflow | [`/workflows_examples/behavioral-workflow`](workflows_examples/behavioral-workflow) | |
+| 5 | Behavioral Agentic Workflow | [`/workflows_examples/behavioral-workflow`](workflows_examples/behavioral-workflow) | [Watch Video](https://youtu.be/5KWnLwMO4Ec0) |
 
 - **`/simple-workflow`**: Teaches how to build a simple sequential workflow.
 - **`/multi-level-workflow`**: Demonstrates how to achieve nestedness, allowing sub-workflows to be utilized within main workflow specifications.
@@ -46,8 +46,8 @@ Contains examples demonstrating how to use the Service-Grid stack to run functio
 
 | SN No | Example Name | Folder Link | Video Link |
 | :--- | :--- | :--- | :--- |
-| 1 | Functions Usage Demo | [`/servicegrid-examples/functions-usage-demo`](servicegrid-examples/functions-usage-demo) | |
-| 2 | Tools Usage Demo | [`/servicegrid-examples/tools-usage-demo`](servicegrid-examples/tools-usage-demo) | |
+| 1 | Functions Usage Demo | [`/servicegrid-examples/functions-usage-demo`](servicegrid-examples/functions-usage-demo) | [Watch Video](https://youtu.be/2po7fevykOc) |
+| 2 | Tools Usage Demo | [`/servicegrid-examples/tools-usage-demo`](servicegrid-examples/tools-usage-demo) | [Watch Video](https://youtu.be/m1v6GEmh224) |
 
 - **`/functions-usage-demo`**: Demonstrates how agents can access and call deployed functions. Functions run completely outside of the agent's code execution context, ensuring they do not consume any CPU cycles or RAM from the agent itself.
 - **`/tools-usage-demo`**: Demonstrates how agents utilize tools. Unlike functions, tools execute directly within the agent's code context, providing local execution capabilities.
@@ -63,13 +63,31 @@ Contains examples demonstrating how to use the Service-Grid stack with observabi
 
 | SN No | Example Name | Folder Link | Video Link |
 | :--- | :--- | :--- | :--- |
-| 1 | Metrics Demo (Tools) | [`/servicegrid-examples/metrics-demo`](servicegrid-examples/metrics-demo) | |
-| 2 | Metrics Demo with Functions | [`/servicegrid-examples/metrics-demo-with-functions`](servicegrid-examples/metrics-demo-with-functions) | |
+| 1 | Metrics Demo (Tools) | [`/servicegrid-examples/metrics-demo`](servicegrid-examples/metrics-demo) | [Watch Video](https://youtu.be/zwUfoegaMQI)|
+| 2 | Metrics Demo with Functions | [`/servicegrid-examples/metrics-demo-with-functions`](servicegrid-examples/metrics-demo-with-functions) | [Watch Video](https://youtu.be/ViV44TSGSvY)|
 
 - **[`metrics-demo`](servicegrid-examples/metrics-demo)**: Tool example code available in [`tools-usage-demo`](servicegrid-examples/tools-usage-demo) with added metrics integration code for both the agent code and the tool's Python code.
 - **[`metrics-demo-with-functions`](servicegrid-examples/metrics-demo-with-functions)**: Function example code available in [`functions-usage-demo`](servicegrid-examples/functions-usage-demo) with added metrics to the agent code and the function's Python code.
 - **[`metrics_util.py`](servicegrid-examples/utils/metrics_util.py)**: Helper library containing user-defined sample metrics.
 - **Grafana Dashboards**: Dashboard configurations at [`servicegrid-examples/metrics-demo/grafana_dashboard.json`](servicegrid-examples/metrics-demo/grafana_dashboard.json) and [`servicegrid-examples/metrics-demo-with-functions/grafana_dashboard.json`](servicegrid-examples/metrics-demo-with-functions/grafana_dashboard.json) that can be imported to view agent and service metrics as graphs in Grafana.
+
+### Memorygrid Usage (2 Ways of MemoryGrid access ) (`/memorygrid-examples`)
+Memory-Grid provides comprehensive storage services and agentic memory capabilities, spanning low-level, high-throughput infrastructure storage to high-level cognitive memory systems.
+
+| SN No | Example Name | Folder Link | Video Link |
+| :--- | :--- | :--- | :--- |
+| 1 | MemoryGrid access at Infra Level (Context KV & FrameDB) | [`example_context_kv.py`](memorygrid-examples/infra_level_access/examples/example_context_kv.py) and [`infra_level_access`](memorygrid-examples/infra_level_access/examples) | |
+| 2 | MemoryGrid's Higher-Level Abstraction (agentic-memory) | [`/memorygrid-examples/examples`](memorygrid-examples/examples) | |
+
+- **`MemoryGrid access at Infra Level`**:
+  - **Context KV Memory**: A scoped, active scratchpad backed by Redis. Each entry can be stored as key-value pairs of arbitrary JSON-serialized dictionaries. It provides fast, low-latency O(1) reads and writes for ephemeral, in-flight agent state during a session without requiring a vector embedding pipeline. Code examples are available in [`example_context_kv.py`](memorygrid-examples/examples/example_context_kv.py).
+  - **Via FrameDB Memory**: The persistent and shared-memory subsystem of the [AGI Grid](https://www.AGIGr.id) ecosystem. It gives AI agents and agent societies a distributed, multi-modal memory grid that can store, route, and retrieve arbitrary objects (documents, video, sensor data, model snapshots, AI inputs/outputs, etc.) across **in-memory** (queues/caching via Redis), **persistent** (TiDB or MySQL-compatible DBs with optional S3 backup), and **streaming** (Redis streams) backends through a single, unified API. Code examples are available in [`/memorygrid-examples/infra_level_access/examples`](memorygrid-examples/infra_level_access/examples).
+- **`MemoryGrid's Higher-Level Abstraction (agentic-memory)`**: Offers a five-type cognitive memory abstraction library that gives AI agents a structured, queryable, and semantically-searchable memory system:
+  - **Episodic Memory**: Time-bound events and session logs ("What happened?"). [`Code Example`](memorygrid-examples/examples/example_episodic.py)
+  - **Semantic Memory**: Knowledge graph facts stored as subject-predicate-object triples ("What is true?"). [`Code Example`](memorygrid-examples/examples/example_semantic.py)
+  - **Procedural Memory**: Reusable skills with ordered steps ("How do I do this?"). [`Code Example`](memorygrid-examples/examples/example_procedural.py)
+  - **Reflective Memory**: Distilled insights and lessons from past experience ("What did I learn?"). [`Code Example`](memorygrid-examples/examples/example_reflective.py)
+  - **Reward Memory**: Reinforcement-learning state-action-reward feedback ("What works best?"). [`Code Example`](memorygrid-examples/examples/example_reward.py)
 
 ## Core Libraries & Architecture
 
@@ -84,7 +102,8 @@ Our agent sample codes rely on two primary libraries for interfacing and integra
 - **`agents_search`**: A library used to search for registered agents dynamically by providing a natural language prompt.
 - **`agents_functions`** (`/servicegrid-examples/agents_functions`): Provides function integration primitives, helping in accessing deployed functions via Python code without having to perform manual curl calls.
 - **`agents_tools`** (`/servicegrid-examples/agents_tools`): Used for tools access. Similar to functions, this library abstracts tool usage within the agent.
-- **`framedb_sdk`** ([`/memorygrid-examples/framedb_sdk`](memorygrid-examples/framedb_sdk)): This SDK is used to interact with FrameDB (supporting in-memory, storage, and stream operations).
+- **`framedb_sdk`** ([`/memorygrid-examples/framedb_sdk`](memorygrid-examples/framedb_sdk)): This SDK is used to interact with FrameDB (supporting in-memory, storage, and stream operations with sdk level cache). **`This is the SDK preffered for interacting with FrameDB of MemoryGrid.`**
+- **`framedb_writer_client`** ([`memorygrid-examples/framedb_writer_client`](memorygrid-examples/framedb_writer_client)): This SDK can be used in applications that need to write data to FrameDB(supporting in-memory, storage, and stream operations) but don't need to read from it and also dont need Cache support. Uses `object_api` Service of FrameDB.
 
 ### Execution & Registration Model
 * **Execution Difference**: **Functions** run completely outside of the agent's code, meaning they do not consume any RAM or CPU clocks/cycles from the agents themselves as they run completely independent of them. In contrast, **Tools** run directly within the agent's execution code.
