@@ -76,8 +76,8 @@ Memory-Grid provides comprehensive storage services and agentic memory capabilit
 
 | SN No | Example Name | Folder Link | Video Link |
 | :--- | :--- | :--- | :--- |
-| 1 | MemoryGrid access at Infra Level (Context KV & FrameDB) | [`example_context_kv.py`](memorygrid-examples/infra_level_access/examples/example_context_kv.py) and [`infra_level_access`](memorygrid-examples/infra_level_access/examples) | |
-| 2 | MemoryGrid's Higher-Level Abstraction (agentic-memory) | [`/memorygrid-examples/examples`](memorygrid-examples/examples) | |
+| 1 | MemoryGrid access at Infra Level (Context KV & FrameDB) | [`example_context_kv.py`](memorygrid-examples/infra_level_access/examples/example_context_kv.py) and [`infra_level_access`](memorygrid-examples/infra_level_access/examples) | [Watch Video](https://youtu.be/XKT9YJ5abL0)|
+| 2 | MemoryGrid's Higher-Level Abstraction (agentic-memory) | [`/memorygrid-examples/examples`](memorygrid-examples/examples) | [Watch Video](https://youtu.be/DU4BrtoBX9Q)|
 
 - **`MemoryGrid access at Infra Level`**:
   - **Context KV Memory**: A scoped, active scratchpad backed by Redis. Each entry can be stored as key-value pairs of arbitrary JSON-serialized dictionaries. It provides fast, low-latency O(1) reads and writes for ephemeral, in-flight agent state during a session without requiring a vector embedding pipeline. Code examples are available in [`example_context_kv.py`](memorygrid-examples/examples/example_context_kv.py).
