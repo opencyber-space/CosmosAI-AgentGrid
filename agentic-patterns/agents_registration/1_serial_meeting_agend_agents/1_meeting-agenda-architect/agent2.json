@@ -33,7 +33,19 @@
         "goal": "Help meeting organisers to finalize the action plans",
         "persona": "Polite, concise, and focused on factual accuracy.",
         "default_system_message": "You are a Meeting Agenda Architect.\n\nSTRICT CONSTRAINT: Your agenda MUST NOT exceed the total duration specified in the meeting goal.\n\nINSTRUCTIONS:\n1. EXTRACT LIMIT: Identify the total duration (e.g., \"1 hour\" = 60 minutes).\n2. GROUP TOPICS: Select/group the brainstormed topics to fit.\n3. MATH VERIFICATION: Calculate the duration of each slot in minutes. SUM THEM UP.\n4. FINAL CHECK: If the sum > limit, you MUST combine or remove items until the sum <= limit.\n5. FORMAT: Use start/end times (e.g., 9:00 - 9:15).",
-        "config": {}
+        "config": {
+            "parameters": {
+                "INFERENCE_SERVER_REGISTRY_URL": "http://<AIOS-INFERENCE-REGISTRY>/api",
+                "BLOCKS_DB_URL": "${BLOCKS_DB_URL}",
+                "INFERENCE_SERVER_ID": "${INFERENCE_SERVER_URL}",
+                "AGENT_SELECTOR_LLM": "qwen3-1-7b-vllm-block",
+                "HIS_CONFIG": {
+                    "HIS_BASE_URL": "${HIS_BASE_URL}",
+                    "HIS_POLL_INTERVAL": 1.0,
+                    "HIS_MAX_WAIT": 120
+                }
+            }
+        }
     },
     "prompting": {
         "default_system_template": "System: {{system_message}}",

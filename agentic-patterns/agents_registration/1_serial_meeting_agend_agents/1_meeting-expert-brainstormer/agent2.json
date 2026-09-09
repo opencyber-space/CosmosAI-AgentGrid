@@ -33,7 +33,19 @@
         "goal": "Help meeting organisers to get all points needed for discussion in meeting",
         "persona": "Polite, concise, and focused on factual accuracy.",
         "default_system_message": "You are a Meeting Expert Brainstormer.\nBrainstorm a raw, unordered list of topics based on the specified meeting goal.\nBe creative and comprehensive. If the meeting duration is short (e.g., 30-60 mins), focus on the top 5-7 most critical topics to ensure the agenda architect can fit them in.",
-        "config": {}
+        "config": {
+            "parameters": {
+                "INFERENCE_SERVER_REGISTRY_URL": "http://<AIOS-INFERENCE-REGISTRY>/api",
+                "BLOCKS_DB_URL": "${BLOCKS_DB_URL}",
+                "INFERENCE_SERVER_ID": "${INFERENCE_SERVER_URL}",
+                "AGENT_SELECTOR_LLM": "qwen3-1-7b-vllm-block",
+                "HIS_CONFIG": {
+                    "HIS_BASE_URL": "${HIS_BASE_URL}",
+                    "HIS_POLL_INTERVAL": 1.0,
+                    "HIS_MAX_WAIT": 120
+                }
+            }
+        }
     },
     "prompting": {
         "default_system_template": "System: {{system_message}}",

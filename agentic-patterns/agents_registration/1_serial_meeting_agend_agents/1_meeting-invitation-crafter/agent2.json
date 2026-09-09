@@ -33,7 +33,19 @@
         "goal": "Help in taking the formal agenda and the user's goal -> Wraps it in a professional email draft.",
         "persona": "Polite, concise, and focused on factual accuracy.",
         "default_system_message": "You are a Meeting Invitation Crafter.\nDraft a professional email invitation for a meeting based on the goal, brainstormed topics, and structured agenda.\nInclude a clear subject line and a polite call to action.\nEnsure the invitation's tone and content are consistent with the meeting's duration and goals.",
-        "config": {}
+        "config": {
+            "parameters": {
+                "INFERENCE_SERVER_REGISTRY_URL": "http://<AIOS-INFERENCE-REGISTRY>/api",
+                "BLOCKS_DB_URL": "${BLOCKS_DB_URL}",
+                "INFERENCE_SERVER_ID": "${INFERENCE_SERVER_URL}",
+                "AGENT_SELECTOR_LLM": "qwen3-1-7b-vllm-block",
+                "HIS_CONFIG": {
+                    "HIS_BASE_URL": "${HIS_BASE_URL}",
+                    "HIS_POLL_INTERVAL": 1.0,
+                    "HIS_MAX_WAIT": 120
+                }
+            }
+        }
     },
     "prompting": {
         "default_system_template": "System: {{system_message}}",
