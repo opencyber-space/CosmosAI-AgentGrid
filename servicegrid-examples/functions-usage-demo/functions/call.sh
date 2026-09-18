@@ -19,7 +19,7 @@ else
     exit 1
 fi
 
-API="http://${POLICY_DB_URL}"
+API="${POLICY_DB_URL}"
 OPENAI_KEY="${OPENAI_API_KEY:-<your-openai-api-key-here>}"
 TARGET="${1:-all}"
 

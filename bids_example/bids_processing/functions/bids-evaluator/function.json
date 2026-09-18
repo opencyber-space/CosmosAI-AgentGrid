@@ -1,0 +1,47 @@
+{
+  "function_name": "bids-evaluator",
+  "function_version": "1.0",
+  "function_release_tag": "stable",
+  "function_metadata": {
+    "author": "admin",
+    "category": "evaluator",
+    "language": "python",
+    "entry_module": "policy_rule",
+    "entry_class": "AIOSv1PolicyRule"
+  },
+  "function_search_description": "Evaluator that picks the lowest score based on tokens and compute.",
+  "function_tags": [
+    "evaluator",
+    "openarcade"
+  ],
+  "function_type": "policy",
+  "function_code": "",
+  "function_settings": {},
+  "function_parameters": {},
+  "is_system_action": false,
+  "function_man_page_doc": "Evaluator that picks the lowest score based on tokens and compute.",
+  "function_policy_rule_uri": "",
+  "function_settings_schema": {
+    "title": "Settings",
+    "type": "object",
+    "properties": {}
+  },
+  "function_parameters_schema": {
+    "title": "Parameters",
+    "type": "object",
+    "properties": {}
+  },
+  "function_input_schema": {
+    "title": "Input",
+    "type": "object",
+    "properties": {}
+  },
+  "function_output_schema": {
+    "title": "Output",
+    "type": "object",
+    "properties": {}
+  },
+  "function_api_spec": {},
+  "open_api_spec": {},
+  "api_parameters_to_cost_relation_data": {}
+}
