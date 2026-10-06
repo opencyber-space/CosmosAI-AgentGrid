@@ -1,5 +1,5 @@
 #!/bin/bash
-set -ex
+set -e
 
 # T001: Script created
 # T003: Define ANSI color codes
@@ -20,6 +20,10 @@ ONLY_FRONTEND=${ONLY_FRONTEND:-false}
 ONLY_IMAGE=${ONLY_IMAGE:-false}
 ONLY_CONTENT=${ONLY_CONTENT:-false}
 
+# DEBUG=true traces every command (bash -x). Off by default: it echoes each line of this
+# script and every API response, and .env is never traced whatever this is set to.
+DEBUG=${DEBUG:-false}
+
 # true/false, yes/no and 1/0 are all accepted for the flags above.
 is_true() {
     case "$(echo "${1:-}" | tr '[:upper:]' '[:lower:]')" in
@@ -27,6 +31,10 @@ is_true() {
         *) return 1 ;;
     esac
 }
+
+if is_true "$DEBUG"; then
+    set -x
+fi
 
 if is_true "$RUN_ALL"; then
     ONLY_SECURITY=true
@@ -44,7 +52,10 @@ fi
 GIT_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || echo ".")
 if [ -f "$GIT_ROOT/.env" ]; then
     echo -e "${CYAN}Loading .env from $GIT_ROOT${NC}"
+    # Never trace this: .env holds API keys and MinIO credentials.
+    { set +x; } 2>/dev/null
     source "$GIT_ROOT/.env"
+    is_true "$DEBUG" && set -x || true
 else
     echo -e "${YELLOW}Warning: .env file not found at $GIT_ROOT${NC}"
 fi
@@ -89,6 +100,22 @@ create_bid_job() {
     echo "$job_id"
 }
 
+# Print the bids on record as a short list instead of the raw JSON blob.
+print_bids() {
+    echo "$1" | jq -r '
+        (.data // .)
+        | if type == "array" then . else [] end
+        | to_entries[]
+        | "  \(.key + 1). \(.value.bid_subject_id)"
+          + "\n       bid_status=\(.value.bid_data.bid_status // .value.bid_data.status // "?")"
+          + "  tokens=\(.value.bid_data.total_estimated_tokens // "?")"
+          + "  compute=\(.value.bid_data.required_compute // "?")"
+          + "  timeline=\(.value.bid_data.proposed_timeline // "-")"
+          + "\n       is_winner=\(.value.is_winner)  submitted=\(.value.submission_time)"
+          + (if (.value.bid_data.reason // "") == "" then "" else "\n       reason: \(.value.bid_data.reason | .[0:200])" end)
+    ' 2>/dev/null || echo "  (could not parse the bids response)"
+}
+
 # T005: Function to poll for bids
 poll_bids() {
     local job_id="$1"
@@ -97,31 +124,44 @@ poll_bids() {
     local start_time=$(date +%s)
     local current_time
     local elapsed
-    
+    # `set -x` would echo the whole JSON response on every poll, so trace off here and
+    # print the parsed bids instead; the caller's setting is restored on the way out.
+    local had_xtrace=0
+    case "$-" in *x*) had_xtrace=1; set +x ;; esac
+
     echo -e "${YELLOW}Polling for bids (waiting for $expected_count bids)...${NC}"
-    
-    while true; 
+
+    local last_count=-1
+    while true;
     do
         local response
         response=$(curl -s "$API_URL/bid-jobs/$job_id/bids" || true)  # tolerate transient network errors
-        
+
         # We expect a JSON array or a data wrapper depending on openarcade version. 
         # Usually it's in .data or the root is an array.
         local count
         count=$(echo "$response" | jq 'if type == "array" then length elif .data then (.data | length) else 0 end' 2>/dev/null || echo 0)
-        
+
+        if [ "$count" != "$last_count" ]; then
+            echo -e "${CYAN}Bids so far: $count/$expected_count${NC}"
+            [ "$count" -gt 0 ] && print_bids "$response" || true
+            last_count=$count
+        fi
+
         if [ "$count" -ge "$expected_count" ]; then
             echo -e "${GREEN}Received $count bids!${NC}"
+            [ "$had_xtrace" = "1" ] && set -x || true
             break
         fi
-        
+
         current_time=$(date +%s)
         elapsed=$((current_time - start_time))
         if [ "$elapsed" -ge "$timeout" ]; then
             echo -e "${RED}Timeout reached while polling for bids ($elapsed seconds). Found $count/$expected_count.${NC}"
+            [ "$had_xtrace" = "1" ] && set -x || true
             return 1
         fi
-        
+
         sleep 2
     done
 }
@@ -137,6 +177,9 @@ fetch_task_results() {
     local timeout=${RESULT_TIMEOUT:-600}
     local start_time=$(date +%s)
     local elapsed
+    # Same reason as poll_bids: the raw task-results JSON is far too big to trace.
+    local had_xtrace=0
+    case "$-" in *x*) had_xtrace=1; set +x ;; esac
 
     echo -e "${YELLOW}Waiting for evaluation and bid_winner delivery...${NC}"
 
@@ -153,6 +196,7 @@ fetch_task_results() {
             echo -e "${GREEN}Winner Result:${NC}"
             echo "$response" \
                 | jq -r '(.data // .) | if type == "array" then (.[] | select(.task_type == "bid_winner") | {bid_subject_id, task_type, task_result, created_time}) else empty end'
+            [ "$had_xtrace" = "1" ] && set -x || true
             return 0
         fi
 
@@ -160,8 +204,8 @@ fetch_task_results() {
         if [ "$elapsed" -ge "$timeout" ]; then
             echo -e "${RED}Timeout after ${elapsed}s waiting for bid_winner.${NC}"
             echo -e "${YELLOW}Bids on record:${NC}"
-            curl -s "$API_URL/bid-jobs/$job_id/bids" \
-                | jq -r '(.data // .) | if type == "array" then (.[] | {bid_subject_id, is_winner, bid_status: .bid_data.bid_status}) else empty end'
+            print_bids "$(curl -s "$API_URL/bid-jobs/$job_id/bids" || true)"
+            [ "$had_xtrace" = "1" ] && set -x || true
             return 1
         fi
         sleep 3
@@ -214,7 +258,10 @@ PAYLOAD_US1=$(cat << 'JSON'
     "manager3-image-editing",
     "manager4-content-creation",
     "manager5-security-audit"
-  ]
+  ],
+  "bid_job_mode": "closed",
+  "bid_job_max_subjects": null,
+  "bid_job_max_time": null
 }
 JSON
 )
@@ -231,8 +278,9 @@ elif JOB_ID_1=$(create_bid_job "$PAYLOAD_US1") && [ -n "$JOB_ID_1" ] && [ "$JOB_
     # bid, so wait for one bid per subject_id rather than a hardcoded count.
     # Managers that decline still submit a declining bid, so this count is met.
     EXPECTED_US1=$(echo "$PAYLOAD_US1" | jq '.bid_job_subject_ids | length')
-    poll_bids "$JOB_ID_1" "$EXPECTED_US1"
-    fetch_task_results "$JOB_ID_1"
+    if poll_bids "$JOB_ID_1" "$EXPECTED_US1"; then
+        fetch_task_results "$JOB_ID_1" || echo -e "${RED}No winner was delivered for the security job.${NC}"
+    fi
 else
     echo -e "${RED}Skipping polling for US1 due to creation failure.${NC}"
 fi
@@ -271,7 +319,10 @@ US2_PAYLOADS["manager2-frontend"]=$(cat << 'JSON'
     "manager3-image-editing",
     "manager4-content-creation",
     "manager5-security-audit"
-  ]
+  ],
+  "bid_job_mode": "closed",
+  "bid_job_max_subjects": null,
+  "bid_job_max_time": null
 }
 JSON
 )
@@ -309,7 +360,10 @@ US2_PAYLOADS["manager3-image-editing"]=$(cat << 'JSON'
     "manager3-image-editing",
     "manager4-content-creation",
     "manager5-security-audit"
-  ]
+  ],
+  "bid_job_mode": "closed",
+  "bid_job_max_subjects": null,
+  "bid_job_max_time": null
 }
 JSON
 )
@@ -352,7 +406,10 @@ US2_PAYLOADS["manager4-content-creation"]=$(cat << 'JSON'
     "manager3-image-editing",
     "manager4-content-creation",
     "manager5-security-audit"
-  ]
+  ],
+  "bid_job_mode": "closed",
+  "bid_job_max_subjects": null,
+  "bid_job_max_time": null
 }
 JSON
 )
@@ -390,8 +447,9 @@ for agent_id in "manager2-frontend" "manager3-image-editing" "manager4-content-c
     job_id=$(create_bid_job "$payload")
     if [ -n "$job_id" ] && [ "$job_id" != "1" ]; then
         expected=$(echo "$payload" | jq '.bid_job_subject_ids | length')
-        poll_bids "$job_id" "$expected"
-        fetch_task_results "$job_id"
+        if poll_bids "$job_id" "$expected"; then
+            fetch_task_results "$job_id" || echo -e "${RED}No winner was delivered for $agent_id.${NC}"
+        fi
     else
         echo -e "${RED}Skipping polling for $agent_id due to creation failure.${NC}"
     fi

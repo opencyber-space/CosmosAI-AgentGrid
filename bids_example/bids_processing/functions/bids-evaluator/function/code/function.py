@@ -41,6 +41,8 @@ class AIOSv1PolicyRule:
             # A manager that declined the job is not a candidate to win it.
             if str(bid_data.get("bid_status", "")).lower() == "declined":
                 continue
+            if bid_data.get("bid_rejected",False):
+                continue
 
             tokens = self._as_number(bid_data.get("total_estimated_tokens", 0))
             compute = self._as_number(bid_data.get("required_compute", 0))

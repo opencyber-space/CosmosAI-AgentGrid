@@ -13,6 +13,7 @@ import os
 from openarcade_bidding_pysdk.client import OpenarcadeClient
 from utils.dspy_aios_llms import AIOS_DSPy_LMs
 from utils.json_utils import extract_json
+from utils.bid_utils import normalize_bid
 from utils.security_checks import measure_solution
 
 log = logging.getLogger(__name__)
@@ -331,6 +332,9 @@ class Manager5SecurityAuditAgent:
             agg_module = dspy.ChainOfThought(BidAggregationSignature)
             agg_res = agg_module(job_description=job_desc, subagent_assessments=json.dumps(assess_responses))
             bid_data = extract_json(agg_res.bid_result) or {}
+            # The evaluator scores these fields, so they are settled in code rather than
+            # left to however the model happened to word (or omit) them.
+            bid_data = normalize_bid(bid_data, assess_responses, getattr(self.subject.identity, "subject_id", None))
 
         self._task_entry(session_id, task_id)["bid_data"] = bid_data
         self._task_entry(session_id, task_id)["qual_data"] = qual_data
