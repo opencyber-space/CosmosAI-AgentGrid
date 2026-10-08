@@ -16,6 +16,7 @@ logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
 from .types import AgentTask
+from .log_safe import redact
 
 TaskHandler = Callable[[str, Dict[str, Any]], Dict[str, Any]] 
 MeshMessageHandler = Callable[[str, Any], None]
@@ -265,7 +266,7 @@ class PeersManager:
             "data": result_data,
         }
 
-        logger.info(f"[P2P reply] sending payload {payload}")
+        logger.info(f"[P2P reply] sending payload {redact(payload)}")
 
         targets = list(mesh_ids) if mesh_ids else self._target_mesh_ids_for_subject(to_subject_id)
         await asyncio.gather(*(self._publish_raw(mid, to_subject_id, payload) for mid in targets))
@@ -361,7 +362,7 @@ class PeersManager:
                 payload = None 
 
             
-            logger.info(f"[Received p2p mesh message] {payload}")
+            logger.info(f"[Received p2p mesh message] {redact(payload)}")
 
             if isinstance(payload, dict) and "event" in payload:
                 evt = payload.get("event")
@@ -411,7 +412,7 @@ class PeersManager:
                             self._register_seen_agent(psid, pdata, mesh_id)
 
             if isinstance(payload, dict) and payload.get("event") == "reply":
-                logger.info(f"[P2P Processing reply] {payload}; pending_tasks={self._pending_tasks}; task_id={payload['task_id']}")
+                logger.info(f"[P2P Processing reply] {redact(payload)}; pending_tasks={redact(self._pending_tasks)}; task_id={payload['task_id']}")
                 tid = payload.get("task_id")
                 self._pending_tasks[tid] = payload
 
@@ -423,9 +424,9 @@ class PeersManager:
             else:
                 # Default logging if no handler
                 if payload is not None:
-                    logger.info(f"[{mesh_id}] {msg.subject}: {payload}")
+                    logger.info(f"[{mesh_id}] {msg.subject}: {redact(payload)}")
                 else:
-                    logger.info(f"[{mesh_id}] {msg.subject}: {msg.data!r}")
+                    logger.info(f"[{mesh_id}] {msg.subject}: {redact(msg.data)!r}")
 
         return _on_msg
 
@@ -532,7 +533,7 @@ class PeersManager:
 
     async def _publish_raw(self, mesh_id: str, subject: str, obj: Dict[str, Any]) -> None:
 
-        logger.info(f"[p2p raw publish] {obj} --> {mesh_id} ({subject})")
+        logger.info(f"[p2p raw publish] {redact(obj)} --> {mesh_id} ({subject})")
         mesh = self._meshes.get(mesh_id)
         if not mesh:
             raise ValueError(f"Mesh '{mesh_id}' is not registered")

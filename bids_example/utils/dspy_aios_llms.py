@@ -13,6 +13,7 @@ from google.genai import types
 import dspy
 
 from agents_llm import AIGridClient
+from agents_sdk.core.log_safe import redact
 from agents_llm.custom import OpenAIBlockInferenceSystem
 
 log = logging.getLogger(__name__)
@@ -74,7 +75,7 @@ class CustomAIOS(dspy.LM):
             )
             self.llm_ai.add_custom_block(name=self.model_name, system=openai_block)
         elif "google:" in self.model_name or "gemini:" in self.model_name:
-            log.info(f"Adding google model {self.model_name} to pool llm_params:{llm_params} oneBlock:{blockDetails}")
+            log.info(f"Adding google model {self.model_name} to pool llm_params:{redact(llm_params)} oneBlock:{redact(blockDetails)}")
             llm_params_ = copy.deepcopy(llm_params)
             api_key = llm_params_.pop("api_key", None) or (blockDetails.api_key if hasattr(blockDetails, 'api_key') else (blockDetails.get('api_key') if blockDetails else None))
             llm_params = copy.deepcopy(llm_params_)
@@ -87,8 +88,8 @@ class CustomAIOS(dspy.LM):
             # Set up the Nano Banana model in DSPy
             # Note: "gemini-2.5-flash-image" is the official model name for Nano Banana
             #self.model = dspy.Google(model=model_id, api_key=api_key)
-            log.info(f"api_key: {api_key}")
-            log.info(f"Adding google model {self.model_name} to pool llm_params:{llm_params} oneBlock:{blockDetails}")
+            log.info("google model %s: api_key %s", self.model_name, "present" if api_key else "MISSING")
+            log.info(f"Adding google model {self.model_name} to pool llm_params:{redact(llm_params)} oneBlock:{redact(blockDetails)}")
             gemini_model = dspy.LM(
                 model=model_id, 
                 api_key=api_key,
@@ -152,7 +153,7 @@ class CustomAIOS(dspy.LM):
 
         out = ""
         log.info(f"CustomAIOS: Preparing for inference. Model: {self.model_name}, Session: {session_id}")
-        log.info(f"CustomAIOS: llm_params: {llm_params} session_id: {session_id}")
+        log.info(f"CustomAIOS: llm_params: {redact(llm_params)} session_id: {session_id}")
         if "aios:" in self.model_name:
             log.info(f"CustomAIOS: Calling async_infer for {self.model_name}...")
             try:
@@ -179,7 +180,7 @@ class CustomAIOS(dspy.LM):
             try:
                 if "max_tokens" in llm_params:
                     del llm_params["max_tokens"]
-                log.info(f"CustomAIOS: llm_params: {llm_params} session_id: {session_id}")
+                log.info(f"CustomAIOS: llm_params: {redact(llm_params)} session_id: {session_id}")
                 result = self.llm_ai.chat_completions(name=self.model_name, session_id=session_id, messages=[
                     {"role": "system", "content": system_message},
                     {"role": "user", "content": prompt}
@@ -244,7 +245,7 @@ class AIOS_DSPy_LMs():
         for oneBlock in models:
             model_name = oneBlock.llm_block_id if hasattr(oneBlock, 'llm_block_id') else oneBlock.get('llm_block_id')
             llm_params = oneBlock.llm_parameters if hasattr(oneBlock, 'llm_parameters') else oneBlock.get('llm_parameters', {})
-            log.info(f"Adding model {model_name} to pool llm_params:{llm_params} oneBlock:{oneBlock}")
+            log.info(f"Adding model {model_name} to pool llm_params:{redact(llm_params)} oneBlock:{redact(oneBlock)}")
             self.model_pool[model_name] = CustomAIOS(model_name=model_name, llm_params=llm_params, persona_default_system_message=self.persona_default_system_message, blockDetails=oneBlock)
 
     def get_choosen_model(self, **kwargs):

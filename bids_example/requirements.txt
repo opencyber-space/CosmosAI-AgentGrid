@@ -12,3 +12,8 @@ pillow
 minio
 python-dotenv
 prometheus-client>=0.20.0
+
+# video_analytics_bidding: the AI Compliance Agent reads real tender PDFs, and the
+# Sizing and Finance agents fill the buyer's spreadsheet templates in place.
+pdfplumber
+openpyxl
