@@ -1,0 +1,140 @@
+{
+  "function_name": "va-bid-eval",
+  "function_version": "1.3",
+  "function_release_tag": "stable",
+  "function_metadata": {
+    "author": "admin",
+    "category": "evaluator",
+    "language": "python",
+    "entry_module": "policy_rule",
+    "entry_class": "AIOSv1PolicyRule",
+    "vendored": [
+      "va_bid_utils.py",
+      "agents_functions/"
+    ]
+  },
+  "function_search_description": "Scores video-analytics bids on budget, sizing, compliance and live endpoint accuracy, and names a winner.",
+  "function_tags": [
+    "evaluator",
+    "video-analytics",
+    "openarcade",
+    "xchange"
+  ],
+  "function_type": "policy",
+  "function_code": "",
+  "function_settings": {
+    "functions_registry_url": "${FUNCTION_REGISTRY_URL}",
+    "weights": {
+      "cpu": 0.2,
+      "ram": 0.2,
+      "disk": 0.1,
+      "gpu": 0.5
+    },
+    "function_executor_id": "executor-001",
+    "probe_workers": 6,
+    "probe_budget_seconds": 45,
+    "HIS_CONFIG": {
+      "HIS_BASE_URL": "${HIS_BASE_URL}",
+      "HIS_POLL_INTERVAL": 1.0,
+      "HIS_MAX_WAIT": 120
+    }
+  },
+  "function_parameters": {},
+  "is_system_action": false,
+  "is_stateful": true,
+  "function_man_page_doc": "Input {bid_job, bids} -> {winner_subject_id, status, result_data}. Excludes declined and bid_rejected bids, then scores survivors on budget (a), weighted sizing (b), compliance (c) and live endpoint accuracy (d), each out of 100. Endpoint scoring calls each company's registered va-uc-* functions through AgentFunctions with the sample images on bid_job_metadata.evaluation. Ties break on lowest total_budget then subject id.",
+  "function_policy_rule_uri": "",
+  "function_settings_schema": {
+    "title": "Settings",
+    "type": "object",
+    "properties": {
+      "weights": {
+        "type": "object",
+        "properties": {
+          "cpu": {
+            "type": "number"
+          },
+          "ram": {
+            "type": "number"
+          },
+          "disk": {
+            "type": "number"
+          },
+          "gpu": {
+            "type": "number"
+          }
+        }
+      },
+      "functions_registry_url": {
+        "type": "string"
+      },
+      "sample_images": {
+        "type": "array",
+        "items": {
+          "type": "object"
+        }
+      },
+      "function_executor_id": {
+        "type": "string"
+      },
+      "probe_workers": {
+        "type": "integer"
+      },
+      "probe_budget_seconds": {
+        "type": "number"
+      },
+      "HIS_CONFIG": {
+        "type": "object",
+        "properties": {
+          "HIS_BASE_URL": {
+            "type": "string"
+          },
+          "HIS_POLL_INTERVAL": {
+            "type": "number"
+          },
+          "HIS_MAX_WAIT": {
+            "type": "integer"
+          }
+        }
+      }
+    }
+  },
+  "function_parameters_schema": {
+    "title": "Parameters",
+    "type": "object",
+    "properties": {}
+  },
+  "function_input_schema": {
+    "title": "Input",
+    "type": "object",
+    "properties": {
+      "bid_job": {
+        "type": "object"
+      },
+      "bids": {
+        "type": "array",
+        "items": {
+          "type": "object"
+        }
+      }
+    }
+  },
+  "function_output_schema": {
+    "title": "Output",
+    "type": "object",
+    "properties": {
+      "winner_subject_id": {
+        "type": "string"
+      },
+      "status": {
+        "type": "string"
+      },
+      "result_data": {
+        "type": "object"
+      }
+    }
+  },
+  "function_api_spec": {},
+  "open_api_spec": {},
+  "api_parameters_to_cost_relation_data": {}
+}

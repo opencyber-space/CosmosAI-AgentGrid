@@ -1,0 +1,104 @@
+{
+  "function_name": "va-bidding-pqt",
+  "function_version": "1.2",
+  "function_release_tag": "stable",
+  "function_metadata": {
+    "author": "admin",
+    "category": "pqt",
+    "language": "python",
+    "entry_module": "policy_rule",
+    "entry_class": "AIOSv1PolicyRule"
+  },
+  "function_search_description": "Pre-qualification for the video-analytics RFP: certification and supplied-licence track record.",
+  "function_tags": [
+    "pqt",
+    "video-analytics",
+    "openarcade",
+    "xchange"
+  ],
+  "function_type": "policy",
+  "function_code": "",
+  "function_settings": {
+    "required_certifications_any_of": [
+      "NIST",
+      "benchmarking",
+      "UL"
+    ],
+    "min_licenses_supplied": 10000,
+    "min_projects_served": 5,
+    "HIS_CONFIG": {
+      "HIS_BASE_URL": "${HIS_BASE_URL}",
+      "HIS_POLL_INTERVAL": 1.0,
+      "HIS_MAX_WAIT": 120
+    }
+  },
+  "function_parameters": {},
+  "is_system_action": false,
+  "is_stateful": true,
+  "function_man_page_doc": "Input {bid_job, bid} -> {accepted: bool, reason: str}. Checks bid.bid_data.credentials against the RFP's certification bar and minimum supplied-licence / projects-served track record. Declining bids pass through un-judged. Never sets bid_rejected (OpenArcade does that) and never raises.",
+  "function_policy_rule_uri": "",
+  "function_settings_schema": {
+    "title": "Settings",
+    "type": "object",
+    "properties": {
+      "required_certifications_any_of": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "min_licenses_supplied": {
+        "type": "integer"
+      },
+      "min_projects_served": {
+        "type": "integer"
+      },
+      "HIS_CONFIG": {
+        "type": "object",
+        "properties": {
+          "HIS_BASE_URL": {
+            "type": "string"
+          },
+          "HIS_POLL_INTERVAL": {
+            "type": "number"
+          },
+          "HIS_MAX_WAIT": {
+            "type": "integer"
+          }
+        }
+      }
+    }
+  },
+  "function_parameters_schema": {
+    "title": "Parameters",
+    "type": "object",
+    "properties": {}
+  },
+  "function_input_schema": {
+    "title": "Input",
+    "type": "object",
+    "properties": {
+      "bid_job": {
+        "type": "object"
+      },
+      "bid": {
+        "type": "object"
+      }
+    }
+  },
+  "function_output_schema": {
+    "title": "Output",
+    "type": "object",
+    "properties": {
+      "accepted": {
+        "type": "boolean"
+      },
+      "reason": {
+        "type": "string"
+      }
+    }
+  },
+  "function_api_spec": {},
+  "open_api_spec": {},
+  "api_parameters_to_cost_relation_data": {}
+}

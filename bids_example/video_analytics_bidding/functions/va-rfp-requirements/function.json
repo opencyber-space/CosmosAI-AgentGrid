@@ -1,0 +1,122 @@
+{
+  "function_name": "va-rfp-requirements",
+  "function_version": "1.0",
+  "function_release_tag": "stable",
+  "is_stateful": true,
+  "function_metadata": {
+    "author": "admin",
+    "category": "compliance",
+    "language": "python",
+    "entry_module": "policy_rule",
+    "entry_class": "AIOSv1PolicyRule"
+  },
+  "function_search_description": "Extracts the video-analytics requirements from an RFP once and serves the same list to every bidder.",
+  "function_tags": ["compliance", "rfp", "video-analytics", "openarcade", "xchange"],
+  "function_type": "policy",
+  "function_code": "",
+  "function_policy_rule_uri": "",
+  "function_settings": {
+    "max_rfp_chars": 90000,
+    "download_timeout_seconds": 60,
+    "wait_timeout_seconds": 300
+  },
+  "function_parameters": {
+    "tool_model": {}
+  },
+  "function_man_page_doc": "Input {rfp_url} -> {usecases, total_licenses, requirements, benchmarked_usecases, cached}. Reads the RFP once per url and caches the result in process, so every company is scored against an identical requirement list and the extraction is paid for once. Callers arriving while an extraction is in flight block on a per-url lock and then read the cache rather than starting a second extraction. MUST run as a single-replica deployment (is_stateful): the cache and the lock live in this process, so a job or a second replica defeats both. The caller supplies its own model block on parameters.tool_model (llm_block_id plus llm_parameters including api_key); this function holds no credentials of its own. Never raises -- a failure returns {status: extraction_failed} so the calling agent can fall back.",
+  "function_settings_schema": {
+    "title": "Settings",
+    "type": "object",
+    "additionalProperties": true,
+    "properties": {
+      "max_rfp_chars": {
+        "type": "integer",
+        "default": 90000,
+        "description": "Upper bound on the RFP text handed to the model."
+      },
+      "download_timeout_seconds": {
+        "type": "number",
+        "default": 60,
+        "description": "Timeout for fetching the RFP document."
+      },
+      "wait_timeout_seconds": {
+        "type": "number",
+        "default": 300,
+        "description": "How long a caller waits for an in-flight extraction of the same url before failing rather than starting its own."
+      }
+    }
+  },
+  "function_parameters_schema": {
+    "title": "Parameters",
+    "type": "object",
+    "additionalProperties": true,
+    "properties": {
+      "tool_model": {
+        "type": "object",
+        "description": "The caller's own model block: llm_block_id (e.g. openai:gpt-5.4-mini) plus llm_parameters carrying api_key.",
+        "properties": {
+          "llm_block_id": { "type": "string" },
+          "llm_parameters": { "type": "object" }
+        }
+      },
+      "rfp_url": {
+        "type": "string",
+        "description": "Accepted here as well as on the input, for callers that pass everything as parameters."
+      }
+    }
+  },
+  "function_input_schema": {
+    "title": "RFP Requirements Input",
+    "type": "object",
+    "properties": {
+      "rfp_url": {
+        "type": "string",
+        "description": "Url of the RFP document. This is the cache key."
+      },
+      "rfp_text": {
+        "type": "string",
+        "description": "Optional. Pre-extracted text, used instead of downloading the url. The url is still the cache key."
+      }
+    },
+    "required": ["rfp_url"],
+    "examples": [
+      { "rfp_url": "http://minio.example/va-bidding-rfp/rfp/RFP_Extract_Patna.pdf" }
+    ]
+  },
+  "function_output_schema": {
+    "title": "RFP Requirements Output",
+    "type": "object",
+    "properties": {
+      "status": { "type": "string", "enum": ["ok", "extraction_failed", "no_rfp_url"] },
+      "rfp_url": { "type": "string" },
+      "cached": {
+        "type": "boolean",
+        "description": "False for the caller that paid for the extraction, true for everyone after it."
+      },
+      "elapsed_seconds": { "type": "number" },
+      "usecases": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": { "type": "string" },
+            "name": { "type": "string" },
+            "outdoor": { "type": "boolean" }
+          }
+        }
+      },
+      "total_licenses": { "type": "integer" },
+      "requirements": {
+        "type": "array",
+        "items": { "type": "string" },
+        "description": "The canonical list. Identical for every bidder on this url, which is what makes met/total comparable."
+      },
+      "benchmarked_usecases": { "type": "array", "items": { "type": "string" } },
+      "error": { "type": "string" }
+    }
+  },
+  "function_api_spec": {},
+  "open_api_spec": {},
+  "api_parameters_to_cost_relation_data": {},
+  "is_system_action": false
+}

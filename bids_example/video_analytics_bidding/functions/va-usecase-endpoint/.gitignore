@@ -1,0 +1,7 @@
+# What each company's endpoints answer is not committed: an answer key stored beside the
+# company being graded on it is not a benchmark. functions/warmup.sh prints the format,
+# and a missing file is handled -- the endpoint answers false to everything and scores 0.
+verdicts/*.yaml
+
+# Built per company by build.sh, one zip per (company, use case).
+build/

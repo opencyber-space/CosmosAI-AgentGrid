@@ -1,0 +1,257 @@
+# VideoProcTech -- what this company offers.
+#
+# Role in the demonstrated round: NOT invited by name. It reaches the bid job only
+# through the topic `videoanalytics_bidding`, evaluates the RFP, and DECLINES -- its
+# licence ceiling is far below what a city-scale programme needs.
+#
+# This is the other half of what topic listening is for. A listener is not obliged to
+# bid: it hears about the work, decides the work is not for it, and says so. Raise
+# `licensing.max_licenses` above the RFP's licence count and it bids instead.
+#
+# It still submits an explicit declining bid rather than staying silent. Evaluation
+# fires only once every participant has a bid on file and has no timeout, so a silent
+# listener would stall the round forever.
+
+company:
+  name: VideoProcTech
+  slug: videoproctech
+  subject_id: videoproctech-bid-manager
+  description: Boutique video analytics integrator for small and mid-size deployments.
+  topics:
+    - videoanalytics_bidding      # how it hears about the RFP at all
+
+usecases:
+  - id: face_recognition
+    name: Face Recognition (1:N watchlist search)
+    operating_conditions:
+      indoor: true
+      outdoor: true
+      min_camera_height_m: 2.5
+      max_camera_height_m: 6.0
+      max_population_density: 3.5
+      min_frames: 12
+      min_resolution: "1920x1080"
+      night_capable: true
+      min_lux: 18
+    accuracy:
+      dataset: NIST FRVT 1:N
+      value: 0.965
+    certifications_required: ["NIST"]
+
+  - id: crowd_density
+    name: Crowd density estimation and live counting
+    operating_conditions:
+      indoor: true
+      outdoor: true
+      min_camera_height_m: 4.0
+      max_camera_height_m: 10.0
+      max_population_density: 6.0
+      min_frames: 10
+      min_resolution: "1280x720"
+      night_capable: true
+      min_lux: 30
+    accuracy:
+      dataset: ShanghaiTech Part A
+      value: 0.884
+    certifications_required: []
+
+  - id: intrusion_detection
+    name: Perimeter and intrusion detection
+    operating_conditions:
+      indoor: true
+      outdoor: true
+      min_camera_height_m: 3.0
+      max_camera_height_m: 9.0
+      max_population_density: 2.0
+      min_frames: 8
+      min_resolution: "1280x720"
+      night_capable: true
+      min_lux: 12
+    accuracy:
+      dataset: VIRAT
+      value: 0.918
+    certifications_required: []
+
+  - id: anpr
+    name: License plate recognition / ANPR
+    operating_conditions:
+      indoor: false
+      outdoor: true
+      min_camera_height_m: 4.0
+      max_camera_height_m: 8.0
+      max_population_density: 1.0
+      min_frames: 6
+      min_resolution: "1920x1080"
+      night_capable: true
+      min_lux: 20
+    accuracy:
+      dataset: UFPR-ALPR
+      value: 0.897
+    certifications_required: []
+
+# The decline lives here, and only here. A city-scale RFP asks for far more licences
+# than this company will supply on a single programme.
+licensing:
+  min_licenses: 20
+  max_licenses: 1000
+
+hardware:
+  face_recognition:
+    cpu_cores: 0.19
+    ram_gb: 0.76
+    disk_gb: 28.0
+    gpu_count: 0.0133
+    notes: Sized for single-site deployments; no multi-cluster tier offered.
+  crowd_density:
+    cpu_cores: 0.13
+    ram_gb: 0.52
+    disk_gb: 19.0
+    gpu_count: 0.0077
+  intrusion_detection:
+    cpu_cores: 0.10
+    ram_gb: 0.40
+    disk_gb: 15.0
+    gpu_count: 0.0048
+  anpr:
+    cpu_cores: 0.14
+    ram_gb: 0.56
+    disk_gb: 20.0
+    gpu_count: 0.0091
+
+pricing:
+  currency: INR
+  one_time_implementation_pct: 0.16
+  amc_pct: 0.11
+  face_recognition:
+    unit_price: 1530
+    timeline_weeks_per_100_licenses: 1.6
+  crowd_density:
+    unit_price: 1010
+    timeline_weeks_per_100_licenses: 1.1
+  intrusion_detection:
+    unit_price: 800
+    timeline_weeks_per_100_licenses: 0.9
+  anpr:
+    unit_price: 1080
+    timeline_weeks_per_100_licenses: 1.2
+
+# Perfectly respectable credentials -- this company would clear pre-qualification if it
+# bid at all. It declines on scale, not on standing.
+credentials:
+  certifications:
+    - NIST FRVT
+  projects_served: 11
+  licenses_supplied: 13500
+  past_projects:
+    - {name: District Hospital Campus Surveillance, licenses: 620, year: 2025}
+    - {name: Industrial Park Perimeter, licenses: 450, year: 2024}
+    - {name: Municipal Market Analytics, licenses: 380, year: 2023}
+
+live_endpoints:
+  max_live_endpoints: 2
+  default_verdict: false
+  # Declared but never exercised: the licence ceiling ends the chain before any
+  # endpoint is registered.
+  # Which use cases this company stands up a live endpoint for. That its endpoints exist
+  # is part of the company's public profile, so it stays here. What they answer is not:
+  # an answer key committed beside the company that is being graded on it is not a
+  # benchmark. The answers come from an uncommitted
+  # functions/va-usecase-endpoint/verdicts/<slug>_verdicts.yaml, packaged into the
+  # endpoint at build time. With no such file the endpoint answers default_verdict to
+  # every image, which scores 0 -- the endpoint dimension is absolute, so 0 for everyone
+  # adds 0 to everyone's total and simply drops out of the comparison.
+  endpoints:
+    - face_recognition
+    - crowd_density
+
+approval:
+  # Delivery cost as a fraction of the bare licence subtotal. The Head Agent
+  # computes margin as (budget - subtotal * cost_ratio) / budget and refuses
+  # anything under min_margin_pct.
+  # City-scale delivery is outside this company's operating model, so cost exceeds revenue. Moot in practice: it declines on its licence ceiling long before approval.
+  cost_ratio: 1.1
+  min_margin_pct: 18
+  require_certification_evidence: true
+  require_past_projects: true
+
+# ---------------------------------------------------------------------------
+# What the product actually does, in the terms the RFP asks about.
+#
+# The compliance agent hands this whole block to the verdict model alongside the use
+# cases. Before it existed every requirement came back "the catalogue does not mention
+# it" -- 37 of 37 on bid job 9a9b9f38 -- because pose tolerance, gallery size, search
+# latency, enrolment, codecs and integrations appear nowhere in a use-case list. The
+# model was judging honestly; it had not been shown the evidence.
+#
+# Numbers are the product's real limits, so a requirement can be compared against them
+# rather than guessed at. Where this company cannot do something, the field says so:
+# claiming otherwise wins a round the company then cannot deliver.
+# ---------------------------------------------------------------------------
+capabilities:
+
+  deployment:
+    gpu_servers: true                    # req 1
+    gpu_vendors: [NVIDIA, Intel]         # req 17
+    architecture: centralized_datacentre
+    edge_capable: true
+  modes: [real_time, offline]            # req 4
+  matching_modes: ["1:1", "1:N"]         # req 5: no N:N
+  continuous_learning: false             # req 2
+  inputs: [cctv_ip_camera, rtsp, recorded_file]   # req 3
+  watchlist:
+    blacklist_alerts: true               # req 6
+    sources: [live_feed, recorded_feed]
+    retrospective_search_on_enrolment_s: 120       # req 10
+  crowd:
+    max_faces_per_frame: 18              # req 7: under the RFP's 20
+    partial_face_recognition: false      # req 8
+    concurrent_streams: 12
+  pose_tolerance_deg:
+    yaw: 35                              # req 7: short of +-40
+    pitch: 30                            # req 7: meets +-30
+    roll: 20
+  video:
+    colour_modes: [colour, black_white]  # req 9
+    day_night: true
+    codecs: ["H.264", "H.265"]
+  search:
+    latency_s: 4.0                       # req 12
+    max_gallery_size: 500000             # req 12: short of 1 million
+  enrolment:
+    modes: [bulk_from_filesystem, manual]          # req 11
+  mobile_apps: [Android]                 # req 14
+  integrations:
+    sdk_api: true                        # req 15
+    command_control: [ICCC]
+    vms: [Milestone, Genetec]            # req 35
+    sensors: false                       # req 36
+  alerting:
+    email: [Gmail, Outlook, Exchange SMTP]         # req 16
+    customisable_per_user: true          # req 34
+    priority_levels: true
+
+platform:
+
+  behavioural_analytics: true            # req 21
+  model_training:
+    annotation_tool: true                # req 23
+    annotation_shapes: [rectangle, polygon]
+    accuracy_improves_on_existing_behaviours: false # req 22
+    new_behaviours_addable: false
+    runtime_model_plugin: false          # req 24, 25
+    per_camera_configuration: true
+  model_library:
+    standardized_oem_models: false       # req 26
+    comparison: []                       # req 27
+    per_model_metrics: false             # req 28
+  detection:
+    min_object_size_pct: 10              # req 29
+    behaviour_change_detection_s: 3      # req 31
+    multi_behaviour_per_camera: true     # req 30
+  dashboard:
+    unified_across_usecases: true        # req 33
+    per_user_customisation: true         # req 34
+  licensing_modes: [floating, fixed]     # req 32
+  privacy:
+    gdpr_compliant: true                 # req 37
+    data_residency: in_country

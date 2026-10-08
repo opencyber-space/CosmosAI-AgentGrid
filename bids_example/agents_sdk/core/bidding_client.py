@@ -53,11 +53,23 @@ __all__ = [
     "BidTaskPoller",
     "BiddingClient",
     "BiddingError",
+    "SUBJECT_TAG_PREFIX",
+    "subject_tag",
 ]
 
 logger = logging.getLogger("orcade.bidding_client")
 
 DEFAULT_TIMEOUT = (5, 30)  # (connect, read) seconds
+
+# Tag the server generates for each subject named in a mixed-mode job's
+# bid_job_subject_ids (see core/schema.py's SUBJECT_TAG_PREFIX on the server).
+# This literal must stay identical to the server's, since the two are not
+# shared code.
+SUBJECT_TAG_PREFIX = "subject::"
+
+
+def subject_tag(subject_id: str) -> str:
+    return f"{SUBJECT_TAG_PREFIX}{subject_id}"
 
 
 # ----------------------------------------------------------------------
@@ -210,16 +222,34 @@ class BidTagQuery:
     """
     Input to the tag-based lookups.
 
-    ``match="all"`` (default) returns jobs carrying every tag in ``tags``.
-    ``match="any"`` returns jobs carrying at least one of them.
+    ``match="all"`` (default) returns jobs carrying every tag in ``tags``
+    (plus the subject tag, if ``subject_id`` is given). ``match="any"``
+    returns jobs carrying at least one of them.
+
+    ``subject_id``, if given, adds ``"subject::<subject_id>"`` to the tags
+    that are searched for. Mixed-mode jobs ([see the schema docs]) carry this
+    tag for every subject named in their roster, so a subject can find jobs
+    targeted at it by passing its own ID here. A common pattern is::
+
+        BidTagQuery(tags=my_search_tags, subject_id=my_subject_id, match="any")
+
+    which finds jobs matching the subject's general interest tags *or*
+    specifically naming it, in one query.
     """
 
-    tags: List[str]
+    tags: List[str] = field(default_factory=list)
     match: str = "all"
+    subject_id: Optional[str] = None
 
     def __post_init__(self) -> None:
-        if not self.tags:
-            raise ValueError("BidTagQuery needs at least one tag.")
+        if self.subject_id is not None:
+            if not isinstance(self.subject_id, str) or not self.subject_id.strip():
+                raise ValueError("subject_id must be a non-empty string.")
+            if "," in self.subject_id:
+                raise ValueError("subject_id must not contain a comma.")
+
+        if not self.tags and not self.subject_id:
+            raise ValueError("BidTagQuery needs at least one tag or a subject_id.")
         for tag in self.tags:
             if not isinstance(tag, str) or not tag.strip():
                 raise ValueError("Tags must be non-empty strings.")
@@ -229,8 +259,18 @@ class BidTagQuery:
         if self.match not in ("all", "any"):
             raise ValueError("match must be 'all' or 'any'.")
 
+    def effective_tags(self) -> List[str]:
+        """``tags`` plus the subject tag, if ``subject_id`` is set."""
+        tags = list(self.tags)
+        if self.subject_id:
+            tags.append(subject_tag(self.subject_id))
+        return tags
+
     def to_params(self) -> Dict[str, str]:
-        return {"tags": ",".join(t.strip() for t in self.tags), "match": self.match}
+        return {
+            "tags": ",".join(t.strip() for t in self.effective_tags()),
+            "match": self.match,
+        }
 
 
 # ----------------------------------------------------------------------

@@ -90,6 +90,138 @@ case "${AGENT}" in
     echo "Starting subagent3-content-creation-proofreader-editor agent (bids_processing/nodes/subagent3_content_creation_proofreader_editor.py)"
     exec python3 bids_processing/nodes/subagent3_content_creation_proofreader_editor.py
     ;;
+  # For video_analytics_bidding agents (6 roles x 5 companies).
+  # AGENT is the subject_id, e.g. camfacesolution-bid-manager.
+
+  # --- CamFaceSolution ---
+  camfacesolution-bid-manager)
+    echo "Starting camfacesolution-bid-manager agent (video_analytics_bidding/nodes/CamFaceSolution/bid_manager.py)"
+    exec python3 video_analytics_bidding/nodes/CamFaceSolution/bid_manager.py
+    ;;
+  camfacesolution-ai-compliance)
+    echo "Starting camfacesolution-ai-compliance agent (video_analytics_bidding/nodes/CamFaceSolution/ai_compliance.py)"
+    exec python3 video_analytics_bidding/nodes/CamFaceSolution/ai_compliance.py
+    ;;
+  camfacesolution-sizing)
+    echo "Starting camfacesolution-sizing agent (video_analytics_bidding/nodes/CamFaceSolution/sizing.py)"
+    exec python3 video_analytics_bidding/nodes/CamFaceSolution/sizing.py
+    ;;
+  camfacesolution-finance)
+    echo "Starting camfacesolution-finance agent (video_analytics_bidding/nodes/CamFaceSolution/finance.py)"
+    exec python3 video_analytics_bidding/nodes/CamFaceSolution/finance.py
+    ;;
+  camfacesolution-bid-reviewer)
+    echo "Starting camfacesolution-bid-reviewer agent (video_analytics_bidding/nodes/CamFaceSolution/bid_reviewer.py)"
+    exec python3 video_analytics_bidding/nodes/CamFaceSolution/bid_reviewer.py
+    ;;
+  camfacesolution-head)
+    echo "Starting camfacesolution-head agent (video_analytics_bidding/nodes/CamFaceSolution/head.py)"
+    exec python3 video_analytics_bidding/nodes/CamFaceSolution/head.py
+    ;;
+
+  # --- MultiFaceTech ---
+  multifacetech-bid-manager)
+    echo "Starting multifacetech-bid-manager agent (video_analytics_bidding/nodes/MultiFaceTech/bid_manager.py)"
+    exec python3 video_analytics_bidding/nodes/MultiFaceTech/bid_manager.py
+    ;;
+  multifacetech-ai-compliance)
+    echo "Starting multifacetech-ai-compliance agent (video_analytics_bidding/nodes/MultiFaceTech/ai_compliance.py)"
+    exec python3 video_analytics_bidding/nodes/MultiFaceTech/ai_compliance.py
+    ;;
+  multifacetech-sizing)
+    echo "Starting multifacetech-sizing agent (video_analytics_bidding/nodes/MultiFaceTech/sizing.py)"
+    exec python3 video_analytics_bidding/nodes/MultiFaceTech/sizing.py
+    ;;
+  multifacetech-finance)
+    echo "Starting multifacetech-finance agent (video_analytics_bidding/nodes/MultiFaceTech/finance.py)"
+    exec python3 video_analytics_bidding/nodes/MultiFaceTech/finance.py
+    ;;
+  multifacetech-bid-reviewer)
+    echo "Starting multifacetech-bid-reviewer agent (video_analytics_bidding/nodes/MultiFaceTech/bid_reviewer.py)"
+    exec python3 video_analytics_bidding/nodes/MultiFaceTech/bid_reviewer.py
+    ;;
+  multifacetech-head)
+    echo "Starting multifacetech-head agent (video_analytics_bidding/nodes/MultiFaceTech/head.py)"
+    exec python3 video_analytics_bidding/nodes/MultiFaceTech/head.py
+    ;;
+
+  # --- NewGenTech ---
+  newgentech-bid-manager)
+    echo "Starting newgentech-bid-manager agent (video_analytics_bidding/nodes/NewGenTech/bid_manager.py)"
+    exec python3 video_analytics_bidding/nodes/NewGenTech/bid_manager.py
+    ;;
+  newgentech-ai-compliance)
+    echo "Starting newgentech-ai-compliance agent (video_analytics_bidding/nodes/NewGenTech/ai_compliance.py)"
+    exec python3 video_analytics_bidding/nodes/NewGenTech/ai_compliance.py
+    ;;
+  newgentech-sizing)
+    echo "Starting newgentech-sizing agent (video_analytics_bidding/nodes/NewGenTech/sizing.py)"
+    exec python3 video_analytics_bidding/nodes/NewGenTech/sizing.py
+    ;;
+  newgentech-finance)
+    echo "Starting newgentech-finance agent (video_analytics_bidding/nodes/NewGenTech/finance.py)"
+    exec python3 video_analytics_bidding/nodes/NewGenTech/finance.py
+    ;;
+  newgentech-bid-reviewer)
+    echo "Starting newgentech-bid-reviewer agent (video_analytics_bidding/nodes/NewGenTech/bid_reviewer.py)"
+    exec python3 video_analytics_bidding/nodes/NewGenTech/bid_reviewer.py
+    ;;
+  newgentech-head)
+    echo "Starting newgentech-head agent (video_analytics_bidding/nodes/NewGenTech/head.py)"
+    exec python3 video_analytics_bidding/nodes/NewGenTech/head.py
+    ;;
+
+  # --- UltraVideoTech ---
+  ultravideotech-bid-manager)
+    echo "Starting ultravideotech-bid-manager agent (video_analytics_bidding/nodes/UltraVideoTech/bid_manager.py)"
+    exec python3 video_analytics_bidding/nodes/UltraVideoTech/bid_manager.py
+    ;;
+  ultravideotech-ai-compliance)
+    echo "Starting ultravideotech-ai-compliance agent (video_analytics_bidding/nodes/UltraVideoTech/ai_compliance.py)"
+    exec python3 video_analytics_bidding/nodes/UltraVideoTech/ai_compliance.py
+    ;;
+  ultravideotech-sizing)
+    echo "Starting ultravideotech-sizing agent (video_analytics_bidding/nodes/UltraVideoTech/sizing.py)"
+    exec python3 video_analytics_bidding/nodes/UltraVideoTech/sizing.py
+    ;;
+  ultravideotech-finance)
+    echo "Starting ultravideotech-finance agent (video_analytics_bidding/nodes/UltraVideoTech/finance.py)"
+    exec python3 video_analytics_bidding/nodes/UltraVideoTech/finance.py
+    ;;
+  ultravideotech-bid-reviewer)
+    echo "Starting ultravideotech-bid-reviewer agent (video_analytics_bidding/nodes/UltraVideoTech/bid_reviewer.py)"
+    exec python3 video_analytics_bidding/nodes/UltraVideoTech/bid_reviewer.py
+    ;;
+  ultravideotech-head)
+    echo "Starting ultravideotech-head agent (video_analytics_bidding/nodes/UltraVideoTech/head.py)"
+    exec python3 video_analytics_bidding/nodes/UltraVideoTech/head.py
+    ;;
+
+  # --- VideoProcTech ---
+  videoproctech-bid-manager)
+    echo "Starting videoproctech-bid-manager agent (video_analytics_bidding/nodes/VideoProcTech/bid_manager.py)"
+    exec python3 video_analytics_bidding/nodes/VideoProcTech/bid_manager.py
+    ;;
+  videoproctech-ai-compliance)
+    echo "Starting videoproctech-ai-compliance agent (video_analytics_bidding/nodes/VideoProcTech/ai_compliance.py)"
+    exec python3 video_analytics_bidding/nodes/VideoProcTech/ai_compliance.py
+    ;;
+  videoproctech-sizing)
+    echo "Starting videoproctech-sizing agent (video_analytics_bidding/nodes/VideoProcTech/sizing.py)"
+    exec python3 video_analytics_bidding/nodes/VideoProcTech/sizing.py
+    ;;
+  videoproctech-finance)
+    echo "Starting videoproctech-finance agent (video_analytics_bidding/nodes/VideoProcTech/finance.py)"
+    exec python3 video_analytics_bidding/nodes/VideoProcTech/finance.py
+    ;;
+  videoproctech-bid-reviewer)
+    echo "Starting videoproctech-bid-reviewer agent (video_analytics_bidding/nodes/VideoProcTech/bid_reviewer.py)"
+    exec python3 video_analytics_bidding/nodes/VideoProcTech/bid_reviewer.py
+    ;;
+  videoproctech-head)
+    echo "Starting videoproctech-head agent (video_analytics_bidding/nodes/VideoProcTech/head.py)"
+    exec python3 video_analytics_bidding/nodes/VideoProcTech/head.py
+    ;;
   *)
     echo "Starting no agent for '${AGENT}' (unknown mapping)"
     #exec python3 agent.py --agent "${AGENT}"

@@ -1,0 +1,226 @@
+# MultiFaceTech -- what this company offers.
+#
+# Role in the demonstrated round: INVITED by subject id, but DECLINES at the compliance
+# stage. Every use case it offers is indoor-only, and the RFP is a city-wide outdoor
+# surveillance programme, so its catalogue cannot cover the work.
+#
+# The decline comes entirely from `operating_conditions.outdoor: false` below. No agent
+# knows this company is meant to decline -- flip these flags to true and it bids.
+
+company:
+  name: MultiFaceTech
+  slug: multifacetech
+  subject_id: multifacetech-bid-manager
+  description: Indoor facial recognition for controlled-environment access and attendance.
+  topics: []          # invited explicitly; does not listen on the open topic
+
+usecases:
+  - id: face_recognition
+    name: Face Recognition (1:N watchlist search, indoor)
+    operating_conditions:
+      indoor: true
+      outdoor: false             # the reason this company declines
+      min_camera_height_m: 2.0
+      max_camera_height_m: 3.5
+      max_population_density: 2.0
+      min_frames: 15
+      min_resolution: "1920x1080"
+      night_capable: false       # controlled lighting only
+      min_lux: 120
+    accuracy:
+      dataset: NIST FRVT 1:N
+      value: 0.984
+    certifications_required: ["NIST"]
+
+  - id: crowd_multiface
+    name: Multi-face detection in indoor gatherings
+    operating_conditions:
+      indoor: true
+      outdoor: false
+      min_camera_height_m: 2.5
+      max_camera_height_m: 4.0
+      max_population_density: 3.0
+      min_frames: 18
+      min_resolution: "1920x1080"
+      night_capable: false
+      min_lux: 150
+    accuracy:
+      dataset: WIDER FACE (medium)
+      value: 0.945
+    certifications_required: ["NIST"]
+
+  - id: abandoned_object
+    name: Abandoned object detection (indoor concourse)
+    operating_conditions:
+      indoor: true
+      outdoor: false
+      min_camera_height_m: 2.5
+      max_camera_height_m: 4.5
+      max_population_density: 2.5
+      min_frames: 25
+      min_resolution: "1280x720"
+      night_capable: false
+      min_lux: 100
+    accuracy:
+      dataset: PETS2006
+      value: 0.902
+    certifications_required: []
+
+licensing:
+  min_licenses: 50
+  max_licenses: 12000
+
+hardware:
+  face_recognition:
+    cpu_cores: 0.20
+    ram_gb: 0.80
+    disk_gb: 26.0
+    gpu_count: 0.0139
+    notes: Indoor deployments assume controlled lighting; no IR compensation tier.
+  crowd_multiface:
+    cpu_cores: 0.16
+    ram_gb: 0.64
+    disk_gb: 21.0
+    gpu_count: 0.0111
+  abandoned_object:
+    cpu_cores: 0.11
+    ram_gb: 0.44
+    disk_gb: 17.0
+    gpu_count: 0.0059
+
+pricing:
+  currency: INR
+  one_time_implementation_pct: 0.12
+  amc_pct: 0.10
+  face_recognition:
+    unit_price: 1290
+    timeline_weeks_per_100_licenses: 1.3
+  crowd_multiface:
+    unit_price: 1060
+    timeline_weeks_per_100_licenses: 1.1
+  abandoned_object:
+    unit_price: 820
+    timeline_weeks_per_100_licenses: 0.9
+
+# Credentials are genuinely strong. This company is not declining because it is weak --
+# it declines because the work is outdoors and it does not do outdoors. The credentials
+# still travel on the declining bid, because pre-qualification runs on every bid and a
+# missing block would read as a credential failure rather than a decline.
+credentials:
+  certifications:
+    - NIST FRVT
+    - ISO 27001
+  projects_served: 9
+  licenses_supplied: 15000
+  past_projects:
+    - {name: Corporate Campus Access Control, licenses: 4200, year: 2024}
+    - {name: Stadium Concourse Attendance, licenses: 3100, year: 2023}
+
+live_endpoints:
+  max_live_endpoints: 2
+  default_verdict: false
+  # Declared but never exercised: this company declines before the compliance agent
+  # registers any endpoint, so nothing here reaches the evaluator.
+  # Which use cases this company stands up a live endpoint for. That its endpoints exist
+  # is part of the company's public profile, so it stays here. What they answer is not:
+  # an answer key committed beside the company that is being graded on it is not a
+  # benchmark. The answers come from an uncommitted
+  # functions/va-usecase-endpoint/verdicts/<slug>_verdicts.yaml, packaged into the
+  # endpoint at build time. With no such file the endpoint answers default_verdict to
+  # every image, which scores 0 -- the endpoint dimension is absolute, so 0 for everyone
+  # adds 0 to everyone's total and simply drops out of the comparison.
+  endpoints:
+    - face_recognition
+    - crowd_multiface
+
+approval:
+  # Delivery cost as a fraction of the bare licence subtotal. The Head Agent
+  # computes margin as (budget - subtotal * cost_ratio) / budget and refuses
+  # anything under min_margin_pct.
+  # Outdoor work would need a delivery capability this company does not have, so cost exceeds revenue. Moot in practice: it declines at compliance long before approval.
+  cost_ratio: 1.15
+  min_margin_pct: 14
+  require_certification_evidence: true
+  require_past_projects: true
+
+# ---------------------------------------------------------------------------
+# What the product actually does, in the terms the RFP asks about.
+#
+# The compliance agent hands this whole block to the verdict model alongside the use
+# cases. Before it existed every requirement came back "the catalogue does not mention
+# it" -- 37 of 37 on bid job 9a9b9f38 -- because pose tolerance, gallery size, search
+# latency, enrolment, codecs and integrations appear nowhere in a use-case list. The
+# model was judging honestly; it had not been shown the evidence.
+#
+# Numbers are the product's real limits, so a requirement can be compared against them
+# rather than guessed at. Where this company cannot do something, the field says so:
+# claiming otherwise wins a round the company then cannot deliver.
+# ---------------------------------------------------------------------------
+capabilities:
+
+  deployment:
+    gpu_servers: true                    # req 1
+    gpu_vendors: [NVIDIA]                # req 17
+    architecture: centralized_datacentre
+    edge_capable: false
+  modes: [real_time]                     # req 4: no offline mode
+  matching_modes: ["1:N", "N:N"]         # req 5: no 1:1
+  continuous_learning: false             # req 2
+  inputs: [cctv_ip_camera, rtsp]         # req 3
+  watchlist:
+    blacklist_alerts: true               # req 6
+    sources: [live_feed]                 # req 6: live only
+    retrospective_search_on_enrolment_s: null      # req 10: not supported
+  crowd:
+    max_faces_per_frame: 45              # req 7: its strongest figure
+    partial_face_recognition: true       # req 8
+    concurrent_streams: 40
+  pose_tolerance_deg:
+    yaw: 50                              # req 7
+    pitch: 40                            # req 7
+    roll: 35
+  video:
+    colour_modes: [colour]               # req 9: no black/white mode
+    day_night: true
+    codecs: ["H.264", "H.265"]
+  search:
+    latency_s: 6.5                       # req 12: over the 5 second bar
+    max_gallery_size: 1000000            # req 12
+  enrolment:
+    modes: [bulk_from_filesystem, manual]          # req 11: no automatic enrolment
+  mobile_apps: []                        # req 14: none
+  integrations:
+    sdk_api: true                        # req 15
+    command_control: []
+    vms: [Milestone]                     # req 35
+    sensors: false                       # req 36
+  alerting:
+    email: [Gmail]                       # req 16
+    customisable_per_user: false         # req 34
+    priority_levels: false
+
+platform:
+
+  behavioural_analytics: false           # req 21
+  model_training:
+    annotation_tool: false               # req 23
+    annotation_shapes: []
+    accuracy_improves_on_existing_behaviours: false # req 22
+    new_behaviours_addable: false
+    runtime_model_plugin: false          # req 24, 25
+    per_camera_configuration: false
+  model_library:
+    standardized_oem_models: false       # req 26
+    comparison: []                       # req 27
+    per_model_metrics: false             # req 28
+  detection:
+    min_object_size_pct: 12              # req 29: misses the 10% bar
+    behaviour_change_detection_s: null   # req 31
+    multi_behaviour_per_camera: false    # req 30
+  dashboard:
+    unified_across_usecases: false       # req 33
+    per_user_customisation: false        # req 34
+  licensing_modes: [fixed]               # req 32: no floating licences
+  privacy:
+    gdpr_compliant: false                # req 37
+    data_residency: unspecified

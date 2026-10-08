@@ -1,0 +1,304 @@
+# CamFaceSolution -- what this company offers.
+#
+# Nothing here states what the RFP asks for; those requirements are extracted from the
+# RFP document at run time. This file is only the company's own declared reality, so
+# editing it changes this company's behaviour without touching any agent code.
+#
+# Role in the demonstrated round: INVITED by subject id, bids, and is SCORED.
+# Cheaper per licence than UltraVideoTech but with a heavier hardware footprint, so the
+# budget and sizing dimensions pull in opposite directions.
+
+company:
+  name: CamFaceSolution
+  slug: camfacesolution
+  subject_id: camfacesolution-bid-manager
+  description: Face-recognition specialist for city-scale indoor and outdoor surveillance.
+  topics: []          # invited explicitly; does not listen on the open topic
+
+usecases:
+  - id: face_recognition
+    name: Face Recognition (1:N watchlist search)
+    operating_conditions:
+      indoor: true
+      outdoor: true
+      min_camera_height_m: 2.5
+      max_camera_height_m: 6.0
+      max_population_density: 4.0      # persons per sq m
+      min_frames: 12
+      min_resolution: "1920x1080"
+      night_capable: true
+      min_lux: 15
+    accuracy:
+      dataset: NIST FRVT 1:N
+      value: 0.972
+    certifications_required: ["NIST"]
+
+  - id: crowd_multiface
+    name: Simultaneous multi-face detection in crowds
+    operating_conditions:
+      indoor: true
+      outdoor: true
+      min_camera_height_m: 3.0
+      max_camera_height_m: 8.0
+      max_population_density: 6.0
+      min_frames: 15
+      min_resolution: "1920x1080"
+      night_capable: true
+      min_lux: 25
+    accuracy:
+      dataset: WIDER FACE (hard)
+      value: 0.914
+    certifications_required: ["NIST"]
+
+  - id: crowd_density
+    name: Crowd density estimation and live counting
+    operating_conditions:
+      indoor: true
+      outdoor: true
+      min_camera_height_m: 4.0
+      max_camera_height_m: 12.0
+      max_population_density: 8.0
+      min_frames: 10
+      min_resolution: "1280x720"
+      night_capable: true
+      min_lux: 30
+    accuracy:
+      dataset: ShanghaiTech Part A
+      value: 0.897
+    certifications_required: []
+
+  - id: abandoned_object
+    name: Abandoned and removed object detection
+    operating_conditions:
+      indoor: true
+      outdoor: true
+      min_camera_height_m: 3.0
+      max_camera_height_m: 9.0
+      max_population_density: 3.0
+      min_frames: 25
+      min_resolution: "1280x720"
+      night_capable: true
+      min_lux: 40
+    accuracy:
+      dataset: PETS2006
+      value: 0.881
+    certifications_required: []
+
+  - id: intrusion_detection
+    name: Perimeter and intrusion detection
+    operating_conditions:
+      indoor: true
+      outdoor: true
+      min_camera_height_m: 3.0
+      max_camera_height_m: 10.0
+      max_population_density: 2.0
+      min_frames: 8
+      min_resolution: "1280x720"
+      night_capable: true
+      min_lux: 10
+    accuracy:
+      dataset: VIRAT
+      value: 0.923
+    certifications_required: []
+
+  - id: anpr
+    name: License plate recognition / ANPR
+    operating_conditions:
+      indoor: false
+      outdoor: true
+      min_camera_height_m: 4.0
+      max_camera_height_m: 8.0
+      max_population_density: 1.0
+      min_frames: 6
+      min_resolution: "1920x1080"
+      night_capable: true
+      min_lux: 20
+    accuracy:
+      dataset: UFPR-ALPR
+      value: 0.908
+    certifications_required: []
+
+licensing:
+  min_licenses: 100
+  max_licenses: 25000
+
+# Per use case, PER LICENCE. The sizing agent multiplies these by the licence count the
+# RFP asks for, then rounds: gpu_count up to a whole unit, the rest to 1 decimal.
+hardware:
+  face_recognition:
+    cpu_cores: 0.22
+    ram_gb: 0.88
+    disk_gb: 30.0
+    gpu_count: 0.0156          # one accelerator per ~64 licences
+    notes: Minimum one GPU per deployment; GPU rounded up per server.
+  crowd_multiface:
+    cpu_cores: 0.18
+    ram_gb: 0.72
+    disk_gb: 24.0
+    gpu_count: 0.0125
+  crowd_density:
+    cpu_cores: 0.14
+    ram_gb: 0.56
+    disk_gb: 20.0
+    gpu_count: 0.0083
+  abandoned_object:
+    cpu_cores: 0.12
+    ram_gb: 0.48
+    disk_gb: 18.0
+    gpu_count: 0.0067
+  intrusion_detection:
+    cpu_cores: 0.10
+    ram_gb: 0.40
+    disk_gb: 16.0
+    gpu_count: 0.0050
+  anpr:
+    cpu_cores: 0.15
+    ram_gb: 0.60
+    disk_gb: 22.0
+    gpu_count: 0.0100
+
+# Per use case, PER LICENCE.
+pricing:
+  currency: INR
+  one_time_implementation_pct: 0.14    # of the licence subtotal
+  amc_pct: 0.09                        # of the licence subtotal, per annum
+  face_recognition:
+    unit_price: 1450
+    timeline_weeks_per_100_licenses: 1.5
+  crowd_multiface:
+    unit_price: 1180
+    timeline_weeks_per_100_licenses: 1.2
+  crowd_density:
+    unit_price: 960
+    timeline_weeks_per_100_licenses: 1.0
+  abandoned_object:
+    unit_price: 880
+    timeline_weeks_per_100_licenses: 0.9
+  intrusion_detection:
+    unit_price: 760
+    timeline_weeks_per_100_licenses: 0.8
+  anpr:
+    unit_price: 1020
+    timeline_weeks_per_100_licenses: 1.1
+
+# Read by the Head Agent, and echoed onto the bid so pre-qualification can judge it.
+credentials:
+  certifications:
+    - NIST FRVT
+    - UL CyberSecurity
+  projects_served: 14
+  licenses_supplied: 42000
+  past_projects:
+    - {name: Metro City Safe City Phase II, licenses: 8200, year: 2024}
+    - {name: State Transport Hub Surveillance, licenses: 5400, year: 2023}
+    - {name: Airport Landside FRS Rollout, licenses: 3100, year: 2023}
+
+# The live endpoints this company stands up for the evaluator to call.
+# Capped at 2 for every company so the endpoint dimension compares like with like.
+# What each endpoint answers is packaged in at build time and is not in this repo.
+live_endpoints:
+  max_live_endpoints: 2
+  default_verdict: false
+  # Which use cases this company stands up a live endpoint for. That its endpoints exist
+  # is part of the company's public profile, so it stays here. What they answer is not:
+  # an answer key committed beside the company that is being graded on it is not a
+  # benchmark. The answers come from an uncommitted
+  # functions/va-usecase-endpoint/verdicts/<slug>_verdicts.yaml, packaged into the
+  # endpoint at build time. With no such file the endpoint answers default_verdict to
+  # every image, which scores 0 -- the endpoint dimension is absolute, so 0 for everyone
+  # adds 0 to everyone's total and simply drops out of the comparison.
+  endpoints:
+    - face_recognition
+    - crowd_multiface
+
+approval:
+  # Delivery cost as a fraction of the bare licence subtotal. The Head Agent
+  # computes margin as (budget - subtotal * cost_ratio) / budget and refuses
+  # anything under min_margin_pct.
+  # Mature delivery org with reusable integrations; comfortably viable.
+  cost_ratio: 0.72
+  min_margin_pct: 12
+  require_certification_evidence: true
+  require_past_projects: true
+
+# ---------------------------------------------------------------------------
+# What the product actually does, in the terms the RFP asks about.
+#
+# The compliance agent hands this whole block to the verdict model alongside the use
+# cases. Before it existed every requirement came back "the catalogue does not mention
+# it" -- 37 of 37 on bid job 9a9b9f38 -- because pose tolerance, gallery size, search
+# latency, enrolment, codecs and integrations appear nowhere in a use-case list. The
+# model was judging honestly; it had not been shown the evidence.
+#
+# Numbers are the product's real limits, so a requirement can be compared against them
+# rather than guessed at. Where this company cannot do something, the field says so:
+# claiming otherwise wins a round the company then cannot deliver.
+# ---------------------------------------------------------------------------
+capabilities:
+
+  deployment:
+    gpu_servers: true                    # req 1: GPU servers, centralised datacentre
+    gpu_vendors: [NVIDIA, Intel]         # req 17
+    architecture: centralized_datacentre
+    edge_capable: false
+  modes: [real_time, offline]            # req 4
+  matching_modes: ["1:1", "1:N", "N:N"]  # req 5
+  continuous_learning: true              # req 2
+  inputs: [cctv_ip_camera, rtsp, recorded_file]   # req 3
+  watchlist:
+    blacklist_alerts: true               # req 6
+    sources: [live_feed, recorded_feed]
+    retrospective_search_on_enrolment_s: 40        # req 10
+  crowd:
+    max_faces_per_frame: 30              # req 7: RFP asks for more than 20
+    partial_face_recognition: true       # req 8
+    concurrent_streams: 24               # req 8: multiple videos simultaneously
+  pose_tolerance_deg:
+    yaw: 45                              # req 7: RFP asks for -40 to +40
+    pitch: 35                            # req 7: RFP asks for -30 to +30
+    roll: 30
+  video:
+    colour_modes: [colour, black_white]  # req 9
+    day_night: true
+    codecs: ["H.264", "H.265"]
+  search:
+    latency_s: 3.2                       # req 12, 13: RFP asks for under 5
+    max_gallery_size: 8000000            # req 13: RFP asks for 5-8 million
+  enrolment:
+    modes: [automatic_from_camera, bulk_from_filesystem, manual]   # req 11
+  mobile_apps: [iOS, Android]            # req 14
+  integrations:
+    sdk_api: true                        # req 15
+    command_control: [ICCC]
+    vms: [Milestone, Genetec, Honeywell] # req 35
+    sensors: true                        # req 36
+  alerting:
+    email: [Gmail, Outlook, Exchange SMTP]         # req 16
+    customisable_per_user: true          # req 34
+    priority_levels: true
+
+platform:
+
+  behavioural_analytics: true            # req 21
+  model_training:
+    annotation_tool: true                # req 23
+    annotation_shapes: [rectangle, polygon]
+    accuracy_improves_on_existing_behaviours: true # req 22
+    new_behaviours_addable: true
+    runtime_model_plugin: true           # req 24, 25
+    per_camera_configuration: true       # req 25
+  model_library:
+    standardized_oem_models: true        # req 26
+    comparison: [qualitative, quantitative]        # req 27
+    per_model_metrics: true              # req 28
+  detection:
+    min_object_size_pct: 8               # req 29: RFP asks for at least 10%
+    behaviour_change_detection_s: 2      # req 31: RFP asks for within 3 seconds
+    multi_behaviour_per_camera: true     # req 30
+  dashboard:
+    unified_across_usecases: true        # req 33
+    per_user_customisation: true         # req 34
+  licensing_modes: [floating, fixed]     # req 32
+  privacy:
+    gdpr_compliant: true                 # req 37
+    data_residency: in_country

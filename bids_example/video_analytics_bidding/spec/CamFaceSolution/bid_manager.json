@@ -1,0 +1,159 @@
+{
+    "identity": {
+        "subject_id": "camfacesolution-bid-manager",
+        "subject_name": "camfacesolution-bid-manager",
+        "subject_type": "agent",
+        "subject_version": {
+            "version": "1.0.0",
+            "release_tag": "stable"
+        }
+    },
+    "info": {
+        "container_image_name": "${DOCKER_REGISTRY}/camfacesolution-bid-manager:latest"
+    },
+    "metadata": {
+        "subject_description": "Bid Manager for CamFaceSolution. Receives bid requests from the bidding system, decides whether the work is Video Analytics, coordinates the company's subordinate agents in sequence, and submits or declines the bid. The only agent that speaks outside the company.",
+        "subject_search_tags": [
+            "bid-manager",
+            "video-analytics",
+            "coordinator",
+            "openarcade",
+            "camfacesolution"
+        ],
+        "subject_traits": [
+            "orchestrator",
+            "decisive",
+            "accountable"
+        ],
+        "subject_metadata": {
+            "category": "video_analytics_bidding",
+            "company": "CamFaceSolution",
+            "company_slug": "camfacesolution",
+            "role": "bid_manager"
+        }
+    },
+    "persona": {
+        "role": "bid_manager",
+        "goal": "Qualify incoming bid requests, drive compliance, sizing, finance, review and approval in order, and submit exactly one bid -- priced or declining -- for every request.",
+        "persona": "Decisive coordinator. Answers every request, never leaves one unanswered.",
+        "default_system_message": "You are the Bid Manager for CamFaceSolution.",
+        "config": {
+            "parameters": {
+                "COMPANY": "CamFaceSolution",
+                "COMPANY_SLUG": "camfacesolution",
+                "AGENT_ROLE": "bid_manager",
+                "AGENT_SELECTOR_LLM": "openai:gpt-5.4-mini",
+                "HIS_CONFIG": {
+                    "HIS_BASE_URL": "${HIS_BASE_URL}",
+                    "HIS_POLL_INTERVAL": 1.0,
+                    "HIS_MAX_WAIT": 120
+                },
+                "MINIO_CONFIG": {
+                    "MINIO_URL": "${INTERNAL_IP}:${MINIO_INTERNAL_PORT}",
+                    "MINIO_EXTERNAL_URL": "${EXTERNAL_IP}:${MINIO_EXTERNAL_PORT}",
+                    "MINIO_ACCESS_KEY": "${MINIO_ACCESS_KEY}",
+                    "MINIO_SECRET_KEY": "${MINIO_SECRET_KEY}",
+                    "MINIO_INTERNAL_PORT": "${MINIO_INTERNAL_PORT}",
+                    "MINIO_EXTERNAL_PORT": "${MINIO_EXTERNAL_PORT}",
+                    "MINIO_BUCKET": "va-bidding-docs"
+                },
+                "api_key": "${OPENAI_API_KEY}",
+                "BLOCKS_DB_URL": "${BLOCKS_DB_URL}",
+                "INFERENCE_SERVER_ID": "${INFERENCE_SERVER_URL}",
+                "EXCHANGE_BASE_URL": "${EXCHANGE_BASE_URL}",
+                "ORCADE_URL": "${OPENARCADE_BIDDING_URL}",
+                "ORCADE_POLL_SECONDS": "10",
+                "FUNCTION_REGISTRY_URL": "${FUNCTION_REGISTRY_URL}",
+                "FUNCTION_UPLOAD_URL": "${FUNCTION_UPLOAD_URL}",
+                "FUNCTION_EXECUTOR_ID": "executor-001",
+                "VA_ENDPOINT_VERSION": "1.1",
+                "VA_ENDPOINT_RELEASE_TAG": "stable"
+            }
+        }
+    },
+    "prompting": {
+        "default_system_template": "System: {{system_message}}",
+        "input_template": "User: {{user_input}}",
+        "output_template": "Assistant: {{assistant_output}}",
+        "prompts_config": {
+            "rfp_review": "Read the supplied RFP text and answer only from what it states. Do not invent requirements."
+        }
+    },
+    "execution": {
+        "logging_level": "INFO",
+        "support_delegations": true,
+        "execute_code": false,
+        "enabled_memory_classes": [
+            "short_term",
+            "long_term"
+        ]
+    },
+    "owner": {
+        "org_id": "org-camfacesolution",
+        "org_name": "CamFaceSolution",
+        "team": "Bid Management"
+    },
+    "integrations": {
+        "policies": [
+            {
+                "policy_type": "quota",
+                "policy_rule_uri": "policies/quota-checker",
+                "parameters": {
+                    "max_requests_per_minute": 60
+                },
+                "settings": {
+                    "enforce": true
+                }
+            }
+        ],
+        "models": [
+            {
+                "llm_type": "openai",
+                "llm_block_id": "openai:gpt-5.4-mini",
+                "llm_selection_query": {
+                    "task": "classification"
+                },
+                "llm_parameters": {
+                    "api_key": "${OPENAI_API_KEY}",
+                    "max_completion_tokens": 16384,
+                    "top_k": 50,
+                    "top_p": 0.95,
+                    "temperature": 0.2
+                }
+            }
+        ],
+        "memory_systems": [
+            {
+                "memory_id": "redis-memory",
+                "memory_type": "short_term",
+                "memory_backend": "redis",
+                "memory_custom_config": {
+                    "ttl": 3600
+                }
+            }
+        ]
+    },
+    "runtime": {
+        "resources": {
+            "device": "cpu",
+            "cpu_cores": 2,
+            "memory_mb": 4096,
+            "storage_mb": 4096,
+            "gpu_count": 0,
+            "env": {
+                "LOG_LEVEL": "INFO",
+                "SUBJECT_ID": "camfacesolution-bid-manager",
+                "HIS_BASE_URL": "${HIS_BASE_URL}"
+            }
+        },
+        "management_commands": [
+            {
+                "command": "reload_config",
+                "command_description": "Re-read this company's config.yaml without restarting the pod"
+            }
+        ],
+        "exchanges": [
+            "central-exchange-001"
+        ]
+    }
+}

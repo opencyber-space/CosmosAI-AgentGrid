@@ -1,0 +1,78 @@
+{
+  "function_name": "va-usecase-endpoint",
+  "function_version": "1.0",
+  "function_release_tag": "stable",
+  "function_metadata": {
+    "author": "admin",
+    "category": "usecase-endpoint",
+    "language": "python",
+    "entry_module": "policy_rule",
+    "entry_class": "AIOSv1PolicyRule",
+    "note": "Template only. functions/build_endpoints.py packages one of these per company per use case as va-uc-{company}-{usecase}."
+  },
+  "function_search_description": "Live video-analytics use-case endpoint: returns a boolean verdict for a given image.",
+  "function_tags": [
+    "video-analytics",
+    "usecase-endpoint",
+    "openarcade",
+    "xchange"
+  ],
+  "function_type": "policy",
+  "function_code": "",
+  "function_settings": {
+    "usecase": "",
+    "default_verdict": false
+  },
+  "function_parameters": {},
+  "is_system_action": false,
+  "is_stateful": true,
+  "function_man_page_doc": "Input {image_url, image_name} -> {result: bool, usecase, image_name}. The verdict for each image name is read from code/endpoint_responses.json, packaged at build time from an uncommitted per-company file; an image with no packaged verdict, or a package built without one, gets default_verdict. The image is never downloaded.",
+  "function_policy_rule_uri": "",
+  "function_settings_schema": {
+    "title": "Settings",
+    "type": "object",
+    "properties": {
+      "usecase": {
+        "type": "string"
+      },
+      "default_verdict": {
+        "type": "boolean"
+      }
+    }
+  },
+  "function_parameters_schema": {
+    "title": "Parameters",
+    "type": "object",
+    "properties": {}
+  },
+  "function_input_schema": {
+    "title": "Input",
+    "type": "object",
+    "properties": {
+      "image_url": {
+        "type": "string"
+      },
+      "image_name": {
+        "type": "string"
+      }
+    }
+  },
+  "function_output_schema": {
+    "title": "Output",
+    "type": "object",
+    "properties": {
+      "result": {
+        "type": "boolean"
+      },
+      "usecase": {
+        "type": "string"
+      },
+      "image_name": {
+        "type": "string"
+      }
+    }
+  },
+  "function_api_spec": {},
+  "open_api_spec": {},
+  "api_parameters_to_cost_relation_data": {}
+}
